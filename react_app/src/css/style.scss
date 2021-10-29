@@ -1,0 +1,22 @@
+.page-table-of-contents{
+    min-height: 300px;
+    padding: 10px;
+    .table-of-contents {
+        padding-left: 0;
+        padding-right: 0;
+    }
+}
+
+/**********************************************************
+/ tablets layout
+/*********************************************************/
+@media screen and (min-width: 768px) and (max-width: 1023px){
+    
+}
+
+/**********************************************************
+/ Smartphone layout
+/*********************************************************/
+@media screen and (max-width: 767px){
+    
+}
