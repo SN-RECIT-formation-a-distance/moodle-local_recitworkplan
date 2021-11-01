@@ -61,16 +61,16 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         $courses = enrol_get_all_users_courses($userId, true);
         $ret = array();
         foreach($courses as $course) {
-            if ($course->visible) {
-                return true;
+            if (!$course->visible) {
+                continue;
             }
-            context_helper::preload_from_record($course);
-            $context = context_course::instance($course->id);
+            \context_helper::preload_from_record($course);
+            $context = \context_course::instance($course->id);
             if (has_capability('moodle/course:viewhiddencourses', $context, $userId)) {
                 $ar = array('id' => $course->id, 'name' => $course->fullname, 'cms' => array());
                 $modinfo = get_fast_modinfo($course->id);
-                foreach ($modinfo->cms as $id => $cm){
-                    $ar['cms'][] = array('id' => $id, 'name' => $cm->modname);
+                foreach ($modinfo->cms as $cm){
+                    $ar['cms'][] = array('id' => $cm->id, 'name' => $cm->modname);
                 }
                 $ret[] = $ar;
             }
@@ -173,8 +173,12 @@ class TrainingPlan {
             $course = $DB->get_record('course',array('id' => $a->course));
             $a->coursename = $course->fullname;
             $modinfo = get_fast_modinfo($a->course);
-            $cm = $modinfo->cms[$a->cmid];
-            $a->cmname = $cm->modname;
+            foreach ($modinfo->cms as $cm){
+                if ($cm->id == $a->cmid){
+                    $a->cmname = $cm->modname;
+                    $a->cmurl = $cm->__get('url');
+                }
+            }
         }
         //Load user name
         foreach ($this->assignments as &$a){

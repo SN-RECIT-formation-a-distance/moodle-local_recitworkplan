@@ -59732,6 +59732,11 @@ var TemplatesView = /*#__PURE__*/function (_Component4) {
           plan: this.state.edit,
           onClose: this.onClose
         });
+      } else if (this.state.popup == 'a') {
+        main = /*#__PURE__*/_react.default.createElement(ActivityForm, {
+          plan: this.state.edit,
+          onClose: this.onClose
+        });
       } else {
         main = /*#__PURE__*/_react.default.createElement("div", null, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Button, {
           onClick: function onClick() {
@@ -59918,6 +59923,14 @@ var UserForm = /*#__PURE__*/function (_Component5) {
       } else {
         main = /*#__PURE__*/_react.default.createElement("div", null, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Button, {
           onClick: function onClick() {
+            return _this12.props.onClose();
+          },
+          variant: "danger",
+          title: "Fermer"
+        }, /*#__PURE__*/_react.default.createElement(_reactFontawesome.FontAwesomeIcon, {
+          icon: _freeSolidSvgIcons.faWindowClose
+        })), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Button, {
+          onClick: function onClick() {
             return _this12.onAdd();
           },
           title: "Ajouter"
@@ -60092,6 +60105,7 @@ var AddUserForm = /*#__PURE__*/function (_Component6) {
         onClick: function onClick() {
           return _this16.props.onClose();
         },
+        variant: "danger",
         title: "Fermer"
       }, /*#__PURE__*/_react.default.createElement(_reactFontawesome.FontAwesomeIcon, {
         icon: _freeSolidSvgIcons.faWindowClose
@@ -60107,11 +60121,7 @@ var AddUserForm = /*#__PURE__*/function (_Component6) {
         options: this.state.users,
         onChange: this.onDataChange,
         name: "userid",
-        value: data.userid,
-        style: {
-          float: "left",
-          width: "90%"
-        }
+        value: data.userid
       }))), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Row, null, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Group, {
         as: _reactBootstrap.Col
       }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Label, null, "Temps \xE0 travailler par semaine"), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Control, {
@@ -60196,6 +60206,421 @@ var AddUserForm = /*#__PURE__*/function (_Component6) {
 
 _defineProperty(AddUserForm, "defaultProps", {
   user: null,
+  onClose: null
+});
+
+var ActivityForm = /*#__PURE__*/function (_Component7) {
+  _inherits(ActivityForm, _Component7);
+
+  var _super7 = _createSuper(ActivityForm);
+
+  function ActivityForm(props) {
+    var _this17;
+
+    _classCallCheck(this, ActivityForm);
+
+    _this17 = _super7.call(this, props);
+    _this17.state = {
+      dataProvider: [],
+      edit: null,
+      popup: null
+    };
+    _this17.getDataResult = _this17.getDataResult.bind(_assertThisInitialized(_this17));
+    _this17.onClose = _this17.onClose.bind(_assertThisInitialized(_this17));
+    return _this17;
+  }
+
+  _createClass(ActivityForm, [{
+    key: "componentDidMount",
+    value: function componentDidMount() {
+      this.getData();
+    }
+  }, {
+    key: "componentWillUnmount",
+    value: function componentWillUnmount() {}
+  }, {
+    key: "getData",
+    value: function getData() {
+      _common.$glVars.webApi.getTrainingPlan(this.props.plan.id, this.getDataResult);
+    }
+  }, {
+    key: "getDataResult",
+    value: function getDataResult(result) {
+      if (!result.success) {
+        _Components.FeedbackCtrl.instance.showError(_common.$glVars.i18n.appName, result.msg);
+
+        return;
+      }
+
+      this.setState({
+        dataProvider: result.data.activities
+      });
+    }
+  }, {
+    key: "render",
+    value: function render() {
+      var _this18 = this;
+
+      var main = null;
+
+      if (this.state.popup == 'p') {
+        main = /*#__PURE__*/_react.default.createElement(AddActivityForm, {
+          activity: this.state.edit,
+          plan: this.props.plan,
+          onClose: this.onClose
+        });
+      } else {
+        main = /*#__PURE__*/_react.default.createElement("div", null, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Button, {
+          onClick: function onClick() {
+            return _this18.props.onClose();
+          },
+          variant: "danger",
+          title: "Fermer"
+        }, /*#__PURE__*/_react.default.createElement(_reactFontawesome.FontAwesomeIcon, {
+          icon: _freeSolidSvgIcons.faWindowClose
+        })), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Button, {
+          onClick: function onClick() {
+            return _this18.onAdd();
+          },
+          title: "Ajouter"
+        }, "Ajouter une activit\xE9"), /*#__PURE__*/_react.default.createElement("br", null), /*#__PURE__*/_react.default.createElement("br", null), /*#__PURE__*/_react.default.createElement("h3", null, "Parcours du plan ", this.props.plan.name), /*#__PURE__*/_react.default.createElement(_Components.DataGrid, {
+          orderBy: true
+        }, /*#__PURE__*/_react.default.createElement(_Components.DataGrid.Header, null, /*#__PURE__*/_react.default.createElement(_Components.DataGrid.Header.Row, null, /*#__PURE__*/_react.default.createElement(_Components.DataGrid.Header.Cell, {
+          style: {
+            width: 80
+          }
+        }, "#"), /*#__PURE__*/_react.default.createElement(_Components.DataGrid.Header.Cell, null, "Nom du cours"), /*#__PURE__*/_react.default.createElement(_Components.DataGrid.Header.Cell, null, "Nom de l'activit\xE9"), /*#__PURE__*/_react.default.createElement(_Components.DataGrid.Header.Cell, null, "Temps pour compl\xE9ter (h)"), /*#__PURE__*/_react.default.createElement(_Components.DataGrid.Header.Cell, {
+          style: {
+            width: 40
+          }
+        }))), /*#__PURE__*/_react.default.createElement(_Components.DataGrid.Body, null, this.state.dataProvider.map(function (item, index) {
+          var row = /*#__PURE__*/_react.default.createElement(_Components.DataGrid.Body.Row, {
+            key: index,
+            onDbClick: function onDbClick() {
+              return _this18.onEdit(item, 'p');
+            }
+          }, /*#__PURE__*/_react.default.createElement(_Components.DataGrid.Body.Cell, null, item.id), /*#__PURE__*/_react.default.createElement(_Components.DataGrid.Body.Cell, null, item.coursename), /*#__PURE__*/_react.default.createElement(_Components.DataGrid.Body.Cell, null, /*#__PURE__*/_react.default.createElement("a", {
+            target: "_blank",
+            href: item.cmurl
+          }, item.cmname)), /*#__PURE__*/_react.default.createElement(_Components.DataGrid.Body.Cell, null, item.time_to_complete), /*#__PURE__*/_react.default.createElement(_Components.DataGrid.Body.Cell, null, /*#__PURE__*/_react.default.createElement(_reactBootstrap.ButtonGroup, {
+            size: "sm"
+          }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Button, {
+            onClick: function onClick() {
+              return _this18.onEdit(item, 'p');
+            },
+            title: "Modifier"
+          }, /*#__PURE__*/_react.default.createElement(_reactFontawesome.FontAwesomeIcon, {
+            icon: _freeSolidSvgIcons.faPencilAlt
+          })), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Button, {
+            onClick: function onClick() {
+              return _this18.onDelete(item);
+            },
+            title: "Supprimer",
+            variant: "danger"
+          }, /*#__PURE__*/_react.default.createElement(_reactFontawesome.FontAwesomeIcon, {
+            icon: _freeSolidSvgIcons.faTrashAlt
+          })))));
+
+          return row;
+        }))));
+      }
+
+      return main;
+    }
+  }, {
+    key: "onEdit",
+    value: function onEdit(item, popup) {
+      if (item.id === 0) {
+        alert('Objet non existant');
+        return;
+      }
+
+      this.setState({
+        edit: item,
+        popup: popup
+      });
+    }
+  }, {
+    key: "onAdd",
+    value: function onAdd() {
+      this.setState({
+        edit: {
+          id: null,
+          course: '',
+          cmid: '',
+          time_to_complete: ''
+        },
+        popup: 'p'
+      });
+    }
+  }, {
+    key: "onDelete",
+    value: function onDelete(item) {
+      var _this19 = this;
+
+      if (!confirm("Êtes-vous sûr de vouloir supprimer cet item?")) {
+        return;
+      }
+
+      _common.$glVars.webApi.deleteTrainingPlanActivity(item, function (result) {
+        if (result.success) {
+          _this19.onClose();
+
+          _common.$glVars.feedback.showInfo(_common.$glVars.i18n.tags.appName, _common.$glVars.i18n.tags.msgSuccess, 3);
+        } else {
+          _common.$glVars.feedback.showError(_common.$glVars.i18n.tags.appName, result.msg);
+        }
+      });
+    }
+  }, {
+    key: "onClose",
+    value: function onClose() {
+      this.setState({
+        edit: null,
+        popup: null
+      });
+      this.getData();
+    }
+  }]);
+
+  return ActivityForm;
+}(_react.Component);
+
+var AddActivityForm = /*#__PURE__*/function (_Component8) {
+  _inherits(AddActivityForm, _Component8);
+
+  var _super8 = _createSuper(AddActivityForm);
+
+  function AddActivityForm(props) {
+    var _this20;
+
+    _classCallCheck(this, AddActivityForm);
+
+    _this20 = _super8.call(this, props);
+    _this20.onDataChange = _this20.onDataChange.bind(_assertThisInitialized(_this20));
+    _this20.onSubmit = _this20.onSubmit.bind(_assertThisInitialized(_this20));
+    _this20.onSave = _this20.onSave.bind(_assertThisInitialized(_this20));
+    _this20.onSaveResult = _this20.onSaveResult.bind(_assertThisInitialized(_this20));
+    _this20.onClose = _this20.onClose.bind(_assertThisInitialized(_this20));
+    _this20.state = {
+      data: {
+        id: 0
+      },
+      formValidated: false,
+      courses: [],
+      cms: [],
+      dataFetched: []
+    };
+
+    if (_this20.props.activity) {
+      _this20.state.data = _this20.props.activity;
+    }
+
+    _this20.formRef = _react.default.createRef();
+
+    _this20.getCourses();
+
+    return _this20;
+  }
+
+  _createClass(AddActivityForm, [{
+    key: "getCourses",
+    value: function getCourses() {
+      var _this21 = this;
+
+      _common.$glVars.webApi.getAvailableCourses(function (result) {
+        if (!result.success) {
+          _Components.FeedbackCtrl.instance.showError(_common.$glVars.i18n.appName, result.msg);
+
+          return;
+        }
+
+        _this21.state.dataFetched = result.data;
+        var courses = [];
+
+        var _iterator3 = _createForOfIteratorHelper(_this21.state.dataFetched),
+            _step3;
+
+        try {
+          for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
+            var c = _step3.value;
+            courses.push({
+              value: c.id,
+              text: c.name
+            });
+          }
+        } catch (err) {
+          _iterator3.e(err);
+        } finally {
+          _iterator3.f();
+        }
+
+        _this21.setState({
+          courses: courses
+        });
+
+        if (_this21.props.activity.course) {
+          _this21.getCms(_this21.props.activity.course);
+        }
+      });
+    }
+  }, {
+    key: "getCms",
+    value: function getCms(courseid) {
+      var cms = [];
+
+      var _iterator4 = _createForOfIteratorHelper(this.state.dataFetched),
+          _step4;
+
+      try {
+        for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
+          var c = _step4.value;
+
+          if (c.id == courseid) {
+            var _iterator5 = _createForOfIteratorHelper(c.cms),
+                _step5;
+
+            try {
+              for (_iterator5.s(); !(_step5 = _iterator5.n()).done;) {
+                var cm = _step5.value;
+                cms.push({
+                  value: cm.id,
+                  text: cm.name
+                });
+              }
+            } catch (err) {
+              _iterator5.e(err);
+            } finally {
+              _iterator5.f();
+            }
+          }
+        }
+      } catch (err) {
+        _iterator4.e(err);
+      } finally {
+        _iterator4.f();
+      }
+
+      this.setState({
+        cms: cms
+      });
+    }
+  }, {
+    key: "render",
+    value: function render() {
+      var _this22 = this;
+
+      if (this.state.data === null) return null;
+      var data = this.state.data;
+
+      var main = /*#__PURE__*/_react.default.createElement("div", null, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Button, {
+        onClick: function onClick() {
+          return _this22.props.onClose();
+        },
+        title: "Fermer"
+      }, /*#__PURE__*/_react.default.createElement(_reactFontawesome.FontAwesomeIcon, {
+        icon: _freeSolidSvgIcons.faWindowClose
+      })), /*#__PURE__*/_react.default.createElement("br", null), /*#__PURE__*/_react.default.createElement("br", null), /*#__PURE__*/_react.default.createElement("h3", null, "Parcours du plan ", this.props.plan.name), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form, {
+        noValidate: true,
+        validated: this.state.formValidated,
+        onSubmit: this.onSubmit,
+        ref: this.formRef
+      }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Row, null, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Group, {
+        as: _reactBootstrap.Col
+      }, /*#__PURE__*/_react.default.createElement(_Components.ComboBox, {
+        placeholder: "Sélectionnez un cours",
+        options: this.state.courses,
+        onChange: this.onDataChange,
+        name: "course",
+        value: data.course
+      }))), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Row, null, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Group, {
+        as: _reactBootstrap.Col
+      }, /*#__PURE__*/_react.default.createElement(_Components.ComboBox, {
+        placeholder: "Sélectionnez une activité",
+        options: this.state.cms,
+        onChange: this.onDataChange,
+        name: "cmid",
+        value: data.cmid
+      }))), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Row, null, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Group, {
+        as: _reactBootstrap.Col
+      }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Label, null, "Temps \xE0 travailler pour compl\xE9ter"), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Control, {
+        type: "number",
+        required: true,
+        value: data.time_to_complete,
+        name: "time_to_complete",
+        onChange: this.onDataChange
+      })))), /*#__PURE__*/_react.default.createElement(_reactBootstrap.ButtonGroup, null, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Button, {
+        variant: "secondary",
+        onClick: this.onClose
+      }, "Annuler"), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Button, {
+        variant: "success",
+        onClick: this.onSubmit,
+        disabled: !this.state.formValidated
+      }, "Enregistrer")));
+
+      return main;
+    }
+  }, {
+    key: "onClose",
+    value: function onClose() {
+      this.props.onClose();
+    }
+  }, {
+    key: "onDataChange",
+    value: function onDataChange(event) {
+      var data = this.state.data;
+      data[event.target.name] = event.target.value;
+
+      if (event.target.name == 'course') {
+        this.getCms(event.target.value);
+      }
+
+      if (this.formRef.current.checkValidity() === false) {
+        this.setState({
+          formValidated: false,
+          data: data
+        });
+      } else {
+        this.setState({
+          formValidated: true,
+          data: data
+        });
+      }
+    }
+  }, {
+    key: "onSubmit",
+    value: function onSubmit(e) {
+      if (e) e.preventDefault();
+      this.onSave();
+    }
+  }, {
+    key: "onSave",
+    value: function onSave() {
+      var data = _Utils.JsNx.clone(this.state.data);
+
+      data.tid = this.props.plan.id;
+
+      _common.$glVars.webApi.addOrUpdateTrainingPlanActivity(data, this.onSaveResult);
+    }
+  }, {
+    key: "onSaveResult",
+    value: function onSaveResult(result) {
+      if (result.success) {
+        this.onClose();
+
+        _common.$glVars.feedback.showInfo(_common.$glVars.i18n.tags.appName, _common.$glVars.i18n.tags.msgSuccess, 3);
+      } else {
+        _common.$glVars.feedback.showError(_common.$glVars.i18n.tags.appName, result.msg);
+      }
+    }
+  }]);
+
+  return AddActivityForm;
+}(_react.Component);
+
+_defineProperty(AddActivityForm, "defaultProps", {
+  activity: null,
+  plan: null,
   onClose: null
 });
 },{"react":"../node_modules/react/index.js","react-bootstrap":"../node_modules/react-bootstrap/esm/index.js","@fortawesome/free-solid-svg-icons":"../node_modules/@fortawesome/free-solid-svg-icons/index.es.js","@fortawesome/react-fontawesome":"../node_modules/@fortawesome/react-fontawesome/index.es.js","../libs/components/Components":"libs/components/Components.js","../libs/utils/Utils":"libs/utils/Utils.js","../common/common":"common/common.js","./StudentView":"views/StudentView.js"}],"views/Views.js":[function(require,module,exports) {

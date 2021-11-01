@@ -287,6 +287,8 @@ class TemplatesView extends Component{
             main = <ModalPlanForm plan={this.state.edit} onClose={this.onClose} />;
         }else if (this.state.popup == 'u'){
             main = <UserForm plan={this.state.edit} onClose={this.onClose} />;
+        }else if (this.state.popup == 'a'){
+            main = <ActivityForm plan={this.state.edit} onClose={this.onClose} />;
         }else{
             main = <div>
                 <Button onClick={() => this.onAdd()} title="Ajouter">Ajouter un gabarit de plan de travail</Button>
@@ -398,6 +400,7 @@ class UserForm extends Component{
             main = <AddUserForm user={this.state.edit} plan={this.props.plan} onClose={this.onClose} />;
         }else{
             main = <div>
+                <Button onClick={() => this.props.onClose()} variant="danger" title="Fermer"><FontAwesomeIcon icon={faWindowClose}/></Button>
                 <Button onClick={() => this.onAdd()} title="Ajouter">Ajouter un élève</Button>
                 <br/><br/>
                 <DataGrid orderBy={true}>
@@ -518,13 +521,13 @@ class AddUserForm extends Component{
     
         let main =
             <div>
-            <Button onClick={() => this.props.onClose()} title="Fermer"><FontAwesomeIcon icon={faWindowClose}/></Button>
+                <Button onClick={() => this.props.onClose()} variant="danger" title="Fermer"><FontAwesomeIcon icon={faWindowClose}/></Button>
             <br/><br/>
                     <h3>Élève</h3>
                     <Form noValidate validated={this.state.formValidated} onSubmit={this.onSubmit} ref={this.formRef}>
                         <Form.Row>
                             <Form.Group as={Col}>
-                                <ComboBox placeholder={"Sélectionnez votre option"} options={this.state.users} onChange={this.onDataChange} name="userid" value={data.userid} style={{float: "left", width: "90%"}}/>
+                                <ComboBox placeholder={"Sélectionnez votre option"} options={this.state.users} onChange={this.onDataChange} name="userid" value={data.userid}/>
                             </Form.Group>
                         </Form.Row>
                         <Form.Row>
@@ -573,6 +576,253 @@ class AddUserForm extends Component{
         data.tid = this.props.plan.id;
         data.timestart = Date.parse(data.timestart) / 1000;
         $glVars.webApi.addOrUpdateTrainingPlanAssignment(data, this.onSaveResult);
+    }
+
+    onSaveResult(result){
+        if(result.success){
+            this.onClose();
+
+            $glVars.feedback.showInfo($glVars.i18n.tags.appName, $glVars.i18n.tags.msgSuccess, 3);
+        }
+        else{
+            $glVars.feedback.showError($glVars.i18n.tags.appName, result.msg);
+        }
+    }
+}
+
+
+class ActivityForm extends Component{
+
+    constructor(props){
+        super(props);
+
+        this.state = {dataProvider: [], edit: null, popup: null};
+        this.getDataResult = this.getDataResult.bind(this);
+        this.onClose = this.onClose.bind(this);
+    }
+    
+    componentDidMount(){
+        this.getData();
+    }
+
+    componentWillUnmount(){
+    }
+
+    getData(){
+        $glVars.webApi.getTrainingPlan(this.props.plan.id, this.getDataResult);
+    }
+
+    getDataResult(result){
+        if(!result.success){
+            FeedbackCtrl.instance.showError($glVars.i18n.appName, result.msg);
+            return;
+        }
+
+        this.setState({dataProvider: result.data.activities});
+    }
+
+    render(){
+
+        let main = null;
+        if (this.state.popup == 'p'){
+            main = <AddActivityForm activity={this.state.edit} plan={this.props.plan} onClose={this.onClose} />;
+        }else{
+            main = <div>
+                <Button onClick={() => this.props.onClose()} variant="danger" title="Fermer"><FontAwesomeIcon icon={faWindowClose}/></Button>
+                <Button onClick={() => this.onAdd()} title="Ajouter">Ajouter une activité</Button>
+                <br/><br/>
+                <h3>Parcours du plan {this.props.plan.name}</h3>
+                <DataGrid orderBy={true}>
+                    <DataGrid.Header>
+                        <DataGrid.Header.Row>
+                            <DataGrid.Header.Cell style={{width: 80}}>{"#"}</DataGrid.Header.Cell>
+                            <DataGrid.Header.Cell>Nom du cours</DataGrid.Header.Cell>
+                            <DataGrid.Header.Cell>Nom de l'activité</DataGrid.Header.Cell>
+                            <DataGrid.Header.Cell>Temps pour compléter (h)</DataGrid.Header.Cell>
+                            <DataGrid.Header.Cell style={{width: 40}}></DataGrid.Header.Cell>
+                        </DataGrid.Header.Row>
+                    </DataGrid.Header>
+                    <DataGrid.Body>
+                        {this.state.dataProvider.map((item, index) => {
+                                let row = 
+                                    <DataGrid.Body.Row key={index} onDbClick={() => this.onEdit(item, 'p')}>
+                                        <DataGrid.Body.Cell>{item.id}</DataGrid.Body.Cell>
+                                        <DataGrid.Body.Cell>{item.coursename}</DataGrid.Body.Cell>
+                                        <DataGrid.Body.Cell><a target="_blank" href={item.cmurl}>{item.cmname}</a></DataGrid.Body.Cell>
+                                        <DataGrid.Body.Cell>{item.time_to_complete}</DataGrid.Body.Cell>
+                                        <DataGrid.Body.Cell>
+                                            <ButtonGroup size='sm'>
+                                                <Button onClick={() => this.onEdit(item, 'p')} title="Modifier"><FontAwesomeIcon icon={faPencilAlt}/></Button>
+                                                <Button onClick={() => this.onDelete(item)} title="Supprimer" variant="danger"><FontAwesomeIcon icon={faTrashAlt}/></Button>
+                                            </ButtonGroup>
+                                        </DataGrid.Body.Cell>
+                                    </DataGrid.Body.Row>
+                                return (row);                                    
+                            }
+                        )}
+                    </DataGrid.Body>
+                </DataGrid>
+            </div>;
+        }
+
+        return (main);
+    }
+
+    onEdit(item, popup){
+        if(item.id === 0){
+            alert('Objet non existant');
+            return;
+        }
+        this.setState({edit: item, popup: popup});
+    }
+
+    onAdd(){
+        this.setState({edit: {id: null, course: '', cmid: '', time_to_complete: ''}, popup: 'p'});
+    }
+
+    onDelete(item){
+        if (!confirm("Êtes-vous sûr de vouloir supprimer cet item?")){
+            return;
+        }
+        $glVars.webApi.deleteTrainingPlanActivity(item, (result) => {
+        if(result.success){
+            this.onClose();
+
+            $glVars.feedback.showInfo($glVars.i18n.tags.appName, $glVars.i18n.tags.msgSuccess, 3);
+        }
+        else{
+            $glVars.feedback.showError($glVars.i18n.tags.appName, result.msg);
+        }
+    });        
+    }
+
+    onClose(){
+        this.setState({edit: null, popup: null});
+        this.getData();
+    }
+}
+
+class AddActivityForm extends Component{
+    static defaultProps = {        
+        activity: null,
+        plan: null,
+        onClose: null,
+    };
+
+    constructor(props){
+        super(props);
+
+        this.onDataChange = this.onDataChange.bind(this);
+        this.onSubmit = this.onSubmit.bind(this);
+        this.onSave = this.onSave.bind(this);
+        this.onSaveResult = this.onSaveResult.bind(this);
+        this.onClose = this.onClose.bind(this);
+        
+        this.state = {data: {id: 0}, formValidated: false, courses: [], cms: [], dataFetched: []};
+        if (this.props.activity){
+            this.state.data = this.props.activity;
+        }
+
+        this.formRef = React.createRef();
+        this.getCourses();
+    }
+
+    getCourses(){
+        $glVars.webApi.getAvailableCourses((result) => {
+        if(!result.success){
+            FeedbackCtrl.instance.showError($glVars.i18n.appName, result.msg);
+            return;
+        }
+
+        this.state.dataFetched = result.data;
+        let courses = [];
+        for (let c of this.state.dataFetched){
+            courses.push({value: c.id, text: c.name});
+        }
+
+        this.setState({courses: courses});
+        if (this.props.activity.course){
+            this.getCms(this.props.activity.course);
+        }
+    });
+    }
+
+    getCms(courseid){
+        let cms = [];
+        for (let c of this.state.dataFetched){
+            if (c.id == courseid){
+                for (let cm of c.cms){
+                    cms.push({value: cm.id, text: cm.name});
+                }
+            }
+        }
+
+        this.setState({cms: cms});
+    }
+
+    render(){
+        if(this.state.data === null) return null;
+
+        let data = this.state.data;
+    
+        let main =
+            <div>
+            <Button onClick={() => this.props.onClose()} title="Fermer"><FontAwesomeIcon icon={faWindowClose}/></Button>
+            <br/><br/>
+                    <h3>Parcours du plan {this.props.plan.name}</h3>
+                    <Form noValidate validated={this.state.formValidated} onSubmit={this.onSubmit} ref={this.formRef}>
+                        <Form.Row>
+                            <Form.Group as={Col}>
+                                <ComboBox placeholder={"Sélectionnez un cours"} options={this.state.courses} onChange={this.onDataChange} name="course" value={data.course} />
+                            </Form.Group>
+                        </Form.Row>
+                        <Form.Row>
+                            <Form.Group as={Col}>
+                                <ComboBox placeholder={"Sélectionnez une activité"} options={this.state.cms} onChange={this.onDataChange} name="cmid" value={data.cmid} />
+                            </Form.Group>
+                        </Form.Row>
+                        <Form.Row>
+                            <Form.Group as={Col}>
+                                <Form.Label>Temps à travailler pour compléter</Form.Label>
+                                <Form.Control type="number" required value={data.time_to_complete} name="time_to_complete" onChange={this.onDataChange}/>
+                            </Form.Group>
+                        </Form.Row>
+                    </Form>
+                    <ButtonGroup>
+                        <Button variant="secondary" onClick={this.onClose}>{"Annuler"}</Button>
+                        <Button variant="success" onClick={this.onSubmit} disabled={!this.state.formValidated}>{"Enregistrer"}</Button>
+                    </ButtonGroup>
+            </div>; 
+
+        return (main);
+    }
+
+    onClose(){
+        this.props.onClose();
+    }
+
+    onDataChange(event){
+        let data = this.state.data;
+        data[event.target.name] = event.target.value;
+        if (event.target.name == 'course'){
+            this.getCms(event.target.value);
+        }
+        if (this.formRef.current.checkValidity() === false) {
+            this.setState({formValidated: false, data:data});            
+        }else{
+            this.setState({formValidated: true, data:data});
+        }
+    }
+
+    onSubmit(e){
+        if (e) e.preventDefault();
+        this.onSave();
+    };
+
+    onSave(){
+        let data = JsNx.clone(this.state.data);
+        data.tid = this.props.plan.id;
+        $glVars.webApi.addOrUpdateTrainingPlanActivity(data, this.onSaveResult);
     }
 
     onSaveResult(result){
