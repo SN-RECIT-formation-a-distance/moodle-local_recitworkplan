@@ -7,8 +7,8 @@ import ReactDOM from "react-dom";
 import {faSpinner} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {VisualFeedback, Loading} from "./libs/components/Components";
-import Utils, {UtilsMoodle} from "./libs/utils/Utils";
-import {TeacherView, StudentView} from "./views/Views";
+import Utils from "./libs/utils/Utils";
+import {AdminView} from "./views/AdminView";
 import {$glVars} from "./common/common";
 import "./css/style.scss";
 
@@ -27,9 +27,9 @@ class App extends Component {
         $glVars.signedUser = this.props.signedUser;
         $glVars.urlParams = Utils.getUrlVars();
 
-        let mode = 't';//(UtilsMoodle.checkRoles($glVars.signedUser.roles, UtilsMoodle.rolesL2) ? 't' : 's');
+        //(UtilsMoodle.checkRoles($glVars.signedUser.roles, UtilsMoodle.rolesL2) ? 't' : 's');
 
-        this.state = {mode: mode};
+        this.state = {mode: 'a'};
     }
 
     componentDidMount(){
@@ -43,7 +43,7 @@ class App extends Component {
     render() {       
         let main =
             <div>
-                {this.state.mode  === 't' ? <TeacherView/> : <StudentView/>}
+                {this.state.mode  === 'a' ? <AdminView/> : null}
                 {$glVars.feedback.msg.map((item, index) => {  
                     return (<VisualFeedback key={index} id={index} msg={item.msg} type={item.type} title={item.title} timeout={item.timeout}/>);                                    
                 })}
@@ -59,9 +59,9 @@ class App extends Component {
 }
 
 document.addEventListener('DOMContentLoaded', function(){ 
-    let domContainer = document.getElementById('recit_planformation');
+    let domContainer = document.getElementById('recit_workplan');
     if (domContainer){
-        let signedUser = {userId: domContainer.getAttribute('data-user-id'), course: domContainer.getAttribute('data-course-id')};
+        let signedUser = {userId: domContainer.getAttribute('data-user-id')};
         ReactDOM.render(<App signedUser={signedUser}/>, domContainer);
     }
 }, false);

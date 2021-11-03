@@ -1,6 +1,6 @@
 echo off
-set zipName=local_recitrecitplanformation
-set pluginName=recitplanformation
+set zipName=local_recitworkplan
+set pluginName=recitworkplan
 
 rem remove the current 
 del %zipName%

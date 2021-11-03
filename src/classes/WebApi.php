@@ -19,7 +19,7 @@
  * @copyright  2019 RÉCIT
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-namespace recitplanformation;
+namespace recitworkplan;
 
 require_once(dirname(__FILE__).'../../../../config.php');
 require_once "$CFG->dirroot/local/recitcommon/php/WebApi.php";
@@ -28,8 +28,6 @@ require_once "$CFG->dirroot/local/recitcommon/php/ReportDiagTag.php";
 
 use recitcommon;
 use recitcommon\WebApiResult;
-use recitcommon\ReportDiagTagContent;
-use recitcommon\ReportDiagTagCSVWriter;
 use Exception;
 use stdClass;
 
@@ -40,7 +38,65 @@ class WebApi extends recitcommon\MoodleApi
         $this->ctrl = PersistCtrl::getInstance($DB, $USER);
     }
     
-    public function getUsers($request){
+    public function getWorkPlanList($request){
+        global $USER;
+        try{
+            $this->canUserAccess('a');
+
+            $summary = boolval($request['summary']);
+
+            $result = $this->ctrl->getWorkPlanList($USER->id);
+            if($summary){
+                $result = $result->getSummary();
+            }
+            
+            $this->prepareJson($result);
+            
+            return new WebApiResult(true, $result);
+        }
+        catch(Exception $ex){
+            return new WebApiResult(false, false, $ex->GetMessage());
+        }
+    }
+
+    public function getWorkPlanAssignFormKit($request){
+        global $USER;
+        try{
+            $this->canUserAccess('a');
+
+            $templateId = intval($request['templateId']);
+
+            $result = new stdClass();
+            $result->prototype = new WorkPlanAssignment();
+            $result->data = $this->ctrl->getWorkPlan($templateId);
+            $result->templateList = $this->ctrl->getTemplateList($USER->id);
+            $result->studentList = $this->ctrl->getStudentList();
+
+            $this->prepareJson($result);
+            
+            return new WebApiResult(true, $result);
+        }
+        catch(Exception $ex){
+            return new WebApiResult(false, false, $ex->GetMessage());
+        }
+    }
+
+    public function saveWorkPlanAssign($request){
+        try{
+            $this->canUserAccess('a');
+
+            $data = json_decode(json_encode($request['data']), FALSE);
+
+            $this->ctrl->saveWorkPlanAssign($data);
+
+            return new WebApiResult(true);
+        }
+        catch(Exception $ex){
+            return new WebApiResult(false, false, $ex->GetMessage());
+        }
+    }
+
+   /* public function getUsers($request){
         global $USER;
         try{
             $searchparams = array();
@@ -169,7 +225,7 @@ class WebApi extends recitcommon\MoodleApi
         catch(Exception $ex){
             return new WebApiResult(false, false, $ex->GetMessage());
         }
-    }
+    }*/
 }
 
 ///////////////////////////////////////////////////////////////////////////////////

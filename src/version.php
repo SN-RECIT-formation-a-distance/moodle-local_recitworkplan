@@ -15,18 +15,18 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * @package   local_recitplanformation
+ * @package   local_recitworkplan
  * @copyright 2019 RÉCIT 
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->version   = 2021092400;       // The current module version (Date: YYYYMMDDXX)
-$plugin->release = 'R14-V1.1';
+$plugin->release = 'R14-V1.0';
 $plugin->requires  = 2018050800;    // Requires this Moodle version
-$plugin->component = 'local_recitplanformation';        // Full name of the plugin (used for diagnostics)
+$plugin->component = 'local_recitworkplan';        // Full name of the plugin (used for diagnostics)
 $plugin->cron      = 0;
 $plugin->dependencies = [
     'local_recitcommon' => 2021092400
 ];
-$plugin->maturity = MATURITY_BETA; // MATURITY_ALPHA, MATURITY_BETA, MATURITY_RC or MATURITY_STABLE
+$plugin->maturity = MATURITY_ALPHA; // MATURITY_ALPHA, MATURITY_BETA, MATURITY_RC or MATURITY_STABLE

@@ -16,11 +16,11 @@
 
 /**
  *
- * @package   local_recitplanformation
+ * @package   local_recitworkplan
  * @copyright RÉCIT 2019
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-namespace recitplanformation;
+namespace recitworkplan;
 
 require(__DIR__ . '/../../config.php');
 
@@ -45,17 +45,16 @@ class MainView{
 
     public function display(){    
         $studentId = $this->user->id;
-        $selectedCourseId = ($this->selectedCourseId > 1 ? $this->selectedCourseId : 0);
-        echo sprintf("<div id='recit_planformation' data-user-id='%ld' data-course-id='%ld'></div>", $studentId, $selectedCourseId);
+        echo sprintf("<div id='recit_workplan' data-user-id='%ld'></div>", $studentId);
     }
 }
 
 require_login();
 
 // Globals.
-$PAGE->set_url("/local/recitplanformation/view.php");
-$PAGE->requires->css(new moodle_url($CFG->wwwroot . '/local/recitplanformation/react_app/index.css'), true);
-$PAGE->requires->js(new moodle_url($CFG->wwwroot . '/local/recitplanformation/react_app/index.js?v=76'), true);
+$PAGE->set_url("/local/recitworkplan/view.php");
+$PAGE->requires->css(new moodle_url($CFG->wwwroot . '/local/recitworkplan/react_app/index.css?v='.rand()), true);
+$PAGE->requires->js(new moodle_url($CFG->wwwroot . '/local/recitworkplan/react_app/index.js?v='.rand()), true);
 
 // Set page context.
 $PAGE->set_context(\context_system::instance());
@@ -63,8 +62,8 @@ $PAGE->set_context(\context_system::instance());
 // Set page layout.
 $PAGE->set_pagelayout('base');
 
-$PAGE->set_title(get_string('pluginname', 'local_recitplanformation'));
-$PAGE->set_heading(get_string('pluginname', 'local_recitplanformation'));
+$PAGE->set_title(get_string('pluginname', 'local_recitworkplan'));
+$PAGE->set_heading(get_string('pluginname', 'local_recitworkplan'));
 
 echo $OUTPUT->header();
 $courseId = (isset($_GET['courseId']) ? $_GET['courseId'] : 0);

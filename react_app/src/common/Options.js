@@ -5,11 +5,11 @@ export class Options
     static appVersion(){ return packageJson.version; }
 
     static appTitle(){
-        return "RÉCIT plan de formation | " + this.appVersion();
+        return "RÉCIT Plan de travail | " + this.appVersion();
     }
 
     static getGateway(){
-        return `${M.cfg.wwwroot}/local/recitplanformation/classes/WebApi.php`;
+        return `${M.cfg.wwwroot}/local/recitworkplan/classes/WebApi.php`;
     }
     
 }

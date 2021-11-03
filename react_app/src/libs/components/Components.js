@@ -10,6 +10,7 @@ export * from './Feedback';
 export * from './InputNumber';
 export * from './Loading';
 export * from './ToggleButtons';
+export * from './Modal';
 
 export default class Components{
     static version = 1.0;

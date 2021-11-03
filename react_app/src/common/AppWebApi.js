@@ -28,27 +28,22 @@ export class AppWebApi extends WebApi
         }
     }
     
-    isEditingMode(onSuccess){
-        let data = {service: "isEditingMode"};
+    getWorkPlanList(summary, onSuccess){
+        let data = {summary: summary, service: "getWorkPlanList"};
         this.post(this.gateway, data, onSuccess);
     }
 
-    getAvailableCourses(onSuccess){
-        let data = {service: "getAvailableCourses"};
+    getWorkPlanAssignFormKit(templateId, onSuccess){
+        let data = {templateId: templateId, service: "getWorkPlanAssignFormKit"};
         this.post(this.gateway, data, onSuccess);
     }
-
-    getStudents(search, onSuccess){
-        let data = {service: "getUsers", search: search};
-        this.post(this.gateway, data, onSuccess);
+    
+    saveWorkPlanAssign(data, onSuccess){
+        let options = {data: data, service: "saveWorkPlanAssign"};
+        this.post(this.gateway, options, onSuccess);
     }
 
-    getTrainingPlans(onSuccess){
-        let data = {service: "getTrainingPlans"};
-        this.post(this.gateway, data, onSuccess);
-    }
-
-    getTrainingPlan(planId, onSuccess){
+   /* getTrainingPlan(planId, onSuccess){
         let data = {planId: planId, service: "getTrainingPlan"};
         this.post(this.gateway, data, onSuccess);
     }
@@ -81,6 +76,6 @@ export class AppWebApi extends WebApi
     deleteTrainingPlanAssignment(planAssignment, onSuccess){
         let data = {planAssignment: planAssignment, service: "deleteTrainingPlanAssignment"};
         this.post(this.gateway, data, onSuccess);
-    }
+    }*/
 
 };

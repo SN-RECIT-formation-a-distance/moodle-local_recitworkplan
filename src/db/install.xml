@@ -1,48 +1,48 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="local/recitplanformation/db" VERSION="20190303" COMMENT="XMLDB file for URL module"
+<XMLDB PATH="local/recitworkplan/db" VERSION="20211102" COMMENT=""
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
   <TABLES>
-    <TABLE NAME="recittp" COMMENT="Main table">
+    <TABLE NAME="recit_wp_tpl" COMMENT="work plan templates">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
-        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="teacher id"/>
+        <FIELD NAME="creatorid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="user id"/>
         <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="description" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="lastupdate" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
     </TABLE>
 
-     <TABLE NAME="recittp_activities" COMMENT="">
+     <TABLE NAME="recit_wp_tpl_act" COMMENT="work plan template activities">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
-        <FIELD NAME="course" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
-        <FIELD NAME="cmid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
-        <FIELD NAME="time_to_complete" TYPE="int" LENGTH="15" NOTNULL="false" SEQUENCE="false"/>
-        <FIELD NAME="tid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="recittrainingplans id"/>
+        <FIELD NAME="templateid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="recit_wp_tpl.id"/>
+        <FIELD NAME="cmid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="nb_hours_completion" TYPE="float" NOTNULL="false" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
-        <KEY NAME="fkcourse" TYPE="foreign" FIELDS="course" REFTABLE="course" REFFIELDS ="id"/>
-        <KEY NAME="fktid" TYPE="foreign" FIELDS="tid" REFTABLE="recittp" REFFIELDS ="id"/>
+        <KEY NAME="fktemplateid" TYPE="foreign" FIELDS="templateid" REFTABLE="recit_wp_tpl" REFFIELDS ="id"/>
       </KEYS>
     </TABLE>
 
-     <TABLE NAME="recittp_assignments" COMMENT="">
+     <TABLE NAME="recit_wk_tpl_assign" COMMENT="work plan templates assignment">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
-        <FIELD NAME="tid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" />
-        <FIELD NAME="gid" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false" />
-        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false" COMMENT="student"/>
-        <FIELD NAME="worktimeweek" TYPE="int" LENGTH="15" NOTNULL="true" DEFAULT="0" SEQUENCE="false" />
-        <FIELD NAME="timestart" TYPE="int" LENGTH="15" NOTNULL="true" DEFAULT="0" SEQUENCE="false" />
+        <FIELD NAME="templateid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"  COMMENT="recit_wp_tpl.id"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false" COMMENT="student id"/>
+        <FIELD NAME="nb_hours_per_week" TYPE="float"  NOTNULL="false" DEFAULT="0" SEQUENCE="false" />
+        <FIELD NAME="startdate" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" />
+        <FIELD NAME="lastupdate" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
-        <KEY NAME="fktid" TYPE="foreign" FIELDS="tid" REFTABLE="recittg" REFFIELDS ="id"/>
+        <KEY NAME="fktemplateid" TYPE="foreign" FIELDS="templateid" REFTABLE="recit_wp_tpl" REFFIELDS ="id"/>
+        <KEY NAME="fkuserid" TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS ="id"/>
       </KEYS>
     </TABLE>
 

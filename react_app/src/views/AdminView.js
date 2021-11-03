@@ -1,57 +1,62 @@
 import React, { Component } from 'react';
-import {ButtonToolbar, ButtonGroup, Button, Form, Col, DropdownButton, Dropdown, Modal, Nav, Card, Pagination, Row} from 'react-bootstrap';
-import {faArrowLeft, faArrowRight, faPencilAlt, faPlusCircle, faWrench, faTrashAlt, faBars, faTv, faEye, faAngleRight, faGripVertical, faPen, faUser, faChalkboardTeacher, faWindowClose} from '@fortawesome/free-solid-svg-icons';
+import {Tabs, Tab, ButtonGroup, Button, Form, Col, Table, Badge} from 'react-bootstrap';
+import {faArrowLeft, faArrowRight, faPencilAlt,  faTrashAlt, faPlus, faChalkboardTeacher, faWindowClose} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {ComboBox, FeedbackCtrl, DataGrid} from '../libs/components/Components';
-import {JsNx} from '../libs/utils/Utils';
+import {ComboBox, FeedbackCtrl, DataGrid, Modal} from '../libs/components/Components';
 import {$glVars} from '../common/common';
-import { PageView } from './StudentView';
+import { JsNx } from '../libs/utils/Utils';
 
-
-
-export class TeacherView extends Component {
+export class AdminView extends Component {
     constructor(props) {
         super(props);
 
-        this.state = {};
+        this.state = {tab: 'workplans'};
     }
 
     render() {       
         let main =
-            <div>
-                <TemplatesView/>
-            </div>
+            <Tabs activeKey={this.state.tab}  onSelect={(t) => this.setState({tab: t})}>
+                <Tab eventKey="home" title="Accueil">
+                    <HomeView/>
+                </Tab>
+                <Tab eventKey="workplans" title="Plans de travail">
+                    <WorkPlanAssignView/>
+                </Tab>
+                <Tab eventKey="templates" title="Gabarits">
+                </Tab>
+            </Tabs>
 
         return (main);
     }
-
 }
 
-
-class GroupUserSelect extends Component{
-    static defaultProps = {
-        onSelectUser: null
-    };
-
+class HomeView extends Component{
     constructor(props){
         super(props);
-
-        this.onSelectGroup = this.onSelectGroup.bind(this);
-        this.onSelectUser = this.onSelectUser.bind(this);
-        this.onPrevious = this.onPrevious.bind(this);
-        this.onNext = this.onNext.bind(this);
+        
         this.getData = this.getData.bind(this);
         this.getDataResult = this.getDataResult.bind(this);
 
-        this.state = {selectedUserIndex: -1, selectedGroupId: -1, groupList:[], userList: []};
+        this.state = {dataProvider: []};
     }
 
     componentDidMount(){
+        //$glVars.webApi.addObserver("HomeView", this.getData, ['saveUserNote']);        
         this.getData();
     }
-    
+
+    componentWillUnmount(){
+        //$glVars.webApi.removeObserver("HomeView");
+    }
+
+    componentDidUpdate(prevProps){
+        /*if(prevProps.userId !== this.props.userId){
+            this.getData();
+        }*/
+    }
+
     getData(){
-        $glVars.webApi.getEnrolledUserList($glVars.urlParams.id, this.getDataResult);
+        $glVars.webApi.getWorkPlanList(true, this.getDataResult);
     }
 
     getDataResult(result){
@@ -59,102 +64,307 @@ class GroupUserSelect extends Component{
             FeedbackCtrl.instance.showError($glVars.i18n.appName, result.msg);
             return;
         }
-        
-        let groupList = [];
-        let userList = [];
-        for(let group of result.data){
-            groupList.push({text: group[0].groupName, value: group[0].groupId, data: group});
-            for(let user of group){
-                if(JsNx.getItem(userList, "value", user.userId, null) === null){
-                    userList.push({text: user.userName, value: user.userId, data: user});
-                }
-            }
-        }
 
-        groupList.sort((a, b) => { return ('' + a.text).localeCompare(b.text);})
-        userList.sort((a, b) => { return ('' + a.text).localeCompare(b.text);})
-
-        if(!$glVars.urlParams.loaded){
-            this.setState(
-                {groupList: groupList, userList: userList, selectedUserIndex: JsNx.getItemIndex(userList, 'value', $glVars.urlParams.userId)}, 
-                () => this.props.onSelectUser($glVars.urlParams.userId)
-            );
-        }
-        else{
-            this.setState({groupList: groupList, userList: userList});
-        }
+        this.setState({dataProvider: result.data});
     }
 
     render(){
-        let userList = this.state.userList;
-        let selectedGroupId = this.state.selectedGroupId;
+        let that = this;
 
-        if(selectedGroupId > 0){
-            userList = this.state.userList.filter(function(item){
-                return (item.data.groupId.toString() === selectedGroupId.toString());
-            })
-        }
-
-        let value = ""; 
-            
-        if(JsNx.exists(userList, this.state.selectedUserIndex)){
-            value = userList[this.state.selectedUserIndex].value;
-        }
-
-        let main =
-            <div>
-                <Row>
-                    <Col sm={6}>
-                        <Form.Group as={Col}>
-                            <Form.Label>Sélectionnez le groupe:</Form.Label>
-                            <ComboBox placeholder={"Sélectionnez votre option"} options={this.state.groupList} onChange={this.onSelectGroup} value={this.state.selectedGroupId}/>
-                        </Form.Group>
-                    </Col>
-                    {this.props.onSelectUser !== null && 
-                        <Col sm={6}>
-                            <Row>
-                                <Col sm={12}>
-                                    <Form.Group  as={Col}>
-                                        <Form.Label>Sélectionnez l'utilisateur:</Form.Label>
-                                        <ComboBox placeholder={"Sélectionnez votre option"} options={userList} onChange={this.onSelectUser} value={value} style={{float: "left", width: "90%"}}/>
-                                        <ButtonGroup style={{display: "flex"}}>
-                                            <Button variant="link" onClick={() => this.onPrevious(userList)} disabled={(this.state.selectedUserIndex <= -1)}><FontAwesomeIcon icon={faArrowLeft}/></Button>
-                                            <Button variant="link" onClick={() => this.onNext(userList)} disabled={(userList.length <= (this.state.selectedUserIndex + 1))}><FontAwesomeIcon icon={faArrowRight}/></Button>
+        let main = 
+            <DataGrid orderBy={true}>
+                <DataGrid.Header>
+                    <DataGrid.Header.Row>
+                        <DataGrid.Header.Cell style={{width: 80}}>{"#"}</DataGrid.Header.Cell>
+                        <DataGrid.Header.Cell >{"Plan de travail"}</DataGrid.Header.Cell>
+                        <DataGrid.Header.Cell >{"# Élèves"}</DataGrid.Header.Cell>
+                        <DataGrid.Header.Cell >{"Plus d'info"}</DataGrid.Header.Cell>
+                    </DataGrid.Header.Row>
+                </DataGrid.Header>
+                <DataGrid.Body>
+                    {this.state.dataProvider.map((item, index) => {
+                            let row = 
+                                <DataGrid.Body.Row key={index}>
+                                    <DataGrid.Body.Cell>{index + 1}</DataGrid.Body.Cell>
+                                    <DataGrid.Body.Cell>{item.name}</DataGrid.Body.Cell>
+                                    <DataGrid.Body.Cell>{item.nbStudents}</DataGrid.Body.Cell>
+                                    <DataGrid.Body.Cell style={{textAlign: 'center'}}>
+                                        <ButtonGroup size="sm">
+                                            <Button title="Détails" variant="link"><FontAwesomeIcon icon={faPencilAlt}/></Button>
+                                            <Button title="Apprentimètre" variant="link"><FontAwesomeIcon icon={faPencilAlt}/></Button>
                                         </ButtonGroup>
-                                    </Form.Group>
-                                    
-                                </Col>
-                            </Row>
-                        </Col>       
-                    }        
-                </Row>
+                                    </DataGrid.Body.Cell>
+                                </DataGrid.Body.Row>
+                            return (row);                                    
+                        }
+                    )}
+                </DataGrid.Body>
+            </DataGrid>;
+
+        return main;
+    }
+}
+
+class WorkPlanAssignView extends Component{
+    constructor(props){
+        super(props);
+        
+        this.getData = this.getData.bind(this);
+        this.getDataResult = this.getDataResult.bind(this);
+
+        this.state = {dataProvider: [], templateId: 0};
+    }
+
+    componentDidMount(){
+        //$glVars.webApi.addObserver("HomeView", this.getData, ['saveUserNote']);        
+        this.getData();
+    }
+
+    componentWillUnmount(){
+        //$glVars.webApi.removeObserver("HomeView");
+    }
+
+    componentDidUpdate(prevProps){
+        /*if(prevProps.userId !== this.props.userId){
+            this.getData();
+        }*/
+    }
+
+    getData(){
+        $glVars.webApi.getWorkPlanList(false, this.getDataResult);
+    }
+
+    getDataResult(result){
+        if(!result.success){
+            FeedbackCtrl.instance.showError($glVars.i18n.appName, result.msg);
+            return;
+        }
+
+        this.setState({dataProvider: result.data.detailed, templateId: 0});
+    }
+
+    render(){
+        let main = 
+            <div>
+                <DataGrid orderBy={true}>
+                    <DataGrid.Header>
+                        <DataGrid.Header.Row>
+                            <DataGrid.Header.Cell style={{width: 80}}>{"#"}</DataGrid.Header.Cell>
+                            <DataGrid.Header.Cell >{"Plan de travail"}</DataGrid.Header.Cell>
+                            <DataGrid.Header.Cell >{"Description"}</DataGrid.Header.Cell>
+                            <DataGrid.Header.Cell >{"Élève"}</DataGrid.Header.Cell>
+                            <DataGrid.Header.Cell style={{width: 160}}>{"Date de début"}</DataGrid.Header.Cell>
+                            <DataGrid.Header.Cell style={{width: 150}}>{"Rythme par semaine (h)"}</DataGrid.Header.Cell>
+                            <DataGrid.Header.Cell style={{width: 120}}>{"Progrès"}</DataGrid.Header.Cell>
+                            <DataGrid.Header.Cell style={{width: 100}}>{}</DataGrid.Header.Cell>
+                        </DataGrid.Header.Row>
+                    </DataGrid.Header>
+                    <DataGrid.Body>
+                        {this.state.dataProvider.map((item, index) => {
+                                let row = 
+                                    <DataGrid.Body.Row key={index}>
+                                        <DataGrid.Body.Cell>{index + 1}</DataGrid.Body.Cell>
+                                        <DataGrid.Body.Cell>{item.template.name}</DataGrid.Body.Cell>
+                                        <DataGrid.Body.Cell>{item.template.description}</DataGrid.Body.Cell>
+                                        <DataGrid.Body.Cell>{`${item.firstName} ${item.lastName}`}</DataGrid.Body.Cell>
+                                        <DataGrid.Body.Cell>{item.startDate}</DataGrid.Body.Cell>
+                                        <DataGrid.Body.Cell>{item.nbHoursPerWeek}</DataGrid.Body.Cell>
+                                        <DataGrid.Body.Cell>{}</DataGrid.Body.Cell>
+                                        <DataGrid.Body.Cell style={{textAlign: 'center'}}>
+                                            <ButtonGroup size="sm">
+                                                <Button title="Éditer" onClick={() => this.setState({templateId: item.template.id})} variant="primary"><FontAwesomeIcon icon={faPencilAlt}/></Button>
+                                                <Button title="Supprimer" variant="primary"><FontAwesomeIcon icon={faTrashAlt}/></Button>
+                                            </ButtonGroup>
+                                        </DataGrid.Body.Cell>
+                                    </DataGrid.Body.Row>
+                                return (row);                                    
+                            }
+                        )}
+                    </DataGrid.Body>
+                </DataGrid>
+                {this.state.templateId > 0 && <ModalWorkPlanAssign templateId={this.state.templateId} onClose={() => this.setState({templateId: 0})}/>}
             </div>;
+
+        return main;
+    }
+}
+
+class ModalWorkPlanAssign extends Component{
+    static defaultProps = {        
+        templateId: 0,
+        onClose: null
+    };
+
+    constructor(props){
+        super(props);
+
+        this.getData = this.getData.bind(this);
+        this.getDataResult = this.getDataResult.bind(this);
+        this.onSave = this.onSave.bind(this);
+        this.onClose = this.onClose.bind(this);
+        this.onDataChange = this.onDataChange.bind(this);
+        this.onRemove = this.onRemove.bind(this);
+        this.onAdd = this.onAdd.bind(this);
+
+        this.state = {data: null, dropdownLists: {studentList: [], templateList: []}};
+    }
+
+    componentDidMount(){
+        this.getData();
+    }
+
+    render(){
+        if(this.state.data === null){ return null; }
+
+        let studentList = this.state.dropdownLists.studentList.filter(item => (JsNx.getItem(this.state.data.workPlanList, 'userId', item.userId, null) === null) );
+
+        let body = 
+            <Form noValidate validated={this.state.formValidated} ref={this.formRef}>
+                <Form.Row>
+                    <Form.Group as={Col}>
+                        <Form.Label>{"Collection de notes:"}</Form.Label>
+                        <ComboBox placeholder={"Sélectionnez votre option"} required={true}  name="templateId" value={this.state.data.templateId} options={this.state.dropdownLists.templateList} onChange={this.onDataChange} />
+                    </Form.Group>
+                </Form.Row>
+                <div style={{display: 'grid',gridTemplateColumns: '400px 65%', gridGap: '1rem'}}>
+                    <div>
+                        <h4>Liste d'élèves <Badge>{`(${studentList.length})`}</Badge></h4>
+                        <div style={{maxHeight: 500, overflowY: 'scroll'}}>
+                            <Table striped bordered hover>                                
+                                <thead>
+                                    <tr>
+                                        <th>Élève</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {studentList.map((item, index) => {
+                                        let row =
+                                            <tr key={index}>
+                                                <td>
+                                                    <Button onClick={() => this.onAdd(item)} size="sm" variant="primary" title="Ajouter" className="mr-2"><FontAwesomeIcon icon={faPlus}/></Button>
+                                                    {`${item.firstName} ${item.lastName}`}
+                                                </td>
+                                            </tr>
+
+                                            return row;
+                                        }
+                                    )}
+                                </tbody>
+                            </Table>
+                        </div>
+                    </div>
+                    <div >
+                        <div>
+                            <h4>Élèves assignés <Badge>{`(${this.state.data.workPlanList.length})`}</Badge></h4>
+                            <div style={{maxHeight: 500, overflowY: 'scroll'}}>
+                                <Table striped bordered hover>
+                                    <thead>
+                                        <tr>
+                                            <th>Élève</th>
+                                            <th>Date de début</th>
+                                            <th>Rythme</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {this.state.data.workPlanList.map((item, index) => {
+                                                let row =
+                                                    <tr key={index}>
+                                                        <td>{`${item.firstName} ${item.lastName}`}</td>
+                                                        <td><Form.Control type="text" placeholder="" value={item.startDate} name="startDate" onChange={(event) => this.onDataChange(event, index)} /></td>
+                                                        <td><Form.Control type="text" placeholder="" value={item.nbHoursPerWeek} name="nbHoursPerWeek" onChange={(event) => this.onDataChange(event, index)} /></td>
+                                                        <td><Button size="sm" variant="primary" title="Supprimer" onClick={() => this.onRemove(item.userId)}><FontAwesomeIcon icon={faTrashAlt}/></Button></td>
+                                                    </tr>;
+
+                                                return row;
+                                            }
+                                        )}
+                                    </tbody>
+                                </Table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </Form>;
+
+        let footer = 
+            <div className="btn-tollbar" style={{width: "100%", display: "flex", justifyContent: "right", flexWrap: "wrap"}}>
+                <div className="btn-group" style={{flexWrap: "wrap"}}>
+                    <Button  variant="secondary" onClick={this.onClose}>{"Annuler"}</Button>
+                    <Button  variant="success"  onClick={this.onSave}>{"Appliquer"}</Button>
+                </div>
+            </div>;
+                
+        let main = <Modal title={'Attribuer un plan de travail'} body={body} footer={footer} onClose={this.props.onClose} />;
 
         return (main);
     }
 
-    onSelectGroup(event){
-        this.setState({selectedGroupId: event.target.value, selectedUserIndex: -1});
+    getData(){
+        $glVars.webApi.getWorkPlanAssignFormKit(this.props.templateId, this.getDataResult);
     }
 
-    onSelectUser(event){
-        let userId = parseInt(event.target.value, 10) || 0;
-        this.setState({selectedUserIndex: event.target.index}, () => this.props.onSelectUser(userId));
+    getDataResult(result){
+        if(!result.success){
+            FeedbackCtrl.instance.showError($glVars.i18n.appName, result.msg);
+            return;
+        }
+
+        let templateList = [];
+        for(let item of result.data.templateList){
+            templateList.push({text: item.name, value: item.id});
+        }
+
+        this.setState({
+            prototype: result.data.prototype, 
+            data: {templateId: this.props.templateId, workPlanList: result.data.data}, 
+            dropdownLists: {studentList: result.data.studentList, templateList: templateList}}
+        );
     }
 
-    onPrevious(userList){
-        let newIndex = this.state.selectedUserIndex - 1;
-        let value = (newIndex < 0 ? 0 : userList[newIndex].value);
-        this.setState({selectedUserIndex: newIndex}, this.props.onSelectUser(parseInt(value, 10)));
+    onAdd(item){
+        let data = this.state.data;
+        let newItem = JsNx.clone(this.state.prototype);
+        newItem.userId = item.userId;
+        newItem.firstName = item.firstName;
+        newItem.lastName = item.lastName;
+        newItem.template.id = this.state.data.templateId;
+        data.workPlanList.push(newItem);
+        this.setState({data: data})
     }
 
-    onNext(userList){
-        let newIndex = this.state.selectedUserIndex + 1;
-        let value = userList[newIndex].value;
-        this.setState({selectedUserIndex: newIndex}, this.props.onSelectUser(parseInt(value, 10)));
+    onRemove(userId){
+        JsNx.removeItem(this.state.data.workPlanList, 'userId', userId);
+        this.forceUpdate();
+    }
+
+    onDataChange(event, index){
+        let data = this.state.data;
+        data.workPlanList[index][event.target.name] = event.target.value;
+        this.setState({data: data});
+    }
+
+    onSave(){
+        let that = this;
+        let callback = function(result){
+            if(!result.success){
+                $glVars.feedback.showError($glVars.i18n.tags.appName, result.msg);
+                return;
+            }
+
+            $glVars.feedback.showInfo($glVars.i18n.tags.appName, $glVars.i18n.tags.msgSuccess, 3);
+            that.onClose();
+        }
+
+        $glVars.webApi.saveWorkPlanAssign(this.state.data.workPlanList, callback);
+    }
+
+    onClose(){
+        this.props.onClose();
     }
 }
 
+/*
 class ModalPlanForm extends Component{
     static defaultProps = {        
         plan: null,
@@ -835,4 +1045,4 @@ class AddActivityForm extends Component{
             $glVars.feedback.showError($glVars.i18n.tags.appName, result.msg);
         }
     }
-}
+}*/
