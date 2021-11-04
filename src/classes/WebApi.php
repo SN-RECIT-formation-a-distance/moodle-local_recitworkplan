@@ -38,14 +38,14 @@ class WebApi extends recitcommon\MoodleApi
         $this->ctrl = PersistCtrl::getInstance($DB, $USER);
     }
     
-    public function getWorkPlanList($request){
+    public function getAssignmentList($request){
         global $USER;
         try{
             $this->canUserAccess('a');
 
             $summary = boolval($request['summary']);
 
-            $result = $this->ctrl->getWorkPlanList($USER->id);
+            $result = $this->ctrl->getAssignmentList($USER->id);
             if($summary){
                 $result = $result->getSummary();
             }
@@ -59,7 +59,7 @@ class WebApi extends recitcommon\MoodleApi
         }
     }
 
-    public function getWorkPlanAssignFormKit($request){
+    public function getAssignmentFormKit($request){
         global $USER;
         try{
             $this->canUserAccess('a');
@@ -67,8 +67,8 @@ class WebApi extends recitcommon\MoodleApi
             $templateId = intval($request['templateId']);
 
             $result = new stdClass();
-            $result->prototype = new WorkPlanAssignment();
-            $result->data = $this->ctrl->getWorkPlan($templateId);
+            $result->prototype = new Assignment();
+            $result->data = $this->ctrl->getAssignment($templateId);
             $result->templateList = $this->ctrl->getTemplateList($USER->id);
             $result->studentList = $this->ctrl->getStudentList();
 
@@ -81,13 +81,64 @@ class WebApi extends recitcommon\MoodleApi
         }
     }
 
-    public function saveWorkPlanAssign($request){
+    public function saveAssignment($request){
         try{
             $this->canUserAccess('a');
 
             $data = json_decode(json_encode($request['data']), FALSE);
 
             $this->ctrl->saveWorkPlanAssign($data);
+
+            return new WebApiResult(true);
+        }
+        catch(Exception $ex){
+            return new WebApiResult(false, false, $ex->GetMessage());
+        }
+    }
+
+    public function getTemplateList($request){
+        global $USER;
+        try{
+            $this->canUserAccess('a');
+
+            $result = $this->ctrl->getTemplateList($USER->id);
+            
+            $this->prepareJson($result);
+            
+            return new WebApiResult(true, $result);
+        }
+        catch(Exception $ex){
+            return new WebApiResult(false, false, $ex->GetMessage());
+        }
+    }
+
+    public function getTemplateFormFormKit($request){
+        try{
+            $this->canUserAccess('a');
+
+            $templateId = intval($request['templateId']);
+
+            $result = new stdClass();
+            $result->prototype = new TemplateActivity();
+            $result->data = ($templateId > 0 ? $this->ctrl->getTemplate($templateId) : new Template());
+            $result->activityList = $this->ctrl->getCatCourseSectionActivityList();
+
+            $this->prepareJson($result);
+            
+            return new WebApiResult(true, $result);
+        }
+        catch(Exception $ex){
+            return new WebApiResult(false, false, $ex->GetMessage());
+        }
+    }
+
+    public function saveTemplate($request){
+        try{
+            $this->canUserAccess('a');
+
+            $data = json_decode(json_encode($request['data']), FALSE);
+
+            $this->ctrl->saveTemplate($data);
 
             return new WebApiResult(true);
         }

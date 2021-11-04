@@ -28,54 +28,51 @@ export class AppWebApi extends WebApi
         }
     }
     
-    getWorkPlanList(summary, onSuccess){
-        let data = {summary: summary, service: "getWorkPlanList"};
+    getAssignmentList(summary, onSuccess){
+        let data = {summary: summary, service: "getAssignmentList"};
         this.post(this.gateway, data, onSuccess);
     }
 
-    getWorkPlanAssignFormKit(templateId, onSuccess){
-        let data = {templateId: templateId, service: "getWorkPlanAssignFormKit"};
+    getAssignmentFormKit(templateId, onSuccess){
+        let data = {templateId: templateId, service: "getAssignmentFormKit"};
         this.post(this.gateway, data, onSuccess);
     }
     
-    saveWorkPlanAssign(data, onSuccess){
-        let options = {data: data, service: "saveWorkPlanAssign"};
-        this.post(this.gateway, options, onSuccess);
+    saveAssignment(data, onSuccess){
+        let that = this;
+        let onSuccessTmp = function(result){     
+            onSuccess(result);
+            if(result.success){
+                that.notifyObservers('saveAssignment');
+            }
+        };
+
+
+        let options = {data: data, service: "saveAssignment"};
+        this.post(this.gateway, options, onSuccessTmp);
     }
 
-   /* getTrainingPlan(planId, onSuccess){
-        let data = {planId: planId, service: "getTrainingPlan"};
+    getTemplateList(onSuccess){
+        let data = {service: "getTemplateList"};
         this.post(this.gateway, data, onSuccess);
     }
 
-    addOrUpdateTrainingPlan(plan, onSuccess){
-        let data = {plan: plan, service: "addOrUpdateTrainingPlan"};
+    getTemplateFormFormKit(templateId, onSuccess){
+        let data = {templateId: templateId, service: "getTemplateFormFormKit"};
         this.post(this.gateway, data, onSuccess);
     }
 
-    addOrUpdateTrainingPlanActivity(planActivity, onSuccess){
-        let data = {planActivity: planActivity, service: "addOrUpdateTrainingPlanActivity"};
-        this.post(this.gateway, data, onSuccess);
+    saveTemplate(data, onSuccess){
+        let that = this;
+        let onSuccessTmp = function(result){     
+            onSuccess(result);
+            if(result.success){
+                that.notifyObservers('saveTemplate');
+            }
+        };
+
+
+        let options = {data: data, service: "saveTemplate"};
+        this.post(this.gateway, options, onSuccessTmp);
     }
-
-    addOrUpdateTrainingPlanAssignment(planAssignment, onSuccess){
-        let data = {planAssignment: planAssignment, service: "addOrUpdateTrainingPlanAssignment"};
-        this.post(this.gateway, data, onSuccess);
-    }
-
-    deleteTrainingPlan(plan, onSuccess){
-        let data = {plan: plan, service: "deleteTrainingPlan"};
-        this.post(this.gateway, data, onSuccess);
-    }
-
-    deleteTrainingPlanActivity(planActivity, onSuccess){
-        let data = {planActivity: planActivity, service: "deleteTrainingPlanActivity"};
-        this.post(this.gateway, data, onSuccess);
-    }
-
-    deleteTrainingPlanAssignment(planAssignment, onSuccess){
-        let data = {planAssignment: planAssignment, service: "deleteTrainingPlanAssignment"};
-        this.post(this.gateway, data, onSuccess);
-    }*/
-
 };

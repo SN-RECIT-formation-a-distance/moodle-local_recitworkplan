@@ -55,16 +55,115 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
     
     public function getTemplateList(){
         global $DB;
-        $query = "select id as templateid, creatorid, name as templatename, description as templatedesc, from_unixtime(lastupdate) as lastupdate from {recit_wp_tpl} order by name asc";
+
+        $DB->execute("set @uniqueId = 0");
+
+        $query = "select  @uniqueId := @uniqueId + 1 as uniqueId, t1.id as templateid, t1.creatorid, t1.name as templatename, t1.description as templatedesc,  if(t1.lastupdate > 0, from_unixtime(t1.lastupdate), null) as lastupdate, 
+        GROUP_CONCAT(distinct t5.name separator ', ') as categories 
+        from {recit_wp_tpl} as t1
+        inner join {recit_wp_tpl_act} as t2 on t1.id = t2.templateid
+        inner join {course_modules} as t3 on t2.cmid = t3.id
+        inner join {course} as t4 on t3.course = t4.id
+        inner join {course_categories} as t5 on t4.category = t5.id
+        group by t1.id
+        order by t1.name asc";
 
         $rst = $DB->get_records_sql($query);
 
         $result = array();
 		foreach($rst as $item){
-            $result[] = WorkPlanTemplate::create($item);
+            $result[] = Template::create($item);
         } 
 
         return $result;
+    }
+
+    public function getTemplate($templateId){
+        global $DB;
+
+        $DB->execute("set @uniqueId = 0");
+
+        $query = "select  @uniqueId := @uniqueId + 1 as uniqueId, t1.id as templateid, t1.creatorid, t1.name as templatename, t1.description as templatedesc,  if(t1.lastupdate > 0, from_unixtime(t1.lastupdate), null) as lastupdate, 
+        t2.id as tpl_act_id, t2.cmid, t2.nb_hours_completion, t4.id as courseid, t4.shortname as coursename, t5.id as categoryid, t5.name as categoryname
+        from {recit_wp_tpl} as t1
+        inner join {recit_wp_tpl_act} as t2 on t1.id = t2.templateid
+        inner join {course_modules} as t3 on t2.cmid = t3.id
+        inner join {course} as t4 on t3.course = t4.id
+        inner join {course_categories} as t5 on t4.category = t5.id
+        where t1.id =:templateid
+        order by t4.id asc, t1.name asc";
+
+        $rst = $DB->get_records_sql($query, array('templateid' => $templateId));
+
+        $lastCourseId = null;
+        $modinfo = null;
+        $result = null;
+		foreach($rst as $item){
+            if($lastCourseId != $item->courseid){
+                $modinfo = get_fast_modinfo($item->courseid);
+            }
+            
+            $item->cmname = $this->getCmNameFromCmId($item->cmid, $item->courseid, $modinfo);
+
+            if(empty($result)){
+                $result = Template::create($item);
+            }
+            else{
+                $result->addActivity($item);
+            }
+        }  
+
+        return $result;
+    }
+
+    public function saveTemplate($data){
+        try{	
+            $this->mysqlConn->beginTransaction();
+
+            $fields = array("name", "description", "lastupdate");
+            $values = array($data->name, $data->description,  time());
+
+            if($data->id == 0){
+                $fields[] = "creatorid";
+                $values[] = $this->signedUser->id;
+
+                $query = $this->mysqlConn->prepareStmt("insertorupdate", "{$this->prefix}recit_wp_tpl", $fields, $values);
+                $this->mysqlConn->execSQL($query);
+            }
+            else{
+                $query = $this->mysqlConn->prepareStmt("update", "{$this->prefix}recit_wp_tpl", $fields, $values, array("id"), array($data->id));
+                $this->mysqlConn->execSQL($query);
+            }
+
+            $keepIds = array();
+            foreach($data->activities as $activity){
+                $fields = array("templateid", "cmid", "nb_hours_completion");
+                $values = array($data->id, $activity->cmId, $activity->nbHoursCompletion);
+
+                if($activity->id == 0){
+                    $query = $this->mysqlConn->prepareStmt("insertorupdate", "{$this->prefix}recit_wp_tpl_act", $fields, $values);
+                    $this->mysqlConn->execSQL($query);
+                    $activity->id = $this->mysqlConn->getLastInsertId("{$this->prefix}recit_wp_tpl_act", "id");
+                }
+                else{
+                    $query = $this->mysqlConn->prepareStmt("update", "{$this->prefix}recit_wp_tpl_act", $fields, $values, array("id"), array($activity->id));
+                    $this->mysqlConn->execSQL($query);
+                }
+
+                $keepIds[] = $activity->id;
+            }
+
+            $keepIds = implode(",", $keepIds);
+            $this->mysqlConn->execSQL("delete from {$this->prefix}recit_wp_tpl_act where id not in ($keepIds)");
+            
+            $this->mysqlConn->commitTransaction();
+
+            return true;
+        }
+        catch(\Exception $ex){
+            $this->mysqlConn->rollbackTransaction();
+            throw $ex;
+        }
     }
 
     public function getStudentList(){
@@ -85,9 +184,12 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         return $result;
     }
 
-    public function getWorkPlan($templateId){
+    public function getAssignment($templateId){
         global $DB;
-        $query = "select t1.id, t1.nb_hours_per_week as nbhoursperweek, from_unixtime(t1.startdate) as startdate, t2.id as templateid, t2.creatorid, t2.name as templatename, 
+
+        $DB->execute("set @uniqueId = 0");
+
+        $query = "select  @uniqueId := @uniqueId + 1 as uniqueId, t1.id, t1.nb_hours_per_week as nbhoursperweek, from_unixtime(t1.startdate) as startdate, t2.id as templateid, t2.creatorid, t2.name as templatename, 
         t2.description as templatedesc, from_unixtime(t2.lastupdate) as lastupdate, t3.nb_hours_completion as nbhourscompletion, t4.id as userid, t4.firstname, t4.lastname
         from {recit_wk_tpl_assign} as t1
         inner join {recit_wp_tpl} as t2 on t1.templateid = t2.id
@@ -99,15 +201,18 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
 
         $result = array();
 		foreach($rst as $item){
-            $result[] = WorkPlanAssignment::create($item);
+            $result[] = Assignment::create($item);
         } 
 
         return $result;
     }
 
-    public function getWorkPlanList($userId){
+    public function getAssignmentList($userId){
         global $DB;
-        $query = "select t1.id, t1.nb_hours_per_week as nbhoursperweek, from_unixtime(t1.startdate) as startdate, t2.id as templateid, t2.creatorid, t2.name as templatename, 
+
+        $DB->execute("set @uniqueId = 0");
+
+        $query = "select  @uniqueId := @uniqueId + 1 as uniqueId, t1.id, t1.nb_hours_per_week as nbhoursperweek, from_unixtime(t1.startdate) as startdate, t2.id as templateid, t2.creatorid, t2.name as templatename, 
         t2.description as templatedesc, from_unixtime(t2.lastupdate) as lastupdate, t3.nb_hours_completion as nbhourscompletion, t4.id as userid, t4.firstname, t4.lastname
         from {recit_wk_tpl_assign} as t1
         inner join {recit_wp_tpl} as t2 on t1.templateid = t2.id
@@ -116,15 +221,15 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
 
         $rst = $DB->get_records_sql($query);
 
-        $result = new MyWorkPlans();
+        $result = new MyAssignments();
 		foreach($rst as $item){
-            $result->addWorkPlan($item);
+            $result->addAssignment($item);
         }  
 
         return $result;
     }
 
-    public function saveWorkPlanAssign(array $data){
+    public function saveAssignment(array $data){
         try{		
             foreach($data as $item){
                 $fields = array("templateid", "userid", "nb_hours_per_week", "startdate", "lastupdate");
@@ -146,124 +251,26 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
             throw $ex;
         }
     }
-
-    /*public function getWorkPlanList($userId){
-        global $DB;
-        $query = "select t1.id, t1.nb_hours_per_week as nbhoursperweek, from_unixtime(t1.startdate) as startdate, t2.id as templateid, t2.creatorid, t2.name as templatename, 
-        t2.description as templatedesc, t2.lastupdate, t3.cmid, t4.instance, t3.nb_hours_completion as nbhourscompletion, t5.id as courseid, t5.shortname as coursename, 
-        t6.id as moduleid, t6.name as modulename, t7.id as categoryid, t7.name as categoryname, t8.id as userid, t8.firstname, t8.lastname
-        from {recit_wk_tpl_assign} as t1
-        inner join {recit_wp_tpl} as t2 on t1.templateid = t2.id
-        inner join {recit_wp_tpl_act} as t3 on t3.templateid = t2.id
-        inner join {course_modules} as t4 on t3.cmid = t4.id
-        inner join {course} as t5 on t4.course = t5.id
-        inner join {modules} as t6 on t4.module = t6.id
-        inner join {course_categories} as t7 on t5.category = t7.id
-        inner join {user} as t8 on t1.userid = t8.id
-        order by courseid";
-
-        $rst = $DB->get_records_sql($query);
-
-        $lastCourseId = null;
-        $modinfo = null;
-        $result = new MyWorkPlans();
-		foreach($rst as $item){
-            if($lastCourseId != $item->courseid){
-                $modinfo = get_fast_modinfo($item->courseid);
-            }
-            
-            $item->cmname = $this->getCmNameFromCmId($item->cmid, $item->courseid, $modinfo);
-
-            $result->addWorkPlan($item);
-        }  
-
-        return $result;
-    }*/
-
-   /* public function getCoursesFromTeacher($userId){
-        global $USER, $DB;
-
-        $courses = enrol_get_all_users_courses($userId, true);
-        $ret = array();
-        foreach($courses as $course) {
-            if (!$course->visible) {
-                continue;
-            }
-            \context_helper::preload_from_record($course);
-            $context = \context_course::instance($course->id);
-            if (has_capability('moodle/course:viewhiddencourses', $context, $userId)) {
-                $ar = array('id' => $course->id, 'name' => $course->fullname, 'cms' => array());
-                $modinfo = get_fast_modinfo($course->id);
-                foreach ($modinfo->cms as $cm){
-                    $ar['cms'][] = array('id' => $cm->id, 'name' => $cm->modname);
-                }
-                $ret[] = $ar;
-            }
-        }
-        return $ret;
-    }
-
-    public function getTrainingPlansFromTeacher($userid){
-        global $DB;
-        $data = $DB->get_records('recittp',array('userid' => $userid));
-        return array_values($data);
-    }
-
-    public function getTrainingPlan($planid){
-        global $DB;
-        $plan = $DB->get_record('recittp',array('id' => $planid));
-        $tp = new TrainingPlan($plan);
-        $tp->loadData();
-        return $tp;
-    }
-
-    public function addOrUpdateTrainingPlan($plan){
-        $tp = new TrainingPlan((object)$plan);
-        $tp->update();
-    }
-
-    public function addOrUpdateTrainingPlanActivity($act){
-        $tp = new TrainingPlanActivity((object)$act);
-        $tp->update();
-    }
-
-    public function addOrUpdateTrainingPlanAssignment($assignment){
-        $tp = new TrainingPlanAssignment((object)$assignment);
-        $tp->update();
-    }
-
-    public function deleteTrainingPlan($plan){
-        $tp = new TrainingPlan((object)$plan);
-        $tp->delete();
-    }
-
-    public function deleteTrainingPlanActivity($act){
-        $tp = new TrainingPlanActivity((object)$act);
-        $tp->delete();
-    }
-
-    public function deleteTrainingPlanAssignment($assignment){
-        $tp = new TrainingPlanAssignment((object)$assignment);
-        $tp->delete();
-    }*/
 }
 
-class WorkPlanTemplate{
+class Template{
     public $id = 0;
     public $name = "";
     public $description = "";
     public $creatorId = 0;
     public $lastUpdate = null;
-    //@array of WorkPlanTemplateActivity
+    //@array of TemplateActivity
+    public $categories = "";
     public $activities = array();
 
     public static function create($dbData){
-        $result = new WorkPlanTemplate();
+        $result = new Template();
         $result->id = $dbData->templateid;
         $result->name = $dbData->templatename;
         $result->description = $dbData->templatedesc;
         $result->creatorId = $dbData->creatorid;
         $result->lastUpdate = $dbData->lastupdate;
+        $result->categories = (isset($dbData->categories) ? $dbData->categories : $result->categories);
         $result->addActivity($dbData);
 
         return $result;
@@ -272,13 +279,14 @@ class WorkPlanTemplate{
     public function addActivity($dbData){
         if($this->id == $dbData->templateid){
             if(isset($dbData->cmid) && $dbData->cmid > 0){
-                $this->activities[] = WorkPlanTemplateActivity::create($dbData);
+                $this->activities[] = TemplateActivity::create($dbData);
             }
         }
     }
 }
 
-class WorkPlanTemplateActivity{
+class TemplateActivity{
+    public $id = 0;
     public $cmId = 0;
     public $cmName = "";
     public $courseId = 0;
@@ -288,22 +296,23 @@ class WorkPlanTemplateActivity{
     public $nbHoursCompletion = 0;
 
     public static function create($dbData){
-        $result = new WorkPlanTemplateActivity();
+        $result = new TemplateActivity();
+        $result->id = (isset($dbData->tpl_act_id) ? $dbData->tpl_act_id : $result->id);
         $result->cmId = (isset($dbData->cmid) ? $dbData->cmid : $result->cmId);
         $result->cmName = (isset($dbData->cmname) ? $dbData->cmname : $result->cmName);
         $result->courseId = (isset($dbData->courseid) ? $dbData->courseid : $result->courseId);
         $result->courseName = (isset($dbData->coursename) ? $dbData->coursename : $result->courseName);
         $result->categoryId = (isset($dbData->categoryid) ? $dbData->categoryid : $result->categoryId);
         $result->categoryName = (isset($dbData->categoryname) ? $dbData->categoryname : $result->categoryName);
-        $result->nbHoursCompletion = $dbData->nbhourscompletion;
+        $result->nbHoursCompletion = $dbData->nb_hours_completion;
 
         return $result;
     }
 }
 
-class WorkPlanAssignment{
+class Assignment{
     public $id = 0;
-    //@WorkPlanTemplate
+    //@Template
     public $template = null;
     public $userId = 0;
     public $firstName = "";
@@ -312,14 +321,14 @@ class WorkPlanAssignment{
     public $nbHoursPerWeek = 0;
     
     public function __construct(){
-        $this->template = new WorkPlanTemplate();      
+        $this->template = new Template();      
         $this->startDate = new DateTime();      
     }
 
     public static function create($dbData){
-        $result = new WorkPlanAssignment();
+        $result = new Assignment();
         $result->id = $dbData->id;
-        $result->template = WorkPlanTemplate::create($dbData);
+        $result->template = Template::create($dbData);
 
         $result->userId = $dbData->userid;
         $result->firstName = $dbData->firstname;
@@ -331,10 +340,10 @@ class WorkPlanAssignment{
     }
 }
 
-class MyWorkPlans{
+class MyAssignments{
     public $detailed = array();
  
-    public function addWorkPlan($dbData){   
+    public function addAssignment($dbData){   
        foreach($this->detailed as $item){
            if($item->id == $dbData->id){
                 $item->template->addActivity($dbData);
@@ -342,7 +351,7 @@ class MyWorkPlans{
            }
        }
 
-       $this->detailed[] = WorkPlanAssignment::create($dbData);
+       $this->detailed[] = Assignment::create($dbData);
     }
 
     public function getSummary(){
@@ -362,134 +371,3 @@ class MyWorkPlans{
         return array_values($result);
     }
 }
-/*
-class TrainingPlan {
-    public $id;
-    public $userid;
-    public $name;
-    public $description;
-    public $activities = array();
-    public $assignments = array();
-
-
-    public function __construct($data)
-    {
-        if (isset($data->id) && is_numeric($data->id)) $this->id = $data->id;
-        $this->userid = $data->userid;
-        $this->name = $data->name;
-        $this->description = $data->description;
-    }
-
-    public function update(){
-        global $DB;
-        $tp = new self($this);
-        unset($tp->activities);
-        unset($tp->assignments);
-        if ($this->id == null){
-            $DB->insert_record('recittp', $tp);
-        }else{
-            $DB->update_record('recittp', $tp);
-        }
-    }
-
-    public function delete(){
-        global $DB;
-        $tp = new self($this);
-        unset($tp->activities);
-        unset($tp->assignments);
-        $DB->delete_records('recittp_activities', array('tid' => $tp->id));
-        $DB->delete_records('recittp_assignments', array('tid' => $tp->id));
-        $DB->delete_records('recittp', array('id' => $tp->id));
-    }
-
-    public function loadData(){
-        global $DB;
-        if (!$this->id) return;
-        $this->activities = array_values($DB->get_records('recittp_activities', array('tid' => $this->id)));
-        $this->assignments = array_values($DB->get_records('recittp_assignments', array('tid' => $this->id)));
-
-        //Load activity name
-        foreach ($this->activities as &$a){
-            $course = $DB->get_record('course',array('id' => $a->course));
-            $a->coursename = $course->fullname;
-            $modinfo = get_fast_modinfo($a->course);
-            foreach ($modinfo->cms as $cm){
-                if ($cm->id == $a->cmid){
-                    $a->cmname = $cm->modname;
-                    $a->cmurl = $cm->__get('url');
-                }
-            }
-        }
-        //Load user name
-        foreach ($this->assignments as &$a){
-            $user = $DB->get_record('user',array('id' => $a->userid));
-            $a->name = $user->firstname.' '.$user->lastname;
-        }
-    }
-}
-
-class TrainingPlanActivity {
-    public $id;
-    public $course;
-    public $cmid;
-    public $time_to_complete;
-    public $tid;
-
-
-    public function __construct($data)
-    {
-        if (isset($data->id) && is_numeric($data->id)) $this->id = $data->id;
-        $this->course = $data->course;
-        $this->cmid = $data->cmid;
-        $this->time_to_complete = $data->time_to_complete;
-        $this->tid = $data->tid;
-    }
-
-    public function update(){
-        global $DB;
-        if ($this->id == null){
-            $DB->insert_record('recittp_activities', $this);
-        }else{
-            $DB->update_record('recittp_activities', $this);
-        }
-    }
-
-    public function delete(){
-        global $DB;
-        $DB->delete_records('recittp_activities', array('id' => $this->id));
-    }
-}
-
-class TrainingPlanAssignment {
-    public $id;
-    public $tid;
-    public $gid;
-    public $userid;
-    public $worktimeweek;
-    public $timestart;
-
-
-    public function __construct($data)
-    {
-        if (isset($data->id) && is_numeric($data->id)) $this->id = $data->id;
-        $this->tid = $data->tid;
-        if (isset($data->gid) && is_numeric($data->gid)) $this->gid = $data->gid;
-        if (isset($data->userid) && is_numeric($data->userid)) $this->userid = $data->userid;
-        $this->worktimeweek = $data->worktimeweek;
-        $this->timestart = $data->timestart;
-    }
-
-    public function update(){
-        global $DB;
-        if ($this->id == null){
-            $DB->insert_record('recittp_assignments', $this);
-        }else{
-            $DB->update_record('recittp_assignments', $this);
-        }
-    }
-
-    public function delete(){
-        global $DB;
-        $DB->delete_records('recittp_assignments', array('id' => $this->id));
-    }
-}*/
