@@ -1,26 +1,28 @@
 import React, { Component } from 'react';
-import {Tabs, Tab, ButtonGroup, Button, Form, Col, Table, Badge} from 'react-bootstrap';
-import {faTachometerAlt, faTasks, faPencilAlt,  faTrashAlt, faPlus, faHome, faFileAlt} from '@fortawesome/free-solid-svg-icons';
+import {Tabs, Tab, ButtonGroup, Button, Form, FormGroup, InputGroup, FormControl, Col, Table, Badge} from 'react-bootstrap';
+import {faTachometerAlt, faTasks, faPencilAlt,  faTrashAlt, faPlus, faHome, faFileAlt, faSearch} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {ComboBox, FeedbackCtrl, DataGrid, Modal} from '../libs/components/Components';
 import {$glVars} from '../common/common';
-import { JsNx } from '../libs/utils/Utils';
+import { JsNx, UtilsString, UtilsDateTime } from '../libs/utils/Utils';
 
 export class AdminView extends Component {
     constructor(props) {
         super(props);
 
-        this.state = {tab: 'templates'};
-    }
+        this.onDetail = this.onDetail.bind(this);
 
+        this.state = {tab: 'home', queryStr: ""};
+    }
+ 
     render() {       
         let main =
             <Tabs activeKey={this.state.tab}  onSelect={(t) => this.setState({tab: t})}>
                 <Tab eventKey="home" title={<><FontAwesomeIcon icon={faHome}/>{" Accueil"}</>}>
-                    <HomeView/>
+                    <HomeView onDetail={this.onDetail}/>
                 </Tab>
-                <Tab eventKey="assignments" title={<><FontAwesomeIcon icon={faTasks}/>{" Plans de travail"}</>}>
-                    <AssignmentsView/>
+                <Tab eventKey="assignments" title={<><FontAwesomeIcon icon={faTasks}/>{" Affectations"}</>}>
+                    <AssignmentsView queryStr={this.state.queryStr}/>
                 </Tab>
                 <Tab eventKey="templates" title={<><FontAwesomeIcon icon={faFileAlt}/>{" Gabarits"}</>}>
                     <TemplatesView/>
@@ -29,9 +31,17 @@ export class AdminView extends Component {
 
         return (main);
     }
+
+    onDetail(templateName){
+        this.setState({tab: 'assignments', queryStr: templateName});
+    }
 }
 
 class HomeView extends Component{
+    static defaultProps = {        
+        onDetail: null
+    };
+
     constructor(props){
         super(props);
         
@@ -89,7 +99,7 @@ class HomeView extends Component{
                                     <DataGrid.Body.Cell>{item.nbStudents}</DataGrid.Body.Cell>
                                     <DataGrid.Body.Cell style={{textAlign: 'center'}}>
                                         <ButtonGroup size="sm">
-                                            <Button title="Détails" variant="primary"><FontAwesomeIcon icon={faTasks}/></Button>
+                                            <Button onClick={() => this.props.onDetail(item.name)} title="Détails" variant="primary"><FontAwesomeIcon icon={faTasks}/></Button>
                                             <Button title="Apprentimètre" variant="primary"><FontAwesomeIcon icon={faTachometerAlt}/></Button>
                                         </ButtonGroup>
                                     </DataGrid.Body.Cell>
@@ -105,28 +115,33 @@ class HomeView extends Component{
 }
 
 class AssignmentsView extends Component{
+    static defaultProps = {        
+        queryStr: ""
+    };
+
     constructor(props){
         super(props);
         
+        this.onClose = this.onClose.bind(this);
         this.getData = this.getData.bind(this);
         this.getDataResult = this.getDataResult.bind(this);
 
-        this.state = {dataProvider: [], templateId: 0};
+        this.state = {dataProvider: [], templateId: -1, queryStr: this.props.queryStr};
     }
 
     componentDidMount(){
-        $glVars.webApi.addObserver("AssignmentsView", this.getData, ['saveAssignment']);        
+       // $glVars.webApi.addObserver("AssignmentsView", this.getData, ['saveAssignment']);        
         this.getData();
     }
 
     componentWillUnmount(){
-        $glVars.webApi.removeObserver("AssignmentsView");
+        //$glVars.webApi.removeObserver("AssignmentsView");
     }
 
-    componentDidUpdate(prevProps){
-        /*if(prevProps.userId !== this.props.userId){
-            this.getData();
-        }*/
+    componentDidUpdate(prevProps, prevState){
+        if(this.props.queryStr !== this.state.queryStr){
+            this.setState({queryStr: this.props.queryStr});
+        }
     }
 
     getData(){
@@ -139,18 +154,42 @@ class AssignmentsView extends Component{
             return;
         }
 
-        this.setState({dataProvider: result.data.detailed, templateId: 0});
+        this.setState({dataProvider: result.data.detailed, templateId: -1});
     }
 
     render(){
+        let dataProvider = this.state.dataProvider;
+        let regexp = UtilsString.getRegExp(this.state.queryStr);
+
+        if(this.state.queryStr.length > 0){
+            dataProvider = this.state.dataProvider.filter(function(item){
+                if((item.template.name.search(regexp) >= 0) || (item.firstName.search(regexp) >= 0) || (item.lastName.search(regexp) >= 0) || (item.startDate.toString().search(regexp) >= 0)){
+                    return true;
+                }
+                else{
+                    return false;
+                }
+            })
+        }
+
         let main = 
             <div>
+                <Button className="mb-3" title="Ajouter" onClick={() => this.setState({templateId: 0})} variant="primary"><FontAwesomeIcon icon={faPlus}/>{" Attribuer un plan de travail"}</Button>
+
+                <FormGroup>
+                    <InputGroup>
+                        <FormControl autoFocus type="text" placeholder={"Recherchez..."} onChange={(event) => this.setState({queryStr: event.target.value})} value={this.state.queryStr}  aria-describedby="inputGroupPrepend" />
+                        <InputGroup.Prepend>
+                            <InputGroup.Text id="inputGroupPrepend"><FontAwesomeIcon icon={faSearch}/></InputGroup.Text>
+                        </InputGroup.Prepend>
+                    </InputGroup>
+                </FormGroup>
+
                 <DataGrid orderBy={true}>
                     <DataGrid.Header>
                         <DataGrid.Header.Row>
                             <DataGrid.Header.Cell style={{width: 80}}>{"#"}</DataGrid.Header.Cell>
                             <DataGrid.Header.Cell >{"Plan de travail"}</DataGrid.Header.Cell>
-                            <DataGrid.Header.Cell >{"Description"}</DataGrid.Header.Cell>
                             <DataGrid.Header.Cell >{"Élève"}</DataGrid.Header.Cell>
                             <DataGrid.Header.Cell style={{width: 160}}>{"Date de début"}</DataGrid.Header.Cell>
                             <DataGrid.Header.Cell style={{width: 150}}>{"Rythme par semaine (h)"}</DataGrid.Header.Cell>
@@ -159,14 +198,13 @@ class AssignmentsView extends Component{
                         </DataGrid.Header.Row>
                     </DataGrid.Header>
                     <DataGrid.Body>
-                        {this.state.dataProvider.map((item, index) => {
+                        {dataProvider.map((item, index) => {
                                 let row = 
                                     <DataGrid.Body.Row key={index}>
                                         <DataGrid.Body.Cell>{index + 1}</DataGrid.Body.Cell>
                                         <DataGrid.Body.Cell>{item.template.name}</DataGrid.Body.Cell>
-                                        <DataGrid.Body.Cell>{item.template.description}</DataGrid.Body.Cell>
                                         <DataGrid.Body.Cell>{`${item.firstName} ${item.lastName}`}</DataGrid.Body.Cell>
-                                        <DataGrid.Body.Cell>{item.startDate}</DataGrid.Body.Cell>
+                                        <DataGrid.Body.Cell>{UtilsDateTime.getDate(item.startDate)}</DataGrid.Body.Cell>
                                         <DataGrid.Body.Cell>{item.nbHoursPerWeek}</DataGrid.Body.Cell>
                                         <DataGrid.Body.Cell>{}</DataGrid.Body.Cell>
                                         <DataGrid.Body.Cell style={{textAlign: 'center'}}>
@@ -181,10 +219,14 @@ class AssignmentsView extends Component{
                         )}
                     </DataGrid.Body>
                 </DataGrid>
-                {this.state.templateId > 0 && <ModalAssignmentForm templateId={this.state.templateId} onClose={() => this.setState({templateId: 0})}/>}
+                {this.state.templateId >= 0 && <ModalAssignmentForm templateId={this.state.templateId} onClose={this.onClose}/>}
             </div>;
 
         return main;
+    }
+
+    onClose(){
+        this.getData();
     }
 }
 
@@ -197,15 +239,15 @@ class ModalAssignmentForm extends Component{
     constructor(props){
         super(props);
 
-        this.getData = this.getData.bind(this);
         this.getDataResult = this.getDataResult.bind(this);
+        this.getData = this.getData.bind(this);
         this.onSave = this.onSave.bind(this);
         this.onClose = this.onClose.bind(this);
         this.onDataChange = this.onDataChange.bind(this);
-        this.onRemove = this.onRemove.bind(this);
+        this.onDeleteAssignment = this.onDeleteAssignment.bind(this);
         this.onAdd = this.onAdd.bind(this);
 
-        this.state = {data: null, dropdownLists: {studentList: [], templateList: []}};
+        this.state = {templateId: props.templateId, assignmentList: [], dropdownLists: {studentList: [], templateList: []}};
     }
 
     componentDidMount(){
@@ -215,14 +257,14 @@ class ModalAssignmentForm extends Component{
     render(){
         if(this.state.data === null){ return null; }
 
-        let studentList = this.state.dropdownLists.studentList.filter(item => (JsNx.getItem(this.state.data.workPlanList, 'userId', item.userId, null) === null) );
+        let studentList = this.state.dropdownLists.studentList.filter(item => (JsNx.getItem(this.state.assignmentList, 'userId', item.userId, null) === null) );
 
         let body = 
             <Form noValidate validated={this.state.formValidated} ref={this.formRef}>
                 <Form.Row>
                     <Form.Group as={Col}>
                         <Form.Label>{"Collection de notes:"}</Form.Label>
-                        <ComboBox placeholder={"Sélectionnez votre option"} required={true}  name="templateId" value={this.state.data.templateId} options={this.state.dropdownLists.templateList} onChange={this.onDataChange} />
+                        <ComboBox placeholder={"Sélectionnez votre option"} required={true}  name="templateId" value={this.state.templateId} options={this.state.dropdownLists.templateList} onChange={this.onDataChange} />
                     </Form.Group>
                 </Form.Row>
                 <div style={{display: 'grid',gridTemplateColumns: '400px 65%', gridGap: '1rem', marginTop: "1rem"}}>
@@ -233,16 +275,15 @@ class ModalAssignmentForm extends Component{
                                 <thead>
                                     <tr>
                                         <th>Élève</th>
+                                        <th style={{width: 50}}></th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {studentList.map((item, index) => {
                                         let row =
                                             <tr key={index}>
-                                                <td>
-                                                    <Button onClick={() => this.onAdd(item)} size="sm" variant="primary" title="Ajouter" className="mr-2"><FontAwesomeIcon icon={faPlus}/></Button>
-                                                    {`${item.firstName} ${item.lastName}`}
-                                                </td>
+                                                <td>{`${item.firstName} ${item.lastName}`}</td>
+                                                <td><Button onClick={() => this.onAdd(item)} size="sm" variant="primary" title="Ajouter" className="mr-2"><FontAwesomeIcon icon={faPlus}/></Button></td>
                                             </tr>
 
                                             return row;
@@ -254,7 +295,7 @@ class ModalAssignmentForm extends Component{
                     </div>
                     <div >
                         <div>
-                            <h4>Élèves assignés <Badge>{`(${this.state.data.workPlanList.length})`}</Badge></h4>
+                            <h4>Élèves assignés <Badge>{`(${this.state.assignmentList.length})`}</Badge></h4>
                             <div style={{maxHeight: 500, overflowY: 'scroll'}}>
                                 <Table striped bordered hover>
                                     <thead>
@@ -262,17 +303,17 @@ class ModalAssignmentForm extends Component{
                                             <th>Élève</th>
                                             <th>Date de début</th>
                                             <th>Rythme</th>
-                                            <th></th>
+                                            <th style={{width: 50}}></th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {this.state.data.workPlanList.map((item, index) => {
+                                        {this.state.assignmentList.map((item, index) => {
                                                 let row =
                                                     <tr key={index}>
                                                         <td>{`${item.firstName} ${item.lastName}`}</td>
-                                                        <td><Form.Control type="text" placeholder="" value={item.startDate} name="startDate" onChange={(event) => this.onDataChange(event, index)} /></td>
-                                                        <td><Form.Control type="text" placeholder="" value={item.nbHoursPerWeek} name="nbHoursPerWeek" onChange={(event) => this.onDataChange(event, index)} /></td>
-                                                        <td><Button size="sm" variant="primary" title="Supprimer" onClick={() => this.onRemove(item.userId)}><FontAwesomeIcon icon={faTrashAlt}/></Button></td>
+                                                        <td><Form.Control type="text" placeholder="" value={item.startDate} name="startDate" onBlur={() => this.onSave(item)} onChange={(event) => this.onDataChange(event, index)} /></td>
+                                                        <td><Form.Control type="text" placeholder="" value={item.nbHoursPerWeek} name="nbHoursPerWeek" onBlur={() => this.onSave(item)} onChange={(event) => this.onDataChange(event, index)} /></td>
+                                                        <td><Button size="sm" variant="primary" title="Supprimer" onClick={() => this.onDeleteAssignment(item.id)}><FontAwesomeIcon icon={faTrashAlt}/></Button></td>
                                                     </tr>;
 
                                                 return row;
@@ -286,64 +327,59 @@ class ModalAssignmentForm extends Component{
                 </div>
             </Form>;
 
-        let footer = 
-            <div className="btn-tollbar" style={{width: "100%", display: "flex", justifyContent: "right", flexWrap: "wrap"}}>
-                <div className="btn-group" style={{flexWrap: "wrap"}}>
-                    <Button  variant="secondary" onClick={this.onClose}>{"Annuler"}</Button>
-                    <Button  variant="success"  onClick={this.onSave}>{"Appliquer"}</Button>
-                </div>
-            </div>;
-                
-        let main = <Modal title={'Attribuer un plan de travail'} body={body} footer={footer} onClose={this.props.onClose} />;
+        let main = <Modal title={'Attribuer un plan de travail'} body={body} onClose={this.props.onClose} />;
 
         return (main);
     }
 
     getData(){
-        $glVars.webApi.getAssignmentFormKit(this.props.templateId, this.getDataResult);
+        let that = this;
+        let callback = function(result){
+            if(!result.success){
+                FeedbackCtrl.instance.showError($glVars.i18n.appName, result.msg);
+                return;
+            }
+    
+            let templateList = [];
+            for(let item of result.data.templateList){
+                templateList.push({text: item.name, value: item.id});
+            }
+    
+            that.setState({
+                prototype: result.data.prototype, 
+                dropdownLists: {studentList: result.data.studentList, templateList: templateList}}
+            );
+        };
+
+        $glVars.webApi.getAssignmentFormKit(callback);
+
+        if(this.state.templateId > 0){
+            $glVars.webApi.getAssignment(this.state.templateId, this.getDataResult);
+        }
     }
 
     getDataResult(result){
         if(!result.success){
-            FeedbackCtrl.instance.showError($glVars.i18n.appName, result.msg);
+            $glVars.feedback.showError($glVars.i18n.tags.appName, result.msg);
             return;
         }
 
-        let templateList = [];
-        for(let item of result.data.templateList){
-            templateList.push({text: item.name, value: item.id});
-        }
-
-        this.setState({
-            prototype: result.data.prototype, 
-            data: {templateId: this.props.templateId, workPlanList: result.data.data}, 
-            dropdownLists: {studentList: result.data.studentList, templateList: templateList}}
-        );
+        this.setState({assignmentList: result.data});
     }
 
     onAdd(item){
-        let data = this.state.data;
+        let assignmentList = this.state.assignmentList;
         let newItem = JsNx.clone(this.state.prototype);
         newItem.userId = item.userId;
         newItem.firstName = item.firstName;
         newItem.lastName = item.lastName;
-        newItem.template.id = this.state.data.templateId;
-        data.workPlanList.push(newItem);
-        this.setState({data: data})
+        newItem.template.id = this.state.templateId;
+        assignmentList.push(newItem);
+        newItem.changed = true;
+        this.setState({assignmentList: assignmentList}, () => this.onSave(newItem))
     }
 
-    onRemove(userId){
-        JsNx.removeItem(this.state.data.workPlanList, 'userId', userId);
-        this.forceUpdate();
-    }
-
-    onDataChange(event, index){
-        let data = this.state.data;
-        data.workPlanList[index][event.target.name] = event.target.value;
-        this.setState({data: data});
-    }
-
-    onSave(){
+    onDeleteAssignment(assignmentId){
         let that = this;
         let callback = function(result){
             if(!result.success){
@@ -351,11 +387,38 @@ class ModalAssignmentForm extends Component{
                 return;
             }
 
-            $glVars.feedback.showInfo($glVars.i18n.tags.appName, $glVars.i18n.tags.msgSuccess, 3);
-            that.onClose();
+            JsNx.removeItem(that.state.assignmentList, 'id', assignmentId);
+            that.forceUpdate();
         }
 
-        $glVars.webApi.saveAssignment(this.state.data.workPlanList, callback);
+        $glVars.webApi.deleteAssignment(assignmentId, callback);
+    }
+
+    onDataChange(event, index){
+        if(index >= 0){
+            let assignmentList = this.state.assignmentList;
+            assignmentList[index][event.target.name] = event.target.value;
+            data.changed = assignmentList[index][event.target.name] !== event.target.value
+            this.setState({assignmentList: assignmentList});
+        }
+        else{
+            let data = this.state;
+            data[event.target.name] = event.target.value;
+            this.setState(data, () => $glVars.webApi.getAssignment(event.target.value, this.getDataResult));
+        }
+    }
+
+    onSave(data){
+        let callback = function(result){
+            if(!result.success){
+                $glVars.feedback.showError($glVars.i18n.tags.appName, result.msg);
+                return;
+            }
+        }
+
+        if(data.hasOwnProperty("changed") && data.changed){
+            $glVars.webApi.saveAssignment(data, callback);
+        }
     }
 
     onClose(){
@@ -374,12 +437,12 @@ class TemplatesView extends Component{
     }
 
     componentDidMount(){
-        //$glVars.webApi.addObserver("HomeView", this.getData, ['saveUserNote']);        
+        $glVars.webApi.addObserver("TemplatesView", this.getData, ['saveTemplate']);        
         this.getData();
     }
 
     componentWillUnmount(){
-        //$glVars.webApi.removeObserver("HomeView");
+        $glVars.webApi.removeObserver("TemplatesView");
     }
 
     componentDidUpdate(prevProps){

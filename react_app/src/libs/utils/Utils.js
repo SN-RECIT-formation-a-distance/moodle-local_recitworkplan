@@ -231,10 +231,24 @@ export class UtilsString
     
         return true;
     }
+
+    static getRegExp(str){
+        let strEscape = str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+        return new RegExp(strEscape, 'i');
+    }
 }
 
 export class UtilsDateTime
 {
+    static getDate(obj){
+        if(obj instanceof Date){
+            return `${obj.getFullYear()}-${obj.getMonth()+1}-${obj.getDate()}`;
+        }
+        else{
+            return obj.substring(0, 10);
+        }
+    }
+
     static nbMinSinceSundayToDate(nbMinSinceSunday){
         nbMinSinceSunday = parseInt(nbMinSinceSunday,10);
         if(nbMinSinceSunday === 0){

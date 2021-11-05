@@ -33,8 +33,13 @@ export class AppWebApi extends WebApi
         this.post(this.gateway, data, onSuccess);
     }
 
-    getAssignmentFormKit(templateId, onSuccess){
-        let data = {templateId: templateId, service: "getAssignmentFormKit"};
+    getAssignmentFormKit(onSuccess){
+        let data = {service: "getAssignmentFormKit"};
+        this.post(this.gateway, data, onSuccess);
+    }
+
+    getAssignment(templateId, onSuccess){
+        let data = {templateId: templateId, service: "getAssignment"};
         this.post(this.gateway, data, onSuccess);
     }
     
@@ -47,9 +52,13 @@ export class AppWebApi extends WebApi
             }
         };
 
-
         let options = {data: data, service: "saveAssignment"};
         this.post(this.gateway, options, onSuccessTmp);
+    }
+
+    deleteAssignment(assignmentId, onSuccess){
+        let data = {assignmentId: assignmentId, service: "deleteAssignment"};
+        this.post(this.gateway, data, onSuccess);
     }
 
     getTemplateList(onSuccess){

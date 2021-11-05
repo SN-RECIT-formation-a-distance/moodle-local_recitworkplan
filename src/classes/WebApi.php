@@ -39,13 +39,12 @@ class WebApi extends recitcommon\MoodleApi
     }
     
     public function getAssignmentList($request){
-        global $USER;
         try{
             $this->canUserAccess('a');
 
             $summary = boolval($request['summary']);
 
-            $result = $this->ctrl->getAssignmentList($USER->id);
+            $result = $this->ctrl->getAssignmentList($this->signedUser->id);
             if($summary){
                 $result = $result->getSummary();
             }
@@ -60,17 +59,30 @@ class WebApi extends recitcommon\MoodleApi
     }
 
     public function getAssignmentFormKit($request){
-        global $USER;
+        try{
+            $this->canUserAccess('a');
+
+            $result = new stdClass();
+            $result->prototype = new Assignment();
+            $result->templateList = $this->ctrl->getTemplateList($this->signedUser->id);
+            $result->studentList = $this->ctrl->getStudentList();
+
+            $this->prepareJson($result);
+            
+            return new WebApiResult(true, $result);
+        }
+        catch(Exception $ex){
+            return new WebApiResult(false, false, $ex->GetMessage());
+        }
+    }
+
+    public function getAssignment($request){
         try{
             $this->canUserAccess('a');
 
             $templateId = intval($request['templateId']);
 
-            $result = new stdClass();
-            $result->prototype = new Assignment();
-            $result->data = $this->ctrl->getAssignment($templateId);
-            $result->templateList = $this->ctrl->getTemplateList($USER->id);
-            $result->studentList = $this->ctrl->getStudentList();
+            $result = $this->ctrl->getAssignment($this->signedUser->id, $templateId);
 
             $this->prepareJson($result);
             
@@ -84,11 +96,20 @@ class WebApi extends recitcommon\MoodleApi
     public function saveAssignment($request){
         try{
             $this->canUserAccess('a');
-
             $data = json_decode(json_encode($request['data']), FALSE);
+            $this->ctrl->saveAssignment($data);
+            return new WebApiResult(true);
+        }
+        catch(Exception $ex){
+            return new WebApiResult(false, false, $ex->GetMessage());
+        }
+    }
 
-            $this->ctrl->saveWorkPlanAssign($data);
-
+    public function deleteAssignment($request){
+        try{
+            $this->canUserAccess('a');
+            $assignmentId = intval($request['assignmentId']);
+            $this->ctrl->deleteAssignment($assignmentId);
             return new WebApiResult(true);
         }
         catch(Exception $ex){
@@ -97,14 +118,10 @@ class WebApi extends recitcommon\MoodleApi
     }
 
     public function getTemplateList($request){
-        global $USER;
         try{
             $this->canUserAccess('a');
-
-            $result = $this->ctrl->getTemplateList($USER->id);
-            
+            $result = $this->ctrl->getTemplateList($this->signedUser->id);
             $this->prepareJson($result);
-            
             return new WebApiResult(true, $result);
         }
         catch(Exception $ex){

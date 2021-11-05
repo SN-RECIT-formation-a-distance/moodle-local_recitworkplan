@@ -27,6 +27,7 @@
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
         <KEY NAME="fktemplateid" TYPE="foreign" FIELDS="templateid" REFTABLE="recit_wp_tpl" REFFIELDS ="id"/>
+        <KEY NAME="unique_templateid_cmid" TYPE="unique" FIELDS="templateid, cmid"/>
       </KEYS>
     </TABLE>
 
