@@ -33,8 +33,8 @@ export class AppWebApi extends WebApi
         this.post(this.gateway, data, onSuccess);
     }
 
-    getAssignmentFormKit(onSuccess){
-        let data = {service: "getAssignmentFormKit"};
+    getAssignmentFormKit(templateId, complete, onSuccess){
+        let data = {templateId: templateId, complete: complete, service: "getAssignmentFormKit"};
         this.post(this.gateway, data, onSuccess);
     }
 
@@ -69,7 +69,7 @@ export class AppWebApi extends WebApi
     getTemplateFormFormKit(templateId, onSuccess){
         let data = {templateId: templateId, service: "getTemplateFormFormKit"};
         this.post(this.gateway, data, onSuccess);
-    }
+    }   
 
     saveTemplate(data, onSuccess){
         let that = this;
@@ -80,8 +80,22 @@ export class AppWebApi extends WebApi
             }
         };
 
-
         let options = {data: data, service: "saveTemplate"};
         this.post(this.gateway, options, onSuccessTmp);
+    }
+
+    deleteTemplate(templateId, onSuccess){
+        let data = {templateId: templateId, service: "deleteTemplate"};
+        this.post(this.gateway, data, onSuccess);
+    }
+
+    saveActTpl(data, onSuccess){
+        let options = {data: data, service: "saveActTpl"};
+        this.post(this.gateway, options, onSuccess);
+    }
+
+    deleteActTpl(tplActId, onSuccess){
+        let data = {tplActId: tplActId, service: "deleteActTpl"};
+        this.post(this.gateway, data, onSuccess);
     }
 };

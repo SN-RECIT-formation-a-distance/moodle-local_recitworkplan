@@ -210,7 +210,6 @@ class AssignmentsView extends Component{
                                         <DataGrid.Body.Cell style={{textAlign: 'center'}}>
                                             <ButtonGroup size="sm">
                                                 <Button title="Éditer" onClick={() => this.setState({templateId: item.template.id})} variant="primary"><FontAwesomeIcon icon={faPencilAlt}/></Button>
-                                                <Button title="Supprimer" variant="primary"><FontAwesomeIcon icon={faTrashAlt}/></Button>
                                             </ButtonGroup>
                                         </DataGrid.Body.Cell>
                                     </DataGrid.Body.Row>
@@ -225,8 +224,13 @@ class AssignmentsView extends Component{
         return main;
     }
 
-    onClose(){
-        this.getData();
+    onClose(refresh){
+        if(refresh){
+            this.getData();
+        }
+        else{
+            this.setState({templateId: -1});
+        }
     }
 }
 
@@ -247,11 +251,11 @@ class ModalAssignmentForm extends Component{
         this.onDeleteAssignment = this.onDeleteAssignment.bind(this);
         this.onAdd = this.onAdd.bind(this);
 
-        this.state = {templateId: props.templateId, assignmentList: [], dropdownLists: {studentList: [], templateList: []}};
+        this.state = {templateId: props.templateId, assignmentList: [], dropdownLists: {studentList: [], templateList: []}, flags: {dataChanged: false, refresh: false}};
     }
 
     componentDidMount(){
-        this.getData();
+        this.getData(this.state.templateId, true);
     }
 
     render(){
@@ -327,44 +331,38 @@ class ModalAssignmentForm extends Component{
                 </div>
             </Form>;
 
-        let main = <Modal title={'Attribuer un plan de travail'} body={body} onClose={this.props.onClose} />;
+        let main = <Modal title={'Attribuer un plan de travail'} body={body} onClose={this.onClose} />;
 
         return (main);
     }
 
-    getData(){
-        let that = this;
-        let callback = function(result){
-            if(!result.success){
-                FeedbackCtrl.instance.showError($glVars.i18n.appName, result.msg);
-                return;
-            }
-    
-            let templateList = [];
-            for(let item of result.data.templateList){
-                templateList.push({text: item.name, value: item.id});
-            }
-    
-            that.setState({
-                prototype: result.data.prototype, 
-                dropdownLists: {studentList: result.data.studentList, templateList: templateList}}
-            );
-        };
-
-        $glVars.webApi.getAssignmentFormKit(callback);
-
-        if(this.state.templateId > 0){
-            $glVars.webApi.getAssignment(this.state.templateId, this.getDataResult);
-        }
+    getData(templateId, complete){
+        templateId = templateId || 0;
+        complete = (typeof complete === 'undefined' ? false : complete);
+        $glVars.webApi.getAssignmentFormKit(templateId, complete, this.getDataResult);
     }
 
     getDataResult(result){
         if(!result.success){
-            $glVars.feedback.showError($glVars.i18n.tags.appName, result.msg);
+            FeedbackCtrl.instance.showError($glVars.i18n.appName, result.msg);
             return;
         }
 
-        this.setState({assignmentList: result.data});
+        let templateList = [];
+        if(result.data.templateList !== null){
+            for(let item of result.data.templateList){
+                templateList.push({text: item.name, value: item.id});
+            }
+        }
+        else{
+            templateList = this.state.dropdownLists.templateList;
+        }
+        
+        this.setState({
+            assignmentList: result.data.data,
+            prototype: (result.data.prototype !== null ? result.data.prototype : this.state.prototype), 
+            dropdownLists: {studentList: result.data.studentList, templateList: templateList}}
+        );
     }
 
     onAdd(item){
@@ -375,8 +373,7 @@ class ModalAssignmentForm extends Component{
         newItem.lastName = item.lastName;
         newItem.template.id = this.state.templateId;
         assignmentList.push(newItem);
-        newItem.changed = true;
-        this.setState({assignmentList: assignmentList}, () => this.onSave(newItem))
+        this.setState({assignmentList: assignmentList, flags: {dataChanged: true, refresh: true}}, () => this.onSave(newItem))
     }
 
     onDeleteAssignment(assignmentId){
@@ -387,8 +384,9 @@ class ModalAssignmentForm extends Component{
                 return;
             }
 
-            JsNx.removeItem(that.state.assignmentList, 'id', assignmentId);
-            that.forceUpdate();
+            let assignmentList = that.state.assignmentList;
+            JsNx.removeItem(assignmentList, 'id', assignmentId);
+            that.setState({assignmentList: assignmentList, flags: {dataChanged: that.state.flags.dataChanged, refresh: true}});
         }
 
         $glVars.webApi.deleteAssignment(assignmentId, callback);
@@ -397,32 +395,37 @@ class ModalAssignmentForm extends Component{
     onDataChange(event, index){
         if(index >= 0){
             let assignmentList = this.state.assignmentList;
+            let flags = this.state.flags;
+            flags.dataChanged = (assignmentList[index][event.target.name] !== event.target.value);
+            flags.refresh = true;
             assignmentList[index][event.target.name] = event.target.value;
-            data.changed = assignmentList[index][event.target.name] !== event.target.value
-            this.setState({assignmentList: assignmentList});
+            this.setState({assignmentList: assignmentList, flags: flags});
         }
         else{
             let data = this.state;
             data[event.target.name] = event.target.value;
-            this.setState(data, () => $glVars.webApi.getAssignment(event.target.value, this.getDataResult));
+            this.setState(data, () => this.getData(event.target.value));
         }
     }
 
     onSave(data){
+        let that = this;
         let callback = function(result){
             if(!result.success){
                 $glVars.feedback.showError($glVars.i18n.tags.appName, result.msg);
                 return;
             }
+
+            that.setState({flags: {dataChanged: false, refresh: that.state.flags.refresh}});
         }
 
-        if(data.hasOwnProperty("changed") && data.changed){
+        if(this.state.flags.dataChanged){
             $glVars.webApi.saveAssignment(data, callback);
         }
     }
 
     onClose(){
-        this.props.onClose();
+        this.props.onClose(this.state.flags.refresh);
     }
 }
 
@@ -430,19 +433,20 @@ class TemplatesView extends Component{
     constructor(props){
         super(props);
         
+        this.onClose = this.onClose.bind(this);
         this.getData = this.getData.bind(this);
         this.getDataResult = this.getDataResult.bind(this);
 
-        this.state = {dataProvider: [], templateId: 0};
+        this.state = {dataProvider: [], templateId: -1, queryStr: ""};
     }
 
     componentDidMount(){
-        $glVars.webApi.addObserver("TemplatesView", this.getData, ['saveTemplate']);        
+      //  $glVars.webApi.addObserver("TemplatesView", this.getData, ['saveTemplate']);        
         this.getData();
     }
 
     componentWillUnmount(){
-        $glVars.webApi.removeObserver("TemplatesView");
+      //  $glVars.webApi.removeObserver("TemplatesView");
     }
 
     componentDidUpdate(prevProps){
@@ -461,12 +465,40 @@ class TemplatesView extends Component{
             return;
         }
 
-        this.setState({dataProvider: result.data, templateId: 0});
+        this.setState({dataProvider: result.data, templateId: -1});
     }
 
     render(){
+        let dataProvider = this.state.dataProvider;
+        let regexp = UtilsString.getRegExp(this.state.queryStr);
+        let that = this;
+
+        if(this.state.queryStr.length > 0){
+            
+            dataProvider = this.state.dataProvider.filter(function(item){
+                let categories = that.getCategories(item);
+                if((item.name.search(regexp) >= 0) || (item.description.search(regexp) >= 0) || (categories.search(regexp) >= 0)){
+                    return true;
+                }
+                else{
+                    return false;
+                }
+            })
+        }
+
         let main = 
             <div>
+                <Button className="mb-3" title="Ajouter" onClick={() => this.setState({templateId: 0})} variant="primary"><FontAwesomeIcon icon={faPlus}/>{" Créer un gabarit"}</Button>
+
+                <FormGroup>
+                    <InputGroup>
+                        <FormControl autoFocus type="text" placeholder={"Recherchez..."} onChange={(event) => this.setState({queryStr: event.target.value})} value={this.state.queryStr}  aria-describedby="inputGroupPrepend" />
+                        <InputGroup.Prepend>
+                            <InputGroup.Text id="inputGroupPrepend"><FontAwesomeIcon icon={faSearch}/></InputGroup.Text>
+                        </InputGroup.Prepend>
+                    </InputGroup>
+                </FormGroup>
+
                 <DataGrid orderBy={true}>
                     <DataGrid.Header>
                         <DataGrid.Header.Row>
@@ -478,17 +510,17 @@ class TemplatesView extends Component{
                         </DataGrid.Header.Row>
                     </DataGrid.Header>
                     <DataGrid.Body>
-                        {this.state.dataProvider.map((item, index) => {
+                        {dataProvider.map((item, index) => {
                                 let row = 
                                     <DataGrid.Body.Row key={index}>
                                         <DataGrid.Body.Cell>{index + 1}</DataGrid.Body.Cell>
-                                        <DataGrid.Body.Cell>{item.categories}</DataGrid.Body.Cell>
+                                        <DataGrid.Body.Cell>{this.getCategories(item)}</DataGrid.Body.Cell>
                                         <DataGrid.Body.Cell>{item.name}</DataGrid.Body.Cell>
                                         <DataGrid.Body.Cell>{item.description}</DataGrid.Body.Cell>
                                         <DataGrid.Body.Cell style={{textAlign: 'center'}}>
                                             <ButtonGroup size="sm">
                                                 <Button title="Éditer" onClick={() => this.setState({templateId: item.id})} variant="primary"><FontAwesomeIcon icon={faPencilAlt}/></Button>
-                                                <Button title="Supprimer" variant="primary"><FontAwesomeIcon icon={faTrashAlt}/></Button>
+                                                <Button title="Supprimer" onClick={() => this.onRemove(item.id)} variant="primary"><FontAwesomeIcon icon={faTrashAlt}/></Button>
                                             </ButtonGroup>
                                         </DataGrid.Body.Cell>
                                     </DataGrid.Body.Row>
@@ -497,10 +529,45 @@ class TemplatesView extends Component{
                         )}
                     </DataGrid.Body>
                 </DataGrid>
-                {this.state.templateId > 0 && <ModalTemplateForm templateId={this.state.templateId} onClose={() => this.setState({templateId: 0})}/>}
+                {this.state.templateId >= 0 && <ModalTemplateForm templateId={this.state.templateId} onClose={this.onClose}/>}
             </div>;
 
         return main;
+    }
+
+    getCategories(item){
+        let result = [];
+        for(let act of item.activities){
+            result.push(act.categoryName);
+        }
+        result = [...new Set(result)]; // distinct values
+        return result.join(", ");
+    }
+
+    onClose(refresh){
+        if(refresh){
+            this.getData();
+        }
+        else{
+            this.setState({templateId: -1});
+        }
+    }
+
+    onRemove(templateId){
+        let that = this;
+        let callback = function(result){
+            if(!result.success){
+                FeedbackCtrl.instance.showError($glVars.i18n.appName, result.msg);
+            }
+            else{
+                FeedbackCtrl.instance.showInfo($glVars.i18n.appName, $glVars.i18n.msgSuccess, 3);
+                that.getData();
+            }
+        };
+
+        if(window.confirm($glVars.i18n.msgConfirmDeletion)){
+            $glVars.webApi.deleteTemplate(templateId, callback);
+        }
     }
 }
 
@@ -516,12 +583,13 @@ class ModalTemplateForm extends Component{
         this.getData = this.getData.bind(this);
         this.getDataResult = this.getDataResult.bind(this);
         this.onSave = this.onSave.bind(this);
+        this.onSaveActTpl = this.onSaveActTpl.bind(this);
         this.onClose = this.onClose.bind(this);
         this.onDataChange = this.onDataChange.bind(this);
         this.onRemove = this.onRemove.bind(this);
         this.onAdd = this.onAdd.bind(this);
 
-        this.state = {data: null, dropdownLists: {activityList: []}};
+        this.state = {data: null, dropdownLists: {activityList: []}, flags: {dataChanged: false, refresh: false}};
     }
 
     componentDidMount(){
@@ -538,13 +606,13 @@ class ModalTemplateForm extends Component{
                 <Form.Row>
                     <Form.Group as={Col}>
                         <Form.Label>{"Nom"}</Form.Label>
-                        <Form.Control type="text" value={this.state.data.name} name="name" onChange={this.onDataChange} />
+                        <Form.Control type="text" value={this.state.data.name}  onBlur={() => this.onSave(this.state.data)} name="name" onChange={this.onDataChange} />
                     </Form.Group>
                 </Form.Row>
                 <Form.Row>
                     <Form.Group as={Col}>
                         <Form.Label>{"Description"}</Form.Label>
-                        <Form.Control as="textarea" rows={3}  value={this.state.data.description} name="description" onChange={this.onDataChange} />
+                        <Form.Control as="textarea" rows={3}  value={this.state.data.description} onBlur={() => this.onSave(this.state.data)}  name="description" onChange={this.onDataChange} />
                     </Form.Group>
                 </Form.Row>
                 <div style={{display: 'grid',gridTemplateColumns: '49% 49%', gridGap: '1rem', marginTop: "1rem"}}>
@@ -594,8 +662,8 @@ class ModalTemplateForm extends Component{
                                                     <tr key={index}>
                                                         <td>{item.courseName}</td>
                                                         <td>{item.cmName}</td>
-                                                        <td><Form.Control type="text" placeholder="" value={item.nbHoursCompletion} name="nbHoursCompletion" onChange={(event) => this.onDataChange(event, index)} /></td>
-                                                        <td><Button size="sm" variant="primary" title="Supprimer" onClick={() => this.onRemove(item.cmId)}><FontAwesomeIcon icon={faTrashAlt}/></Button></td>
+                                                        <td><Form.Control type="text" placeholder="" value={item.nbHoursCompletion} onBlur={() => this.onSaveActTpl(item)} name="nbHoursCompletion" onChange={(event) => this.onDataChange(event, index)} /></td>
+                                                        <td><Button size="sm" variant="primary" title="Supprimer" onClick={() => this.onRemove(item.id)}><FontAwesomeIcon icon={faTrashAlt}/></Button></td>
                                                     </tr>;
 
                                                 return row;
@@ -609,15 +677,7 @@ class ModalTemplateForm extends Component{
                 </div>
             </Form>;
 
-        let footer = 
-            <div className="btn-tollbar" style={{width: "100%", display: "flex", justifyContent: "right", flexWrap: "wrap"}}>
-                <div className="btn-group" style={{flexWrap: "wrap"}}>
-                    <Button  variant="secondary" onClick={this.onClose}>{"Annuler"}</Button>
-                    <Button  variant="success"  onClick={this.onSave}>{"Appliquer"}</Button>
-                </div>
-            </div>;
-                
-        let main = <Modal title={'Créer un gabarit'} body={body} footer={footer} onClose={this.props.onClose} />;
+        let main = <Modal title={'Créer un gabarit'} body={body} onClose={this.onClose} />;
 
         return (main);
     }
@@ -633,42 +693,23 @@ class ModalTemplateForm extends Component{
         }
 
         this.setState({
-            prototype: result.data.prototype, 
             data: result.data.data, 
             dropdownLists: {activityList: result.data.activityList}
         });
     }
 
     onAdd(item){
-        let data = this.state.data;
-        let newItem = JsNx.clone(this.state.prototype);
+        let newItem = {};
+        newItem.id = 0;
         newItem.cmId = item.cmId;
         newItem.cmName = item.cmName;
         newItem.courseName = item.courseName;
-        data.activities.push(newItem);
-        this.setState({data: data})
+        newItem.templateId = this.state.data.id;
+        newItem.nbHoursCompletion = 0;
+        this.setState({flags: {dataChanged: true, refresh: true}}, () => this.onSaveActTpl(newItem));
     }
 
-    onRemove(cmId){
-        JsNx.removeItem(this.state.data.activities, 'cmId', cmId);
-        this.forceUpdate();
-    }
-
-    onDataChange(event, index){
-        index = (index >= 0 ? index : -1);
-        let data = this.state.data;
-
-        if(index >= 0){
-            data.activities[index][event.target.name] = event.target.value;
-        }
-        else{
-            data[event.target.name] = event.target.value;
-        }
-        
-        this.setState({data: data});
-    }
-
-    onSave(){
+    onRemove(tplActId){
         let that = this;
         let callback = function(result){
             if(!result.success){
@@ -676,14 +717,69 @@ class ModalTemplateForm extends Component{
                 return;
             }
 
-            $glVars.feedback.showInfo($glVars.i18n.tags.appName, $glVars.i18n.tags.msgSuccess, 3);
-            that.onClose();
+            let data = that.state.data;
+            JsNx.removeItem(data.activities, 'id', tplActId);
+            that.setState({data: data, flags: {dataChanged: that.state.flags.dataChanged, refresh: true}});
         }
 
-        $glVars.webApi.saveTemplate(this.state.data, callback);
+        $glVars.webApi.deleteActTpl(tplActId, callback);
+    }
+
+    onDataChange(event, index){
+        index = (index >= 0 ? index : -1);
+        let data = this.state.data;
+        let flags = this.state.flags;
+
+        if(index >= 0){
+            flags.dataChanged = (data.activities[index][event.target.name] !== event.target.value);
+            data.activities[index][event.target.name] = event.target.value;
+        }
+        else{
+            flags.dataChanged = (data[event.target.name] !== event.target.value);
+            data[event.target.name] = event.target.value;
+        }
+
+        flags.refresh = true;
+        this.setState({data: data, flags: flags});
+    }
+    
+    onSave(data){
+        let that = this;
+        let callback = function(result){
+            if(!result.success){
+                $glVars.feedback.showError($glVars.i18n.tags.appName, result.msg);
+                return;
+            }
+
+            data.id = result.data;
+            that.setState({data: data, flags: {dataChanged: false, refresh: that.state.flags.refresh}});
+        }
+
+        if(this.state.flags.dataChanged){
+            $glVars.webApi.saveTemplate(data, callback);
+        }
+    }
+
+    onSaveActTpl(tplAct){
+        let that = this;
+        let callback = function(result){
+            if(!result.success){
+                $glVars.feedback.showError($glVars.i18n.tags.appName, result.msg);
+                return;
+            }
+
+            tplAct.id = result.data;
+            let data = that.state.data;
+            data.activities.push(tplAct);
+            that.setState({data: data, flags: {dataChanged: false, refresh: that.state.flags.refresh}});
+        }
+
+        if(this.state.flags.dataChanged){
+            $glVars.webApi.saveActTpl(tplAct, callback);
+        }
     }
 
     onClose(){
-        this.props.onClose();
+        this.props.onClose(this.state.flags.refresh);
     }
 }

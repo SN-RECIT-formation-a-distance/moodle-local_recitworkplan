@@ -72,14 +72,13 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         $DB->execute("set @uniqueId = 0");
 
         $query = "select  @uniqueId := @uniqueId + 1 as uniqueId, t1.id as templateid, t1.creatorid, t1.name as templatename, t1.description as templatedesc,  
-        if(t1.lastupdate > 0, from_unixtime(t1.lastupdate), null) as lastupdate, t2.cmid, 
-        GROUP_CONCAT(distinct t5.name separator ', ') as categories, tblRoles.roles
+        if(t1.lastupdate > 0, from_unixtime(t1.lastupdate), null) as lastupdate, t2.cmid, t5.name as categoryName, tblRoles.roles
         from {recit_wp_tpl} as t1
         inner join {recit_wp_tpl_act} as t2 on t1.id = t2.templateid
         inner join {course_modules} as t3 on t2.cmid = t3.id
         inner join {course} as t4 on t3.course = t4.id
         inner join {course_categories} as t5 on t4.category = t5.id
-        inner join (".$this->getAdminRolesStmt($userId).") as tblRoles on t4.id = tblRoles.courseId
+        left join (".$this->getAdminRolesStmt($userId).") as tblRoles on t4.id = tblRoles.courseId
         group by t1.id, t2.cmid
         order by templatename asc";
 
@@ -105,18 +104,19 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         return array_values($result);
     }
 
-    public function getTemplate($templateId){
+    public function getTemplate($userId, $templateId){
         global $DB;
 
         $DB->execute("set @uniqueId = 0");
 
         $query = "select  @uniqueId := @uniqueId + 1 as uniqueId, t1.id as templateid, t1.creatorid, t1.name as templatename, t1.description as templatedesc,  if(t1.lastupdate > 0, from_unixtime(t1.lastupdate), null) as lastupdate, 
-        t2.id as tpl_act_id, t2.cmid, t2.nb_hours_completion, t4.id as courseid, t4.shortname as coursename, t5.id as categoryid, t5.name as categoryname
+        t2.id as tpl_act_id, t2.cmid, t2.nb_hours_completion, t4.id as courseid, t4.shortname as coursename, t5.id as categoryid, t5.name as categoryname, tblRoles.roles
         from {recit_wp_tpl} as t1
         inner join {recit_wp_tpl_act} as t2 on t1.id = t2.templateid
         inner join {course_modules} as t3 on t2.cmid = t3.id
         inner join {course} as t4 on t3.course = t4.id
         inner join {course_categories} as t5 on t4.category = t5.id
+        left join (".$this->getAdminRolesStmt($userId).") as tblRoles on t4.id = tblRoles.courseId
         where t1.id =:templateid
         order by t4.id asc, t1.name asc";
 
@@ -132,7 +132,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
             
             $item->cmname = $this->getCmNameFromCmId($item->cmid, $item->courseid, $modinfo);
 
-            if(empty($result)){
+            if($result == null){
                 $result = Template::create($item);
             }
             else{
@@ -140,13 +140,16 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
             }
         }  
 
+        if(!$result->verifyRoles()){
+            throw new \Exception("The logged in user has no permission to view this template.");
+        }
+
         return $result;
     }
 
     public function saveTemplate($data){
         try{	
-            $this->mysqlConn->beginTransaction();
-
+            $result = $data->id;
             $fields = array("name", "description", "lastupdate");
             $values = array($data->name, $data->description,  time());
 
@@ -156,46 +159,92 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
 
                 $query = $this->mysqlConn->prepareStmt("insertorupdate", "{$this->prefix}recit_wp_tpl", $fields, $values);
                 $this->mysqlConn->execSQL($query);
+
+                $result = $this->mysqlConn->getLastInsertId("{$this->prefix}recit_wp_tpl", "id");
             }
             else{
                 $query = $this->mysqlConn->prepareStmt("update", "{$this->prefix}recit_wp_tpl", $fields, $values, array("id"), array($data->id));
                 $this->mysqlConn->execSQL($query);
             }
 
-            $keepIds = array();
-            foreach($data->activities as $activity){
-                $fields = array("templateid", "cmid", "nb_hours_completion");
-                $values = array($data->id, $activity->cmId, $activity->nbHoursCompletion);
-
-                if($activity->id == 0){
-                    $query = $this->mysqlConn->prepareStmt("insertorupdate", "{$this->prefix}recit_wp_tpl_act", $fields, $values);
-                    $this->mysqlConn->execSQL($query);
-                    $activity->id = $this->mysqlConn->getLastInsertId("{$this->prefix}recit_wp_tpl_act", "id");
-                }
-                else{
-                    $query = $this->mysqlConn->prepareStmt("update", "{$this->prefix}recit_wp_tpl_act", $fields, $values, array("id"), array($activity->id));
-                    $this->mysqlConn->execSQL($query);
-                }
-
-                $keepIds[] = $activity->id;
-            }
-
-            $keepIds = implode(",", $keepIds);
-            $this->mysqlConn->execSQL("delete from {$this->prefix}recit_wp_tpl_act where id not in ($keepIds)");
-            
-            $this->mysqlConn->commitTransaction();
-
-            return true;
+            return $result;
         }
         catch(\Exception $ex){
-            $this->mysqlConn->rollbackTransaction();
             throw $ex;
         }
     }
 
-    public function getStudentList(){
+    public function deleteTemplate($templateId){
+        try{
+            $query = "delete t1, t2, t3
+                     from {$this->prefix}recit_wp_tpl as t1
+                    left join {$this->prefix}recit_wp_tpl_act as t2 on t1.id = t2.templateid 
+                    left join {$this->prefix}recit_wk_tpl_assign as t3 on t1.id = t3.templateid
+                    where t1.id = $templateId";
+
+            $this->mysqlConn->execSQL($query);
+            return true;
+        }
+        catch(\Exception $ex){
+            throw $ex;
+        }  
+    }
+
+    public function saveActTpl($data){
+        try{	
+            $result = $data->id;
+
+            if($data->templateId == 0){
+                throw new \Exception("aaa");
+            }
+            else{
+                $fields = array("lastupdate");
+                $values = array(time());
+                $query = $this->mysqlConn->prepareStmt("update", "{$this->prefix}recit_wp_tpl", $fields, $values, array("id"), array($data->templateId));
+                $this->mysqlConn->execSQL($query);
+            }
+
+            $fields = array("templateid", "cmid", "nb_hours_completion");
+            $values = array($data->templateId, $data->cmId, $data->nbHoursCompletion);
+
+            if($data->id == 0){
+                $query = $this->mysqlConn->prepareStmt("insertorupdate", "{$this->prefix}recit_wp_tpl_act", $fields, $values);
+                $result = $this->mysqlConn->getLastInsertId("{$this->prefix}recit_wp_tpl_act", "id");
+            }
+            else{
+                $query = $this->mysqlConn->prepareStmt("update", "{$this->prefix}recit_wp_tpl_act", $fields, $values, array("id"), array($data->id));
+                
+            }
+
+            $this->mysqlConn->execSQL($query);
+
+            return $result;
+        }
+        catch(\Exception $ex){
+            throw $ex;
+        }
+    }
+
+    public function deleteActTpl($tplActId){
+        try{
+            $this->mysqlConn->execSQL("delete from {$this->prefix}recit_wp_tpl_act where id = $tplActId");
+            return true;
+        }
+        catch(\Exception $ex){
+            throw $ex;
+        }  
+    }
+
+    public function getStudentList($templateId){
         global $DB;
-        $query = "select id, firstname, lastname from {user} order by firstname, lastname asc";
+        $query = "select t1.id, t1.firstname, t1.lastname
+        from {user} as t1
+        inner join {user_enrolments} as t2 on t1.id = t2.userid
+        inner join {enrol} as t3 on t2.enrolid = t3.id
+        where t3.courseid in (select st2.course from {recit_wp_tpl_act} as st1 
+                             inner join {course_modules} as st2 on st1.cmid = st2.id 
+                             where st1.templateid = $templateId)
+        order by firstname, lastname asc";
 
         $rst = $DB->get_records_sql($query);
 
@@ -223,7 +272,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         inner join {recit_wp_tpl_act} as t3 on t3.templateid = t2.id
         inner join {user} as t4 on t1.userid = t4.id
         inner join {course_modules} as t5 on t3.cmid = t5.id
-        inner join (".$this->getAdminRolesStmt($userId).") as tblRoles on t5.course = tblRoles.courseId
+        left join (".$this->getAdminRolesStmt($userId).") as tblRoles on t5.course = tblRoles.courseId
         where t2.id =:templateid";
 
         $rst = $DB->get_records_sql($query, array('templateid' => $templateId));
@@ -238,6 +287,12 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
             }
         } 
 
+        foreach($result as $index => $item){
+            if(!$item->template->verifyRoles()){
+                unset($result[$index]);
+            }
+        } 
+
         return array_values($result);
     }
 
@@ -247,13 +302,13 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         $DB->execute("set @uniqueId = 0");
 
         $query = "select  @uniqueId := @uniqueId + 1 as uniqueId, t1.id, t1.nb_hours_per_week as nbhoursperweek, from_unixtime(t1.startdate) as startdate, t2.id as templateid, t2.creatorid, t2.name as templatename, 
-        t2.description as templatedesc, from_unixtime(t2.lastupdate) as lastupdate, t3.nb_hours_completion as nbhourscompletion, t4.id as userid, t4.firstname, t4.lastname, tblRoles.roles
+        t2.description as templatedesc, from_unixtime(t2.lastupdate) as lastupdate, t3.cmid, t3.nb_hours_completion as nbhourscompletion, t4.id as userid, t4.firstname, t4.lastname, tblRoles.roles
         from {recit_wk_tpl_assign} as t1
         inner join {recit_wp_tpl} as t2 on t1.templateid = t2.id
         inner join {recit_wp_tpl_act} as t3 on t3.templateid = t2.id
         inner join {user} as t4 on t1.userid = t4.id
         inner join {course_modules} as t5 on t3.cmid = t5.id
-        inner join (".$this->getAdminRolesStmt($userId).") as tblRoles on t5.course = tblRoles.courseId";
+        left join (".$this->getAdminRolesStmt($userId).") as tblRoles on t5.course = tblRoles.courseId";
 
         $rst = $DB->get_records_sql($query, array('userid' => $userId));
 
@@ -261,6 +316,12 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
 		foreach($rst as $item){
             $result->addAssignment($item);
         }  
+
+        foreach($result->detailed as $index => $item){
+            if(!$item->template->verifyRoles()){
+                unset($result->detailed[$index]);
+            }
+        } 
 
         return $result;
     }
@@ -314,7 +375,6 @@ class Template{
         $result->description = $dbData->templatedesc;
         $result->creatorId = $dbData->creatorid;
         $result->lastUpdate = $dbData->lastupdate;
-        $result->categories = (isset($dbData->categories) ? $dbData->categories : $result->categories);
         $result->addActivity($dbData);
 
         return $result;

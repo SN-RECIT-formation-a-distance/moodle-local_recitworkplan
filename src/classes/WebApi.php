@@ -62,11 +62,20 @@ class WebApi extends recitcommon\MoodleApi
         try{
             $this->canUserAccess('a');
 
-            $result = new stdClass();
-            $result->prototype = new Assignment();
-            $result->templateList = $this->ctrl->getTemplateList($this->signedUser->id);
-            $result->studentList = $this->ctrl->getStudentList();
+            $templateId = intval($request['templateId']);
+            $complete = boolval($request['complete']);
 
+            $result = new stdClass();
+            $result->prototype = null;
+            $result->templateList = null;
+            $result->data = $this->ctrl->getAssignment($this->signedUser->id, $templateId);
+            $result->studentList =  $this->ctrl->getStudentList($templateId);
+
+            if($complete){
+                $result->templateList = $this->ctrl->getTemplateList($this->signedUser->id);
+                $result->prototype = new Assignment();
+            }
+            
             $this->prepareJson($result);
             
             return new WebApiResult(true, $result);
@@ -137,7 +146,7 @@ class WebApi extends recitcommon\MoodleApi
 
             $result = new stdClass();
             $result->prototype = new TemplateActivity();
-            $result->data = ($templateId > 0 ? $this->ctrl->getTemplate($templateId) : new Template());
+            $result->data = ($templateId > 0 ? $this->ctrl->getTemplate($this->signedUser->id, $templateId) : new Template());
             $result->activityList = $this->ctrl->getCatCourseSectionActivityList();
 
             $this->prepareJson($result);
@@ -155,8 +164,47 @@ class WebApi extends recitcommon\MoodleApi
 
             $data = json_decode(json_encode($request['data']), FALSE);
 
-            $this->ctrl->saveTemplate($data);
+            $result = $this->ctrl->saveTemplate($data);
 
+            return new WebApiResult(true, $result);
+        }
+        catch(Exception $ex){
+            return new WebApiResult(false, false, $ex->GetMessage());
+        }
+    }
+
+    public function deleteTemplate($request){
+        try{
+            $this->canUserAccess('a');
+            $templateId = intval($request['templateId']);
+            $this->ctrl->deleteTemplate($templateId);
+            return new WebApiResult(true);
+        }
+        catch(Exception $ex){
+            return new WebApiResult(false, false, $ex->GetMessage());
+        }
+    }
+
+    public function saveActTpl($request){
+        try{
+            $this->canUserAccess('a');
+
+            $data = json_decode(json_encode($request['data']), FALSE);
+
+            $result = $this->ctrl->saveActTpl($data);
+
+            return new WebApiResult(true, $result);
+        }
+        catch(Exception $ex){
+            return new WebApiResult(false, false, $ex->GetMessage());
+        }
+    }
+    
+    public function deleteActTpl($request){
+        try{
+            $this->canUserAccess('a');
+            $tplActId = intval($request['tplActId']);
+            $this->ctrl->deleteActTpl($tplActId);
             return new WebApiResult(true);
         }
         catch(Exception $ex){
