@@ -71,6 +71,11 @@ export class AppWebApi extends WebApi
         this.post(this.gateway, data, onSuccess);
     }   
 
+    getCatCourseSectionActivityList(enrolled, categoryId, courseId, onSuccess){
+        let data = {enrolled: enrolled, categoryId: categoryId, courseId: courseId, service: "getCatCourseSectionActivityList"};
+        this.post(this.gateway, data, onSuccess);
+    }  
+
     saveTemplate(data, onSuccess){
         let that = this;
         let onSuccessTmp = function(result){     
@@ -89,13 +94,13 @@ export class AppWebApi extends WebApi
         this.post(this.gateway, data, onSuccess);
     }
 
-    saveActTpl(data, onSuccess){
-        let options = {data: data, service: "saveActTpl"};
+    saveTplAct(data, onSuccess){
+        let options = {data: data, service: "saveTplAct"};
         this.post(this.gateway, options, onSuccess);
     }
 
-    deleteActTpl(tplActId, onSuccess){
-        let data = {tplActId: tplActId, service: "deleteActTpl"};
+    deleteTplAct(tplActId, onSuccess){
+        let data = {tplActId: tplActId, service: "deleteTplAct"};
         this.post(this.gateway, data, onSuccess);
     }
 };

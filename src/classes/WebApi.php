@@ -147,7 +147,7 @@ class WebApi extends recitcommon\MoodleApi
             $result = new stdClass();
             $result->prototype = new TemplateActivity();
             $result->data = ($templateId > 0 ? $this->ctrl->getTemplate($this->signedUser->id, $templateId) : new Template());
-            $result->activityList = $this->ctrl->getCatCourseSectionActivityList();
+            $result->catCourseList = $this->ctrl->getCatCourseSectionActivityList();
 
             $this->prepareJson($result);
             
@@ -185,13 +185,13 @@ class WebApi extends recitcommon\MoodleApi
         }
     }
 
-    public function saveActTpl($request){
+    public function saveTplAct($request){
         try{
             $this->canUserAccess('a');
 
             $data = json_decode(json_encode($request['data']), FALSE);
 
-            $result = $this->ctrl->saveActTpl($data);
+            $result = $this->ctrl->saveTplAct($data);
 
             return new WebApiResult(true, $result);
         }
@@ -200,148 +200,17 @@ class WebApi extends recitcommon\MoodleApi
         }
     }
     
-    public function deleteActTpl($request){
+    public function deleteTplAct($request){
         try{
             $this->canUserAccess('a');
             $tplActId = intval($request['tplActId']);
-            $this->ctrl->deleteActTpl($tplActId);
+            $this->ctrl->deleteTplAct($tplActId);
             return new WebApiResult(true);
         }
         catch(Exception $ex){
             return new WebApiResult(false, false, $ex->GetMessage());
         }
     }
-
-   /* public function getUsers($request){
-        global $USER;
-        try{
-            $searchparams = array();
-            if (isset($request['search'])) $searchparams[] = array('key' => 'fullname', 'value' => $request['search']);
-            $users = \core_user_external::get_users($searchparams);
-            $result = array();
-            foreach ($users['users'] as $u){
-                $result[] = array('value' => $u['id'], 'text' => $u['fullname']);
-            }
-            $this->prepareJson($result);
-            
-            return new WebApiResult(true, $result);
-        }
-        catch(Exception $ex){
-            return new WebApiResult(false, false, $ex->GetMessage());
-        }
-    }
-    
-    public function getAvailableCourses($request){
-        global $USER;
-        try{
-            $result = $this->ctrl->getCoursesFromTeacher($USER->id);
-            $this->prepareJson($result);
-            
-            return new WebApiResult(true, $result);
-        }
-        catch(Exception $ex){
-            return new WebApiResult(false, false, $ex->GetMessage());
-        }
-    }
-    
-    public function getTrainingPlans($request){
-        global $USER;
-        try{
-            $result = $this->ctrl->getTrainingPlansFromTeacher($USER->id);
-            $this->prepareJson($result);
-            
-            return new WebApiResult(true, $result);
-        }
-        catch(Exception $ex){
-            return new WebApiResult(false, false, $ex->GetMessage());
-        }
-    }
-    
-    public function getTrainingPlan($request){
-        try{
-            $result = $this->ctrl->getTrainingPlan($request['planId']);
-            $this->prepareJson($result);
-            
-            return new WebApiResult(true, $result);
-        }
-        catch(Exception $ex){
-            return new WebApiResult(false, false, $ex->GetMessage());
-        }
-    }
-    
-    public function addOrUpdateTrainingPlan($request){
-        global $USER;
-        try{
-            $request['plan']['userid'] = $USER->id;
-            $result = $this->ctrl->addOrUpdateTrainingPlan($request['plan']);
-            $this->prepareJson($result);
-            
-            return new WebApiResult(true, $result);
-        }
-        catch(Exception $ex){
-            return new WebApiResult(false, false, $ex->GetMessage());
-        }
-    }
-    
-    public function addOrUpdateTrainingPlanActivity($request){
-        try{
-            $result = $this->ctrl->addOrUpdateTrainingPlanActivity($request['planActivity']);
-            $this->prepareJson($result);
-            
-            return new WebApiResult(true, $result);
-        }
-        catch(Exception $ex){
-            return new WebApiResult(false, false, $ex->GetMessage());
-        }
-    }
-    
-    public function addOrUpdateTrainingPlanAssignment($request){
-        try{
-            $result = $this->ctrl->addOrUpdateTrainingPlanAssignment($request['planAssignment']);
-            $this->prepareJson($result);
-            
-            return new WebApiResult(true, $result);
-        }
-        catch(Exception $ex){
-            return new WebApiResult(false, false, $ex->GetMessage());
-        }
-    }
-    
-    public function deleteTrainingPlan($request){
-        try{
-            $result = $this->ctrl->deleteTrainingPlan($request['plan']);
-            $this->prepareJson($result);
-            
-            return new WebApiResult(true, $result);
-        }
-        catch(Exception $ex){
-            return new WebApiResult(false, false, $ex->GetMessage());
-        }
-    }
-    
-    public function deleteTrainingPlanActivity($request){
-        try{
-            $result = $this->ctrl->deleteTrainingPlanActivity($request['planActivity']);
-            $this->prepareJson($result);
-            
-            return new WebApiResult(true, $result);
-        }
-        catch(Exception $ex){
-            return new WebApiResult(false, false, $ex->GetMessage());
-        }
-    }
-    
-    public function deleteTrainingPlanAssignment($request){
-        try{
-            $result = $this->ctrl->deleteTrainingPlanAssignment($request['planAssignment']);
-            $this->prepareJson($result);
-            
-            return new WebApiResult(true, $result);
-        }
-        catch(Exception $ex){
-            return new WebApiResult(false, false, $ex->GetMessage());
-        }
-    }*/
 }
 
 ///////////////////////////////////////////////////////////////////////////////////

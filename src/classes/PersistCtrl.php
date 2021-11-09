@@ -57,9 +57,9 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
     protected function getAdminRolesStmt($userId){
         $query = " select st3.instanceid as courseId, 
         group_concat(distinct st1.shortname) as roles
-        from mdl_role as st1 
-        inner join mdl_role_assignments as st2 on st1.id = st2.roleid 
-        inner join mdl_context as st3 on st2.contextid = st3.id and contextlevel = 50
+        from {$this->prefix}role as st1 
+        inner join {$this->prefix}role_assignments as st2 on st1.id = st2.roleid 
+        inner join {$this->prefix}context as st3 on st2.contextid = st3.id and contextlevel = 50
         where st2.userid = $userId 
         group by st3.instanceid";
 
@@ -190,12 +190,15 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         }  
     }
 
-    public function saveActTpl($data){
+    public function saveTplAct($data){
         try{	
-            $result = $data->id;
+            $result = new StdClass();
+            $result->templateId = $data->templateId;
+            $result->tplActId = $data->id;
 
             if($data->templateId == 0){
-                throw new \Exception("aaa");
+                $template = new Template();
+                $result->templateId = $this->saveTemplate($template);
             }
             else{
                 $fields = array("lastupdate");
@@ -209,7 +212,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
 
             if($data->id == 0){
                 $query = $this->mysqlConn->prepareStmt("insertorupdate", "{$this->prefix}recit_wp_tpl_act", $fields, $values);
-                $result = $this->mysqlConn->getLastInsertId("{$this->prefix}recit_wp_tpl_act", "id");
+                $result->tplActId = $this->mysqlConn->getLastInsertId("{$this->prefix}recit_wp_tpl_act", "id");
             }
             else{
                 $query = $this->mysqlConn->prepareStmt("update", "{$this->prefix}recit_wp_tpl_act", $fields, $values, array("id"), array($data->id));
@@ -225,7 +228,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         }
     }
 
-    public function deleteActTpl($tplActId){
+    public function deleteTplAct($tplActId){
         try{
             $this->mysqlConn->execSQL("delete from {$this->prefix}recit_wp_tpl_act where id = $tplActId");
             return true;
@@ -237,6 +240,13 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
 
     public function getStudentList($templateId){
         global $DB;
+
+        $result = array();
+
+        if($templateId == 0 ){
+            return $result;
+        }
+
         $query = "select t1.id, t1.firstname, t1.lastname
         from {user} as t1
         inner join {user_enrolments} as t2 on t1.id = t2.userid
@@ -248,7 +258,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
 
         $rst = $DB->get_records_sql($query);
 
-        $result = array();
+        
 		foreach($rst as $item){
             $obj = new stdClass();
             $obj->userId = $item->id;
@@ -297,20 +307,18 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
     }
 
     public function getAssignmentList($userId){
-        global $DB;
-
-        $DB->execute("set @uniqueId = 0");
-
-        $query = "select  @uniqueId := @uniqueId + 1 as uniqueId, t1.id, t1.nb_hours_per_week as nbhoursperweek, from_unixtime(t1.startdate) as startdate, t2.id as templateid, t2.creatorid, t2.name as templatename, 
-        t2.description as templatedesc, from_unixtime(t2.lastupdate) as lastupdate, t3.cmid, t3.nb_hours_completion as nbhourscompletion, t4.id as userid, t4.firstname, t4.lastname, tblRoles.roles
-        from {recit_wk_tpl_assign} as t1
-        inner join {recit_wp_tpl} as t2 on t1.templateid = t2.id
-        inner join {recit_wp_tpl_act} as t3 on t3.templateid = t2.id
-        inner join {user} as t4 on t1.userid = t4.id
-        inner join {course_modules} as t5 on t3.cmid = t5.id
+        $query = "select  t1.id, t1.nb_hours_per_week as nbhoursperweek, from_unixtime(t1.startdate) as startdate, t1.completionstate as wpcompletionstate, t2.id as templateid, t2.creatorid, t2.name as templatename, 
+        t2.description as templatedesc, from_unixtime(t2.lastupdate) as lastupdate, t3.cmid, t3.nb_hours_completion as nb_hours_completion, t4.id as userid, t4.firstname, t4.lastname, 
+        t6.completionstate, tblRoles.roles
+        from {$this->prefix}recit_wk_tpl_assign as t1
+        inner join {$this->prefix}recit_wp_tpl as t2 on t1.templateid = t2.id
+        inner join {$this->prefix}recit_wp_tpl_act as t3 on t3.templateid = t2.id
+        inner join {$this->prefix}user as t4 on t1.userid = t4.id
+        inner join {$this->prefix}course_modules as t5 on t3.cmid = t5.id
+        left join {$this->prefix}course_modules_completion as t6 on t5.id = t6.coursemoduleid and t6.userid = t4.id
         left join (".$this->getAdminRolesStmt($userId).") as tblRoles on t5.course = tblRoles.courseId";
 
-        $rst = $DB->get_records_sql($query, array('userid' => $userId));
+        $rst = $this->mysqlConn->execSQLAndGetObjects($query);
 
         $result = new MyAssignments();
 		foreach($rst as $item){
@@ -320,7 +328,10 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         foreach($result->detailed as $index => $item){
             if(!$item->template->verifyRoles()){
                 unset($result->detailed[$index]);
+                continue;
             }
+
+            $item->setEndDate();
         } 
 
         return $result;
@@ -409,6 +420,11 @@ class TemplateActivity{
     public $categoryName = "";
     public $nbHoursCompletion = 0;
     public $roles = "";
+    /**
+     * Whether or not the user has completed the activity. 
+     * Available states: 0 = not completed if there's no row in this table, that also counts as 0 1 = completed 2 = completed, show passed 3 = completed, show failed
+     */
+    public $completionState = 0;
 
     public static function create($dbData){
         $result = new TemplateActivity();
@@ -420,9 +436,11 @@ class TemplateActivity{
         $result->categoryId = (isset($dbData->categoryid) ? $dbData->categoryid : $result->categoryId);
         $result->categoryName = (isset($dbData->categoryname) ? $dbData->categoryname : $result->categoryName);
         $result->nbHoursCompletion = (isset($dbData->nb_hours_completion) ? $dbData->nb_hours_completion : $result->nbHoursCompletion);
-        
+
         $result->roles = explode(",", $dbData->roles);
         $result->roles = Utils::moodleRoles2RecitRoles($result->roles);
+
+        $result->completionState = (isset($dbData->completionstate) ? $dbData->completionstate : $result->completionState);
 
         return $result;
     }
@@ -436,7 +454,12 @@ class Assignment{
     public $firstName = "";
     public $lastName = "";
     public $startDate = null;
+    public $endDate = null;
     public $nbHoursPerWeek = 0;
+    /**
+     * 0 = ongoing, 1 = finished, 2 = late
+     */
+    public $completionState = 0;
     
     public function __construct(){
         $this->template = new Template();      
@@ -453,8 +476,23 @@ class Assignment{
         $result->lastName = $dbData->lastname;
         $result->startDate = $dbData->startdate;
         $result->nbHoursPerWeek = $dbData->nbhoursperweek;
+        $result->completionState = $dbData->wpcompletionstate;
 
         return $result;
+    }
+
+    public function setEndDate(){
+        if($this->nbHoursPerWeek == 0){ return; }
+
+        $nbHoursCompletion = 0;
+        foreach($this->template->activities as $item){
+            $nbHoursCompletion += $item->nbHoursCompletion;
+        }
+
+        $nbWeeks = $nbHoursCompletion / $this->nbHoursPerWeek;
+
+        $this->endDate = clone $this->startDate;
+        $this->endDate->modify("+$nbWeeks week");
     }
 }
 
