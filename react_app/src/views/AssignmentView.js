@@ -289,14 +289,12 @@ class ModalAssignmentForm extends Component{
     }
 
     onAdd(item){
-        let assignmentList = this.state.assignmentList;
         let newItem = JsNx.clone(this.state.prototype);
         newItem.userId = item.userId;
         newItem.firstName = item.firstName;
         newItem.lastName = item.lastName;
         newItem.template.id = this.state.templateId;
-        assignmentList.push(newItem);
-        this.setState({assignmentList: assignmentList, flags: {dataChanged: true, refresh: true}}, () => this.onSave(newItem))
+        this.setState({flags: {dataChanged: true, refresh: true}}, () => this.onSave(newItem))
     }
 
     onDeleteAssignment(assignmentId){
@@ -339,7 +337,14 @@ class ModalAssignmentForm extends Component{
                 return;
             }
 
-            that.setState({flags: {dataChanged: false, refresh: that.state.flags.refresh}});
+            let assignmentList = that.state.assignmentList;
+
+            if(data.id === 0){
+                data.id = result.data;
+                assignmentList.push(data);
+            }
+
+            that.setState({assignmentList: assignmentList, flags: {dataChanged: false, refresh: that.state.flags.refresh}});
         }
 
         if(this.state.flags.dataChanged){

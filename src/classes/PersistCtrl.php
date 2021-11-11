@@ -192,13 +192,9 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
 
     public function saveTplAct($data){
         try{	
-            $result = new StdClass();
-            $result->templateId = $data->templateId;
-            $result->tplActId = $data->id;
-
             if($data->templateId == 0){
                 $template = new Template();
-                $result->templateId = $this->saveTemplate($template);
+                $data->templateId = $this->saveTemplate($template);
             }
             else{
                 $fields = array("lastupdate");
@@ -212,14 +208,18 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
 
             if($data->id == 0){
                 $query = $this->mysqlConn->prepareStmt("insertorupdate", "{$this->prefix}recit_wp_tpl_act", $fields, $values);
-                $result->tplActId = $this->mysqlConn->getLastInsertId("{$this->prefix}recit_wp_tpl_act", "id");
+                $this->mysqlConn->execSQL($query);
+
+                $data->id = $this->mysqlConn->getLastInsertId("{$this->prefix}recit_wp_tpl_act", "id");
             }
             else{
                 $query = $this->mysqlConn->prepareStmt("update", "{$this->prefix}recit_wp_tpl_act", $fields, $values, array("id"), array($data->id));
-                
+                $this->mysqlConn->execSQL($query);
             }
 
-            $this->mysqlConn->execSQL($query);
+            $result = new StdClass();
+            $result->templateId = $data->templateId;
+            $result->tplActId = $data->id;
 
             return $result;
         }
@@ -275,7 +275,8 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
 
         $DB->execute("set @uniqueId = 0");
 
-        $query = "select  @uniqueId := @uniqueId + 1 as uniqueId, t1.id, t1.nb_hours_per_week as nbhoursperweek, from_unixtime(t1.startdate) as startdate, t2.id as templateid, t2.creatorid, t2.name as templatename, 
+        $query = "select  @uniqueId := @uniqueId + 1 as uniqueId, t1.id, t1.nb_hours_per_week as nbhoursperweek, from_unixtime(t1.startdate) as startdate, t1.completionstate as wpcompletionstate,
+        t2.id as templateid, t2.creatorid, t2.name as templatename, 
         t2.description as templatedesc, from_unixtime(t2.lastupdate) as lastupdate, t3.id as tpl_act_id, t3.cmid, t3.nb_hours_completion, t4.id as userid, t4.firstname, t4.lastname, tblRoles.roles
         from {recit_wk_tpl_assign} as t1
         inner join {recit_wp_tpl} as t2 on t1.templateid = t2.id
@@ -345,13 +346,14 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
             if($data->id == 0){
                 $query = $this->mysqlConn->prepareStmt("insertorupdate", "{$this->prefix}recit_wk_tpl_assign", $fields, $values);
                 $this->mysqlConn->execSQL($query);
+                $data->id = $this->mysqlConn->getLastInsertId("{$this->prefix}recit_wk_tpl_assign", "id");
             }
             else{
                 $query = $this->mysqlConn->prepareStmt("update", "{$this->prefix}recit_wk_tpl_assign", $fields, $values, array("id"), array($data->id));
                 $this->mysqlConn->execSQL($query);
             }
 
-            return true;
+            return $data->id;
         }
         catch(\Exception $ex){
             throw $ex;
@@ -366,6 +368,32 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         catch(\Exception $ex){
             throw $ex;
         }  
+    }
+
+    public function setAssignmentCompletionState($userId, $cmId){
+        try{		
+            $query = "select assignmentId, templateid,  (case when nbIncompleteAct = 0 then 1 when now() > enddate and nbIncompleteAct > 0 then 2 else 0 end) as completionstate, nbIncompleteAct, startdate, enddate, cmids FROM
+            (select t1.id as assignmentId, t1.templateid, from_unixtime(any_value(t1.startdate)) as startdate, date_add(from_unixtime(any_value(t1.startdate)), interval (sum(t2.nb_hours_completion) / any_value(t1.nb_hours_per_week)) week) as enddate, sum(if(coalesce(t3.completionstate,0) = 0, 1, 0)) as nbIncompleteAct,
+             group_concat(DISTINCT t2.cmid) as cmids
+            from mdl_recit_wk_tpl_assign as t1 
+            inner join mdl_recit_wp_tpl_act as t2 on t1.templateid = t2.templateid 
+            left join mdl_course_modules_completion as t3 on t2.cmid = t3.coursemoduleid and t1.userid = t3.userid
+            where t1.userid = $userId
+            group by t1.userid, t1.id) as tab
+            where find_in_set($cmId, cmids) > 0";
+           
+            $obj = $this->mysqlConn->execSQLAndGetObject($query);
+
+            if(!empty($obj)){
+                $query = $this->mysqlConn->prepareStmt("update", "{$this->prefix}recit_wk_tpl_assign", array('completionstate'), array($obj->completionstate), array("id"), array($obj->assignmentId));
+                $this->mysqlConn->execSQL($query);
+            }
+
+            return true;
+        }
+        catch(\Exception $ex){
+            throw $ex;
+        }
     }
 }
 

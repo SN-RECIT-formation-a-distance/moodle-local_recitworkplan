@@ -14,19 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * @package   local_recitworkplan
- * @copyright 2019 RÉCIT 
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2021092405;       // The current module version (Date: YYYYMMDDXX)
-$plugin->release = 'R14-V1.0';
-$plugin->requires  = 2018050800;    // Requires this Moodle version
-$plugin->component = 'local_recitworkplan';        // Full name of the plugin (used for diagnostics)
-$plugin->cron      = 0;
-$plugin->dependencies = [
-    'local_recitcommon' => 2021092400
-];
-$plugin->maturity = MATURITY_ALPHA; // MATURITY_ALPHA, MATURITY_BETA, MATURITY_RC or MATURITY_STABLE
+require_once(dirname(__FILE__)."/classes/PersistCtrl.php");
+
+function recitworkplan_course_module_completion_updated_event(\core\event\course_module_completion_updated $event){
+    global $USER, $DB;
+
+    //$eventdata = $event->get_record_snapshot('course_modules_completion', $event->objectid);
+
+    \recitworkplan\PersistCtrl::getInstance($DB, $USER)->setAssignmentCompletionState($event->relateduserid, $event->contextinstanceid);
+}

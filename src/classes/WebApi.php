@@ -106,8 +106,8 @@ class WebApi extends recitcommon\MoodleApi
         try{
             $this->canUserAccess('a');
             $data = json_decode(json_encode($request['data']), FALSE);
-            $this->ctrl->saveAssignment($data);
-            return new WebApiResult(true);
+            $result = $this->ctrl->saveAssignment($data);
+            return new WebApiResult(true, $result);
         }
         catch(Exception $ex){
             return new WebApiResult(false, false, $ex->GetMessage());

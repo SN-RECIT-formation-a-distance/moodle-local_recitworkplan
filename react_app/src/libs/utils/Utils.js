@@ -244,8 +244,11 @@ export class UtilsDateTime
         if(obj instanceof Date){
             return `${obj.getFullYear()}-${obj.getMonth()+1}-${obj.getDate()}`;
         }
-        else{
+        else if(typeof obj === 'string' || obj instanceof String){
             return obj.substring(0, 10);
+        }
+        else{
+            return "";
         }
     }
 
