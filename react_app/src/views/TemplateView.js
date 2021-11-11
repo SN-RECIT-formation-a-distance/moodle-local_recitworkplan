@@ -182,39 +182,23 @@ class ModalTemplateForm extends Component{
         let tmpCourseList = this.state.dropdownLists.courseList.filter(item => (item.data.categoryId === this.state.dropdownLists.categoryId));
 
         let body = 
-            <Form noValidate validated={this.state.formValidated} ref={this.formRef}>
-                <Form.Row>
-                    <Form.Group as={Col}>
-                        <Form.Label>{"Nom"}</Form.Label>
-                        <Form.Control type="text" value={this.state.data.name}  onBlur={() => this.onSave(this.state.data)} name="name" onChange={this.onDataChange} />
-                    </Form.Group>
-                </Form.Row>
-                <Form.Row>
-                    <Form.Group as={Col}>
-                        <Form.Label>{"Description"}</Form.Label>
-                        <Form.Control as="textarea" rows={3}  value={this.state.data.description} onBlur={() => this.onSave(this.state.data)}  name="description" onChange={this.onDataChange} />
-                    </Form.Group>
-                </Form.Row>
-                <div>
+            <div style={{display: 'grid', gridTemplateColumns: '48% 48%', gridGap: '2rem'}}>
+                <div style={{backgroundColor: '#f9f9f9', padding: '1rem'}}>
                     <h4>Filtrez par catégorie et cours</h4>
-                    <fieldset>
+                    <fieldset className="mb-3">
                         <Form.Row>
-                            <Col xs={6}>
-                                <Form.Group as={Col}>
-                                    <Form.Label>{"Catégorie"}</Form.Label>
-                                    <ComboBox placeholder={"Sélectionnez votre option"} name="categoryId" value={this.state.dropdownLists.categoryId} options={this.state.dropdownLists.categoryList} onChange={this.onFilterChange} />
-                                </Form.Group>
-                            </Col>
-                            <Col xs={6}>
-                                <Form.Group as={Col}>
-                                    <Form.Label>{"Cours"}</Form.Label>
-                                    <ComboBox placeholder={"Sélectionnez votre option"} name="courseId" value={this.state.dropdownLists.courseId} options={tmpCourseList} onChange={this.onFilterChange} />
-                                </Form.Group>
-                            </Col>
+                            <Form.Group as={Col}>
+                                <Form.Label>{"Catégorie"}</Form.Label>
+                                <ComboBox placeholder={"Sélectionnez votre option"} name="categoryId" value={this.state.dropdownLists.categoryId} options={this.state.dropdownLists.categoryList} onChange={this.onFilterChange} />
+                            </Form.Group>
+                        </Form.Row>
+                        <Form.Row>
+                            <Form.Group as={Col}>
+                                <Form.Label>{"Cours"}</Form.Label>
+                                <ComboBox placeholder={"Sélectionnez votre option"} name="courseId" value={this.state.dropdownLists.courseId} options={tmpCourseList} onChange={this.onFilterChange} />
+                            </Form.Group>
                         </Form.Row>
                     </fieldset>
-                </div>
-                <div style={{display: 'grid',gridTemplateColumns: '49% 49%', gridGap: '1rem', marginTop: "1rem"}}>
                     <div>
                         <h4>Liste d'activités <Badge>{`(${tmpActivityList.length})`}</Badge></h4>
                         <div style={{maxHeight: 500, overflowY: 'scroll'}}>
@@ -240,7 +224,21 @@ class ModalTemplateForm extends Component{
                             </Table>
                         </div>
                     </div>
-                    <div >
+                </div>
+                <div>
+                    <Form noValidate validated={this.state.formValidated} ref={this.formRef}>
+                        <Form.Row>
+                            <Form.Group as={Col}>
+                                <Form.Label>{"Nom"}</Form.Label>
+                                <Form.Control type="text" value={this.state.data.name}  onBlur={() => this.onSave(this.state.data)} name="name" onChange={this.onDataChange} />
+                            </Form.Group>
+                        </Form.Row>
+                        <Form.Row>
+                            <Form.Group as={Col}>
+                                <Form.Label>{"Description"}</Form.Label>
+                                <Form.Control as="textarea" rows={4}  value={this.state.data.description} onBlur={() => this.onSave(this.state.data)}  name="description" onChange={this.onDataChange} />
+                            </Form.Group>
+                        </Form.Row>
                         <div>
                             <h4>Activités sélectionnées <Badge>{`(${this.state.data.activities.length})`}</Badge></h4>
                             <div style={{maxHeight: 500, overflowY: 'scroll'}}>
@@ -270,9 +268,9 @@ class ModalTemplateForm extends Component{
                                 </Table>
                             </div>
                         </div>
-                    </div>
+                    </Form>
                 </div>
-            </Form>;
+            </div>;
 
         let main = <Modal title={'Créer un gabarit'} body={body} onClose={this.onClose} />;
 

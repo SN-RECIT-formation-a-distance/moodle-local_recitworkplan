@@ -21,7 +21,7 @@ export class Modal extends Component{
                         <button type="button" className="close" onClick={this.props.onClose}><span aria-hidden="true">×</span><span className="sr-only">Fermer</span></button>
                     </div>
                     <div className="modal-body">{this.props.body}</div>
-                    <div className="modal-footer">{this.props.footer}</div>
+                    {this.props.footer && <div className="modal-footer">{this.props.footer}</div>}
                 </div>
             </div>;
 
