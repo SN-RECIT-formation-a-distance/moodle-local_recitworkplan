@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
-import { ButtonGroup, Button, Form, FormGroup, InputGroup, FormControl, Col, Table, Badge} from 'react-bootstrap';
-import { faPencilAlt,  faTrashAlt, faPlus,  faSearch, faCopy} from '@fortawesome/free-solid-svg-icons';
+import { ButtonToolbar, ButtonGroup, Button, Form, FormGroup, InputGroup, FormControl, Col, Table, Badge} from 'react-bootstrap';
+import { faPencilAlt,  faTrashAlt, faPlusSquare,  faSearch, faCopy, faSync} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {ComboBox, FeedbackCtrl, DataGrid, Modal} from '../libs/components/Components';
 import {$glVars} from '../common/common';
@@ -66,7 +66,14 @@ export class TemplatesView extends Component{
 
         let main = 
             <div>
-                <Button className="mb-3" title="Ajouter" onClick={() => this.setState({templateId: 0})} variant="primary"><FontAwesomeIcon icon={faPlus}/>{" Créer un gabarit"}</Button>
+                <ButtonToolbar className="mb-4 justify-content-end">
+                    <ButtonGroup className="mr-1">
+                        <Button  title="Ajouter" onClick={() => this.setState({templateId: 0})} variant="primary"><FontAwesomeIcon icon={faPlusSquare}/>{" Créer un gabarit"}</Button>
+                    </ButtonGroup>
+                    <ButtonGroup >
+                        <Button  title="Actualiser" onClick={() => this.getData()} variant="primary"><FontAwesomeIcon icon={faSync}/></Button>
+                    </ButtonGroup>
+                </ButtonToolbar>
 
                 <FormGroup>
                     <InputGroup>
@@ -264,6 +271,7 @@ class ModalTemplateForm extends Component{
                                 <Table striped bordered hover>
                                     <thead>
                                         <tr>
+                                            <th>#</th>
                                             <th>Cours</th>
                                             <th>Activité</th>
                                             <th>Temps en heure</th>
@@ -274,6 +282,7 @@ class ModalTemplateForm extends Component{
                                         {this.state.data.activities.map((item, index) => {
                                                 let row =
                                                     <tr key={index}>
+                                                        <td>{index + 1}</td>
                                                         <td>{item.courseName}</td>
                                                         <td>{item.cmName}</td>
                                                         <td><Form.Control type="text" placeholder="" value={item.nbHoursCompletion} onBlur={() => this.onSaveTplAct(item)} name="nbHoursCompletion" onChange={(event) => this.onDataChange(event, index)} /></td>

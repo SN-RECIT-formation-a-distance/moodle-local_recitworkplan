@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
-import {Tabs, Tab, ButtonGroup, Button} from 'react-bootstrap';
-import {faTachometerAlt, faTasks, faHome, faFileAlt} from '@fortawesome/free-solid-svg-icons';
+import {ButtonToolbar, Tabs, Tab, ButtonGroup, Button} from 'react-bootstrap';
+import {faTachometerAlt, faTasks, faHome, faFileAlt, faSync} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {FeedbackCtrl, DataGrid} from '../libs/components/Components';
 import { TemplatesView } from './TemplateView';
@@ -82,34 +82,41 @@ class HomeView extends Component{
 
     render(){
         let main = 
-            <DataGrid orderBy={true}>
-                <DataGrid.Header>
-                    <DataGrid.Header.Row>
-                        <DataGrid.Header.Cell style={{width: 80}}>{"#"}</DataGrid.Header.Cell>
-                        <DataGrid.Header.Cell >{"Plan de travail"}</DataGrid.Header.Cell>
-                        <DataGrid.Header.Cell >{"# Élèves"}</DataGrid.Header.Cell>
-                        <DataGrid.Header.Cell style={{width: 100}}></DataGrid.Header.Cell>
-                    </DataGrid.Header.Row>
-                </DataGrid.Header>
-                <DataGrid.Body>
-                    {this.state.dataProvider.map((item, index) => {
-                            let row = 
-                                <DataGrid.Body.Row key={index}>
-                                    <DataGrid.Body.Cell>{index + 1}</DataGrid.Body.Cell>
-                                    <DataGrid.Body.Cell>{item.name}</DataGrid.Body.Cell>
-                                    <DataGrid.Body.Cell>{item.nbStudents}</DataGrid.Body.Cell>
-                                    <DataGrid.Body.Cell style={{textAlign: 'center'}}>
-                                        <ButtonGroup size="sm">
-                                            <Button onClick={() => this.props.onDetail(item.name)} title="Détails" variant="primary"><FontAwesomeIcon icon={faTasks}/></Button>
-                                            <Button title="Apprentimètre" variant="primary"><FontAwesomeIcon icon={faTachometerAlt}/></Button>
-                                        </ButtonGroup>
-                                    </DataGrid.Body.Cell>
-                                </DataGrid.Body.Row>
-                            return (row);                                    
-                        }
-                    )}
-                </DataGrid.Body>
-            </DataGrid>;
+            <div>
+                <ButtonToolbar  className="mb-4 justify-content-end">
+                    <ButtonGroup >
+                        <Button  title="Actualiser" onClick={() => this.getData()} variant="primary"><FontAwesomeIcon icon={faSync}/></Button>
+                    </ButtonGroup>
+                </ButtonToolbar>
+                <DataGrid orderBy={true}>
+                    <DataGrid.Header>
+                        <DataGrid.Header.Row>
+                            <DataGrid.Header.Cell style={{width: 80}}>{"#"}</DataGrid.Header.Cell>
+                            <DataGrid.Header.Cell >{"Plan de travail"}</DataGrid.Header.Cell>
+                            <DataGrid.Header.Cell >{"# Élèves"}</DataGrid.Header.Cell>
+                            <DataGrid.Header.Cell style={{width: 100}}></DataGrid.Header.Cell>
+                        </DataGrid.Header.Row>
+                    </DataGrid.Header>
+                    <DataGrid.Body>
+                        {this.state.dataProvider.map((item, index) => {
+                                let row = 
+                                    <DataGrid.Body.Row key={index}>
+                                        <DataGrid.Body.Cell>{index + 1}</DataGrid.Body.Cell>
+                                        <DataGrid.Body.Cell>{item.name}</DataGrid.Body.Cell>
+                                        <DataGrid.Body.Cell>{item.nbStudents}</DataGrid.Body.Cell>
+                                        <DataGrid.Body.Cell style={{textAlign: 'center'}}>
+                                            <ButtonGroup size="sm">
+                                                <Button onClick={() => this.props.onDetail(item.name)} title="Détails" variant="primary"><FontAwesomeIcon icon={faTasks}/></Button>
+                                                <Button title="Apprentimètre" variant="primary"><FontAwesomeIcon icon={faTachometerAlt}/></Button>
+                                            </ButtonGroup>
+                                        </DataGrid.Body.Cell>
+                                    </DataGrid.Body.Row>
+                                return (row);                                    
+                            }
+                        )}
+                    </DataGrid.Body>
+                </DataGrid>
+            </div>;
 
         return main;
     }

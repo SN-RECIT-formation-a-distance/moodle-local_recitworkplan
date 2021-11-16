@@ -1,7 +1,7 @@
 
 import React, { Component } from 'react';
-import { ButtonGroup, Button, Form, FormGroup, InputGroup, FormControl, Col, Table, Badge} from 'react-bootstrap';
-import { faPencilAlt,  faTrashAlt, faPlus, faSearch} from '@fortawesome/free-solid-svg-icons';
+import { ButtonToolbar, ButtonGroup, Button, Form, FormGroup, InputGroup, FormControl, Col, Table, Badge} from 'react-bootstrap';
+import { faPencilAlt,  faTrashAlt, faPlusSquare, faSearch, faSync} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {ComboBox, FeedbackCtrl, DataGrid, Modal} from '../libs/components/Components';
 import {$glVars} from '../common/common';
@@ -67,8 +67,15 @@ export class AssignmentsView extends Component{
 
         let main = 
             <div>
-                <Button className="mb-3" title="Ajouter" onClick={() => this.setState({templateId: 0})} variant="primary"><FontAwesomeIcon icon={faPlus}/>{" Attribuer un plan de travail"}</Button>
-
+                <ButtonToolbar  className="mb-4 justify-content-end">                    
+                    <ButtonGroup className="mr-1">
+                        <Button  title="Ajouter" onClick={() => this.setState({templateId: 0})} variant="primary"><FontAwesomeIcon icon={faPlusSquare}/>{" Attribuer un plan de travail"}</Button>
+                    </ButtonGroup>
+                    <ButtonGroup >
+                    <Button  title="Actualiser" onClick={() => this.getData()} variant="primary"><FontAwesomeIcon icon={faSync}/></Button>
+                    </ButtonGroup>
+                </ButtonToolbar>
+                
                 <FormGroup>
                     <InputGroup>
                         <FormControl autoFocus type="text" placeholder={"Recherchez..."} onChange={(event) => this.setState({queryStr: event.target.value})} value={this.state.queryStr}  aria-describedby="inputGroupPrepend" />
