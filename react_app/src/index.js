@@ -8,6 +8,7 @@ import {faSpinner} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {VisualFeedback, Loading} from "./libs/components/Components";
 import Utils from "./libs/utils/Utils";
+import './common/i18n';
 import {AdminView} from "./views/AdminView";
 import {$glVars} from "./common/common";
 import "./css/style.scss";

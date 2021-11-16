@@ -190,6 +190,26 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         }  
     }
 
+    public function cloneTemplate($templateId){
+        try{
+            $this->mysqlConn->beginTransaction();
+
+            $query = "insert into {$this->prefix}recit_wp_tpl (creatorid, name, description, lastupdate) select creatorid, concat(name, ' (copie)'), description, now() from {$this->prefix}recit_wp_tpl where id = $templateId";
+            $this->mysqlConn->execSQL($query);
+            $newTemplateId = $this->mysqlConn->getLastInsertId("{$this->prefix}recit_wp_tpl", "id");
+
+            $query = "insert into {$this->prefix}recit_wp_tpl_act (templateid, cmid, nb_hours_completion) select $newTemplateId, cmid, nb_hours_completion from {$this->prefix}recit_wp_tpl_act where templateid = $templateId";
+            $this->mysqlConn->execSQL($query);
+
+            $this->mysqlConn->commitTransaction();
+            return true;
+        }
+        catch(\Exception $ex){
+            $this->mysqlConn->rollbackTransaction();
+            throw $ex;
+        }  
+    }
+
     public function saveTplAct($data){
         try{	
             if($data->templateId == 0){

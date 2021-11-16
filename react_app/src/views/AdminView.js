@@ -73,7 +73,7 @@ class HomeView extends Component{
 
     getDataResult(result){
         if(!result.success){
-            FeedbackCtrl.instance.showError($glVars.i18n.appName, result.msg);
+            FeedbackCtrl.instance.showError($glVars.i18n.tags.appName, result.msg);
             return;
         }
 

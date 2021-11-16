@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { ButtonGroup, Button, Form, FormGroup, InputGroup, FormControl, Col, Table, Badge} from 'react-bootstrap';
-import { faPencilAlt,  faTrashAlt, faPlus,  faSearch} from '@fortawesome/free-solid-svg-icons';
+import { faPencilAlt,  faTrashAlt, faPlus,  faSearch, faCopy} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {ComboBox, FeedbackCtrl, DataGrid, Modal} from '../libs/components/Components';
 import {$glVars} from '../common/common';
@@ -13,6 +13,7 @@ export class TemplatesView extends Component{
         this.onClose = this.onClose.bind(this);
         this.getData = this.getData.bind(this);
         this.getDataResult = this.getDataResult.bind(this);
+        this.onClone = this.onClone.bind(this);
 
         this.state = {dataProvider: [], templateId: -1, queryStr: ""};
     }
@@ -38,7 +39,7 @@ export class TemplatesView extends Component{
 
     getDataResult(result){
         if(!result.success){
-            FeedbackCtrl.instance.showError($glVars.i18n.appName, result.msg);
+            FeedbackCtrl.instance.showError($glVars.i18n.tags.appName, result.msg);
             return;
         }
 
@@ -97,7 +98,8 @@ export class TemplatesView extends Component{
                                         <DataGrid.Body.Cell style={{textAlign: 'center'}}>
                                             <ButtonGroup size="sm">
                                                 <Button title="Éditer" onClick={() => this.setState({templateId: item.id})} variant="primary"><FontAwesomeIcon icon={faPencilAlt}/></Button>
-                                                <Button title="Supprimer" onClick={() => this.onRemove(item.id)} variant="primary"><FontAwesomeIcon icon={faTrashAlt}/></Button>
+                                                <Button title="Copier" onClick={() => this.onClone(item.id)} variant="primary"><FontAwesomeIcon icon={faCopy}/></Button>
+                                                <Button title="Supprimer" onClick={() =>  this.onRemove(item.id)} variant="primary"><FontAwesomeIcon icon={faTrashAlt}/></Button>
                                             </ButtonGroup>
                                         </DataGrid.Body.Cell>
                                     </DataGrid.Body.Row>
@@ -134,16 +136,33 @@ export class TemplatesView extends Component{
         let that = this;
         let callback = function(result){
             if(!result.success){
-                FeedbackCtrl.instance.showError($glVars.i18n.appName, result.msg);
+                FeedbackCtrl.instance.showError($glVars.i18n.tags.appName, result.msg);
             }
             else{
-                FeedbackCtrl.instance.showInfo($glVars.i18n.appName, $glVars.i18n.msgSuccess, 3);
+                FeedbackCtrl.instance.showInfo($glVars.i18n.tags.appName, $glVars.i18n.tags.msgSuccess, 3);
                 that.getData();
             }
         };
 
-        if(window.confirm($glVars.i18n.msgConfirmDeletion)){
+        if(window.confirm($glVars.i18n.tags.msgConfirmDeletion)){
             $glVars.webApi.deleteTemplate(templateId, callback);
+        }
+    }
+
+    onClone(templateId){
+        let that = this;
+        let callback = function(result){
+            if(!result.success){
+                FeedbackCtrl.instance.showError($glVars.i18n.tags.appName, result.msg);
+            }
+            else{
+                FeedbackCtrl.instance.showInfo($glVars.i18n.tags.appName, $glVars.i18n.tags.msgSuccess, 3);
+                that.getData();
+            }
+        };
+
+        if(window.confirm($glVars.i18n.tags.msgConfirm)){
+            $glVars.webApi.cloneTemplate(templateId, callback);
         }
     }
 }
@@ -184,7 +203,7 @@ class ModalTemplateForm extends Component{
         let body = 
             <div style={{display: 'grid', gridTemplateColumns: '48% 48%', gridGap: '2rem'}}>
                 <div style={{backgroundColor: '#f9f9f9', padding: '1rem'}}>
-                    <h4>Filtrez par catégorie et cours</h4>
+                    <h6>Filtrez par catégorie et cours</h6>
                     <fieldset className="mb-3">
                         <Form.Row>
                             <Form.Group as={Col}>
@@ -200,7 +219,7 @@ class ModalTemplateForm extends Component{
                         </Form.Row>
                     </fieldset>
                     <div>
-                        <h4>Liste d'activités <Badge>{`(${tmpActivityList.length})`}</Badge></h4>
+                        <h6>Liste d'activités <Badge variant="warning" className="p-2 rounded">{`${tmpActivityList.length}`}</Badge></h6>
                         <div style={{maxHeight: 500, overflowY: 'scroll'}}>
                             <Table striped bordered hover>                                
                                 <thead>
@@ -240,7 +259,7 @@ class ModalTemplateForm extends Component{
                             </Form.Group>
                         </Form.Row>
                         <div>
-                            <h4>Activités sélectionnées <Badge>{`(${this.state.data.activities.length})`}</Badge></h4>
+                            <h6>Activités sélectionnées <Badge variant="warning" className="p-2 rounded">{`${this.state.data.activities.length}`}</Badge></h6>
                             <div style={{maxHeight: 500, overflowY: 'scroll'}}>
                                 <Table striped bordered hover>
                                     <thead>
@@ -283,7 +302,7 @@ class ModalTemplateForm extends Component{
 
     getDataResult(result){
         if(!result.success){
-            FeedbackCtrl.instance.showError($glVars.i18n.appName, result.msg);
+            FeedbackCtrl.instance.showError($glVars.i18n.tags.appName, result.msg);
             return;
         }
 
@@ -331,7 +350,9 @@ class ModalTemplateForm extends Component{
             that.setState({data: data, flags: {dataChanged: that.state.flags.dataChanged, refresh: true}});
         }
 
-        $glVars.webApi.deleteTplAct(tplActId, callback);
+        if(window.confirm($glVars.i18n.tags.msgConfirmDeletion)){
+            $glVars.webApi.deleteTplAct(tplActId, callback);
+        }
     }
 
     onDataChange(event, index){

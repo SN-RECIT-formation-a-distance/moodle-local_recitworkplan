@@ -43,7 +43,7 @@ export class AssignmentsView extends Component{
 
     getDataResult(result){
         if(!result.success){
-            FeedbackCtrl.instance.showError($glVars.i18n.appName, result.msg);
+            FeedbackCtrl.instance.showError($glVars.i18n.tags.appName, result.msg);
             return;
         }
 
@@ -190,13 +190,13 @@ class ModalAssignmentForm extends Component{
             <Form noValidate validated={this.state.formValidated} ref={this.formRef}>
                 <Form.Row>
                     <Form.Group as={Col}>
-                        <Form.Label>{"Collection de notes:"}</Form.Label>
+                        <Form.Label>{"Plan de travail"}</Form.Label>
                         <ComboBox placeholder={"Sélectionnez votre option"} required={true}  name="templateId" value={this.state.templateId} options={this.state.dropdownLists.templateList} onChange={this.onDataChange} />
                     </Form.Group>
                 </Form.Row>
                 <div style={{display: 'grid',gridTemplateColumns: '400px 65%', gridGap: '1rem', marginTop: "1rem"}}>
                     <div>
-                        <h4>Liste d'élèves <Badge>{`(${studentList.length})`}</Badge></h4>
+                        <h6>Liste d'élèves <Badge variant="warning" className="p-2 rounded">{`${studentList.length}`}</Badge></h6>
                         <div style={{maxHeight: 500, overflowY: 'scroll'}}>
                             <Table striped bordered hover>                                
                                 <thead>
@@ -222,7 +222,7 @@ class ModalAssignmentForm extends Component{
                     </div>
                     <div >
                         <div>
-                            <h4>Élèves assignés <Badge>{`(${this.state.assignmentList.length})`}</Badge></h4>
+                            <h6>Élèves assignés <Badge variant="warning" className="p-2 rounded">{`${this.state.assignmentList.length}`}</Badge></h6>
                             <div style={{maxHeight: 500, overflowY: 'scroll'}}>
                                 <Table striped bordered hover>
                                     <thead>
@@ -267,7 +267,7 @@ class ModalAssignmentForm extends Component{
 
     getDataResult(result){
         if(!result.success){
-            FeedbackCtrl.instance.showError($glVars.i18n.appName, result.msg);
+            FeedbackCtrl.instance.showError($glVars.i18n.tags.appName, result.msg);
             return;
         }
 
@@ -310,7 +310,9 @@ class ModalAssignmentForm extends Component{
             that.setState({assignmentList: assignmentList, flags: {dataChanged: that.state.flags.dataChanged, refresh: true}});
         }
 
-        $glVars.webApi.deleteAssignment(assignmentId, callback);
+        if(window.confirm($glVars.i18n.tags.msgConfirmDeletion)){
+            $glVars.webApi.deleteAssignment(assignmentId, callback);
+        }
     }
 
     onDataChange(event, index){
