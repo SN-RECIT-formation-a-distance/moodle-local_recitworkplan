@@ -240,7 +240,7 @@ class ModalTemplateForm extends Component{
                                         let row =
                                             <tr key={index}>
                                                 <td>{item.cmName}</td>
-                                                <td style={{textAlign: 'center'}}><Button onClick={() => this.onAddTplAct(item)} size="sm" variant="primary" title="Ajouter" className="mr-2"><FontAwesomeIcon icon={faPlus}/></Button></td>
+                                                <td style={{textAlign: 'center'}}><Button onClick={() => this.onAddTplAct(item)} size="sm" variant="primary" title="Ajouter" className="mr-2"><FontAwesomeIcon icon={faPlusSquare}/></Button></td>
                                             </tr>
 
                                             return row;
