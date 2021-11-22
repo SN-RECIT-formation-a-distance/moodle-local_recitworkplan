@@ -217,7 +217,7 @@ class ModalAssignmentForm extends Component{
                                         let row =
                                             <tr key={index}>
                                                 <td>{`${item.firstName} ${item.lastName}`}</td>
-                                                <td><Button onClick={() => this.onAdd(item)} size="sm" variant="primary" title="Ajouter" className="mr-2"><FontAwesomeIcon icon={faPlus}/></Button></td>
+                                                <td><Button onClick={() => this.onAdd(item)} size="sm" variant="primary" title="Ajouter" className="mr-2"><FontAwesomeIcon icon={faPlusSquare}/></Button></td>
                                             </tr>
 
                                             return row;
