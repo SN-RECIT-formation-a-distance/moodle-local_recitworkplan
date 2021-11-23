@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {ComboBox, FeedbackCtrl, DataGrid, Modal} from '../libs/components/Components';
 import {$glVars} from '../common/common';
 import { JsNx, UtilsString } from '../libs/utils/Utils';
+import { Pagination } from '../libs/components/Pagination';
 
 export class TemplatesView extends Component{
     constructor(props){
@@ -15,7 +16,7 @@ export class TemplatesView extends Component{
         this.getDataResult = this.getDataResult.bind(this);
         this.onClone = this.onClone.bind(this);
 
-        this.state = {dataProvider: [], templateId: -1, queryStr: ""};
+        this.state = {dataProvider: [], templateId: -1, queryStr: "", pagination: {current_page: 1, count: 0, item_per_page: 25}};
     }
 
     componentDidMount(){
@@ -34,7 +35,7 @@ export class TemplatesView extends Component{
     }
 
     getData(){
-        $glVars.webApi.getTemplateList(this.getDataResult);
+        $glVars.webApi.getTemplateList(this.state.pagination.item_per_page, this.state.pagination.current_page - 1, this.getDataResult);
     }
 
     getDataResult(result){
@@ -43,7 +44,16 @@ export class TemplatesView extends Component{
             return;
         }
 
-        this.setState({dataProvider: result.data, templateId: -1});
+        let pagination = this.state.pagination;
+        pagination.current_page = parseInt(result.data.current_offset) + 1; 
+        pagination.count = parseInt(result.data.total_count);
+        this.setState({dataProvider: result.data.items, templateId: -1, pagination: pagination});
+    }
+
+    changePage(page){
+        let pagination = this.state.pagination;
+        pagination.current_page = page
+        this.setState({pagination: pagination}, this.getData);
     }
 
     render(){
@@ -53,7 +63,7 @@ export class TemplatesView extends Component{
 
         if(this.state.queryStr.length > 0){
             
-            dataProvider = this.state.dataProvider.filter(function(item){
+            dataProvider = dataProvider.filter(function(item){
                 let categories = that.getCategories(item);
                 if((item.name.search(regexp) >= 0) || (item.description.search(regexp) >= 0) || (categories.search(regexp) >= 0)){
                     return true;
@@ -98,7 +108,7 @@ export class TemplatesView extends Component{
                         {dataProvider.map((item, index) => {
                                 let row = 
                                     <DataGrid.Body.Row key={index}>
-                                        <DataGrid.Body.Cell>{index + 1}</DataGrid.Body.Cell>
+                                        <DataGrid.Body.Cell>{(this.state.pagination.item_per_page * (this.state.pagination.current_page-1)) + index + 1}</DataGrid.Body.Cell>
                                         <DataGrid.Body.Cell>{this.getCategories(item)}</DataGrid.Body.Cell>
                                         <DataGrid.Body.Cell>{item.name}</DataGrid.Body.Cell>
                                         <DataGrid.Body.Cell>{item.description}</DataGrid.Body.Cell>
@@ -115,6 +125,7 @@ export class TemplatesView extends Component{
                         )}
                     </DataGrid.Body>
                 </DataGrid>
+                <Pagination pagination={this.state.pagination} onChangePage={(p) => this.changePage(p)}/>
                 {this.state.templateId >= 0 && <ModalTemplateForm templateId={this.state.templateId} onClose={this.onClose}/>}
             </div>;
 

@@ -6,6 +6,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {ComboBox, FeedbackCtrl, DataGrid, Modal} from '../libs/components/Components';
 import {$glVars} from '../common/common';
 import { JsNx, UtilsString, UtilsDateTime } from '../libs/utils/Utils';
+import { Pagination } from '../libs/components/Pagination';
 
 export class AssignmentsView extends Component{
     static defaultProps = {        
@@ -19,7 +20,7 @@ export class AssignmentsView extends Component{
         this.getData = this.getData.bind(this);
         this.getDataResult = this.getDataResult.bind(this);
 
-        this.state = {dataProvider: [], templateId: -1, queryStr: this.props.queryStr};
+        this.state = {dataProvider: [], templateId: -1, queryStr: this.props.queryStr, pagination: {current_page: 1, count: 0, item_per_page: 25}};
     }
 
     componentDidMount(){
@@ -38,7 +39,7 @@ export class AssignmentsView extends Component{
     }
 
     getData(){
-        $glVars.webApi.getAssignmentList(false, this.getDataResult);
+        $glVars.webApi.getAssignmentList(false, this.state.pagination.item_per_page, this.state.pagination.current_page - 1, this.getDataResult);
     }
 
     getDataResult(result){
@@ -47,7 +48,16 @@ export class AssignmentsView extends Component{
             return;
         }
 
-        this.setState({dataProvider: result.data.detailed, templateId: -1});
+        let pagination = this.state.pagination;
+        pagination.current_page = parseInt(result.data.current_offset) + 1; 
+        pagination.count = parseInt(result.data.total_count);
+        this.setState({dataProvider: result.data.items.detailed, templateId: -1, pagination: pagination});
+    }
+
+    changePage(page){
+        let pagination = this.state.pagination;
+        pagination.current_page = page
+        this.setState({pagination: pagination}, this.getData);
     }
 
     render(){
@@ -103,7 +113,7 @@ export class AssignmentsView extends Component{
                         {dataProvider.map((item, index) => {
                                 let row = 
                                     <DataGrid.Body.Row key={index}>
-                                        <DataGrid.Body.Cell>{index + 1}</DataGrid.Body.Cell>
+                                    <DataGrid.Body.Cell>{(this.state.pagination.item_per_page * (this.state.pagination.current_page-1)) + index + 1}</DataGrid.Body.Cell>
                                         <DataGrid.Body.Cell>{item.template.name}</DataGrid.Body.Cell>
                                         <DataGrid.Body.Cell>{`${item.firstName} ${item.lastName}`}</DataGrid.Body.Cell>
                                         <DataGrid.Body.Cell>{UtilsDateTime.getDate(item.startDate)}</DataGrid.Body.Cell>
@@ -122,6 +132,7 @@ export class AssignmentsView extends Component{
                         )}
                     </DataGrid.Body>
                 </DataGrid>
+                <Pagination pagination={this.state.pagination} onChangePage={(p) => this.changePage(p)}/>
                 {this.state.templateId >= 0 && <ModalAssignmentForm templateId={this.state.templateId} onClose={this.onClose}/>}
             </div>;
 
@@ -217,7 +228,7 @@ class ModalAssignmentForm extends Component{
                                         let row =
                                             <tr key={index}>
                                                 <td>{`${item.firstName} ${item.lastName}`}</td>
-                                                <td><Button onClick={() => this.onAdd(item)} size="sm" variant="primary" title="Ajouter" className="mr-2"><FontAwesomeIcon icon={faPlus}/></Button></td>
+                                                <td><Button onClick={() => this.onAdd(item)} size="sm" variant="primary" title="Ajouter" className="mr-2"><FontAwesomeIcon icon={faPlusSquare}/></Button></td>
                                             </tr>
 
                                             return row;

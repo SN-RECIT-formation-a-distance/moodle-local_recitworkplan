@@ -43,10 +43,12 @@ class WebApi extends recitcommon\MoodleApi
             $this->canUserAccess('a');
 
             $summary = boolval($request['summary']);
+            $limit = intval($request['limit']);
+            $offset = intval($request['offset']);
 
-            $result = $this->ctrl->getAssignmentList($this->signedUser->id);
+            $result = $this->ctrl->getAssignmentList($this->signedUser->id, $limit, $offset);
             if($summary){
-                $result = $result->getSummary();
+                $result->items = $result->items->getSummary();
             }
             
             $this->prepareJson($result);
@@ -73,6 +75,7 @@ class WebApi extends recitcommon\MoodleApi
 
             if($complete){
                 $result->templateList = $this->ctrl->getTemplateList($this->signedUser->id);
+                $result->templateList = $result->templateList->items;
                 $result->prototype = new Assignment();
             }
             
@@ -129,7 +132,9 @@ class WebApi extends recitcommon\MoodleApi
     public function getTemplateList($request){
         try{
             $this->canUserAccess('a');
-            $result = $this->ctrl->getTemplateList($this->signedUser->id);
+            $limit = intval($request['limit']);
+            $offset = intval($request['offset']);
+            $result = $this->ctrl->getTemplateList($this->signedUser->id, $limit, $offset);
             $this->prepareJson($result);
             return new WebApiResult(true, $result);
         }

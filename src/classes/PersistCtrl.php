@@ -66,13 +66,13 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         return $query;
     }
 
-    public function getTemplateList($userId){
+    public function getTemplateList($userId, $limit = 0, $offset = 0){
         global $DB;
 
         $DB->execute("set @uniqueId = 0");
 
         $query = "select  @uniqueId := @uniqueId + 1 as uniqueId, t1.id as templateid, t1.creatorid, t1.name as templatename, t1.description as templatedesc,  
-        if(t1.lastupdate > 0, from_unixtime(t1.lastupdate), null) as lastupdate, t2.cmid, t5.name as categoryName, tblRoles.roles
+        if(t1.lastupdate > 0, from_unixtime(t1.lastupdate), null) as lastupdate, t2.cmid, t5.name as categoryName, tblRoles.roles, count(*) OVER() AS total_count
         from {recit_wp_tpl} as t1
         inner join {recit_wp_tpl_act} as t2 on t1.id = t2.templateid
         inner join {course_modules} as t3 on t2.cmid = t3.id
@@ -80,11 +80,18 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         inner join {course_categories} as t5 on t4.category = t5.id
         left join (".$this->getAdminRolesStmt($userId).") as tblRoles on t4.id = tblRoles.courseId
         group by t1.id, t2.cmid
-        order by templatename asc";
+        order by t1.name asc";
+
+        if ($limit > 0){
+            $offsetsql = $offset * $limit;
+            $query .= " LIMIT $limit OFFSET $offsetsql";
+        }
 
         $rst = $DB->get_records_sql($query);
 
         $result = array();
+        $total_count = 0;
+
 		foreach($rst as $item){
             if(!isset($result[$item->templateid])){
                 $result[$item->templateid] = Template::create($item);
@@ -92,7 +99,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
             else{
                 $result[$item->templateid]->addActivity($item);
             }
-            
+            $total_count = $item->total_count;
         } 
 
         foreach($result as $index => $item){
@@ -101,7 +108,12 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
             }
         }
 
-        return array_values($result);
+        $pagination = new Pagination();
+        $pagination->items = array_values($result);
+        $pagination->current_offset = $offset;
+        $pagination->total_count = $total_count;
+
+        return $pagination;
     }
 
     public function getTemplate($userId, $templateId){
@@ -327,9 +339,9 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         return array_values($result);
     }
 
-    public function getAssignmentList($userId){
+    public function getAssignmentList($userId, $limit = 0, $offset = 0){
         $query = "select  t1.id, t1.nb_hours_per_week as nbhoursperweek, from_unixtime(t1.startdate) as startdate, t1.completionstate as wpcompletionstate, t2.id as templateid, t2.creatorid, t2.name as templatename, 
-        t2.description as templatedesc, from_unixtime(t2.lastupdate) as lastupdate, t3.cmid, t3.nb_hours_completion as nb_hours_completion, t4.id as userid, t4.firstname, t4.lastname, 
+        t2.description as templatedesc, from_unixtime(t2.lastupdate) as lastupdate, t3.cmid, t3.nb_hours_completion as nb_hours_completion, t4.id as userid, t4.firstname, t4.lastname, count(*) OVER() AS total_count,
         t6.completionstate, tblRoles.roles
         from {$this->prefix}recit_wk_tpl_assign as t1
         inner join {$this->prefix}recit_wp_tpl as t2 on t1.templateid = t2.id
@@ -338,12 +350,19 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         inner join {$this->prefix}course_modules as t5 on t3.cmid = t5.id
         left join {$this->prefix}course_modules_completion as t6 on t5.id = t6.coursemoduleid and t6.userid = t4.id
         left join (".$this->getAdminRolesStmt($userId).") as tblRoles on t5.course = tblRoles.courseId";
+        
+        if ($limit > 0){
+            $offsetsql = $offset * $limit;
+            $query .= " LIMIT $limit OFFSET $offsetsql";
+        }
 
         $rst = $this->mysqlConn->execSQLAndGetObjects($query);
 
         $result = new MyAssignments();
+        $total_count = 0;
 		foreach($rst as $item){
             $result->addAssignment($item);
+            $total_count = $item->total_count;
         }  
 
         foreach($result->detailed as $index => $item){
@@ -355,7 +374,11 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
             $item->setEndDate();
         } 
 
-        return $result;
+        $pagination = new Pagination();
+        $pagination->items = $result;
+        $pagination->current_offset = $offset;
+        $pagination->total_count = $total_count;
+        return $pagination;
     }
 
     public function saveAssignment($data){
@@ -574,4 +597,10 @@ class MyAssignments{
 
         return array_values($result);
     }
+}
+
+class Pagination {
+    public $total_count;
+    public $current_offset;
+    public $items;
 }

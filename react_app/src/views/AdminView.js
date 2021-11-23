@@ -6,6 +6,7 @@ import {FeedbackCtrl, DataGrid} from '../libs/components/Components';
 import { TemplatesView } from './TemplateView';
 import { AssignmentsView } from './AssignmentView';
 import {$glVars} from '../common/common';
+import { Pagination } from '../libs/components/Pagination';
 
 export class AdminView extends Component {
     constructor(props) {
@@ -49,7 +50,7 @@ class HomeView extends Component{
         this.getData = this.getData.bind(this);
         this.getDataResult = this.getDataResult.bind(this);
 
-        this.state = {dataProvider: []};
+        this.state = {dataProvider: [], pagination: {current_page: 1, count: 0, item_per_page: 25}};
     }
 
     componentDidMount(){
@@ -68,7 +69,7 @@ class HomeView extends Component{
     }
 
     getData(){
-        $glVars.webApi.getAssignmentList(true, this.getDataResult);
+        $glVars.webApi.getAssignmentList(true, this.state.pagination.item_per_page, this.state.pagination.current_page - 1, this.getDataResult);
     }
 
     getDataResult(result){
@@ -77,7 +78,16 @@ class HomeView extends Component{
             return;
         }
 
-        this.setState({dataProvider: result.data});
+        let pagination = this.state.pagination;
+        pagination.current_page = parseInt(result.data.current_offset) + 1; 
+        pagination.count = parseInt(result.data.total_count);
+        this.setState({dataProvider: result.data.items, pagination: pagination});
+    }
+
+    changePage(page){
+        let pagination = this.state.pagination;
+        pagination.current_page = page
+        this.setState({pagination: pagination}, this.getData);
     }
 
     render(){
@@ -101,7 +111,7 @@ class HomeView extends Component{
                         {this.state.dataProvider.map((item, index) => {
                                 let row = 
                                     <DataGrid.Body.Row key={index}>
-                                        <DataGrid.Body.Cell>{index + 1}</DataGrid.Body.Cell>
+                                    <DataGrid.Body.Cell>{(this.state.pagination.item_per_page * (this.state.pagination.current_page-1)) + index + 1}</DataGrid.Body.Cell>
                                         <DataGrid.Body.Cell>{item.name}</DataGrid.Body.Cell>
                                         <DataGrid.Body.Cell>{item.nbStudents}</DataGrid.Body.Cell>
                                         <DataGrid.Body.Cell style={{textAlign: 'center'}}>
@@ -116,6 +126,7 @@ class HomeView extends Component{
                         )}
                     </DataGrid.Body>
                 </DataGrid>
+                <Pagination pagination={this.state.pagination} onChangePage={(p) => this.changePage(p)}/>
             </div>;
 
         return main;

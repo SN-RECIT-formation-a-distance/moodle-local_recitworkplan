@@ -28,8 +28,8 @@ export class AppWebApi extends WebApi
         }
     }
     
-    getAssignmentList(summary, onSuccess){
-        let data = {summary: summary, service: "getAssignmentList"};
+    getAssignmentList(summary, limit, offset, onSuccess){
+        let data = {summary: summary, limit: limit, offset: offset, service: "getAssignmentList"};
         this.post(this.gateway, data, onSuccess);
     }
 
@@ -61,8 +61,8 @@ export class AppWebApi extends WebApi
         this.post(this.gateway, data, onSuccess);
     }
 
-    getTemplateList(onSuccess){
-        let data = {service: "getTemplateList"};
+    getTemplateList(limit, offset, onSuccess){
+        let data = {service: "getTemplateList", limit: limit, offset: offset};
         this.post(this.gateway, data, onSuccess);
     }
 
