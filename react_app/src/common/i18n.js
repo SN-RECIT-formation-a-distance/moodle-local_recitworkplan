@@ -6,6 +6,7 @@ i18n.addTag("appName", "RÉCIT Activity", "Activité RÉCIT");
 i18n.addTag("search", "Search", "Rechercher");
 i18n.addTag("msgConfirmDeletion", "Do you confirm the deletion?", "Confirmez-vous la suppression?");
 i18n.addTag("msgConfirm", "Are you sure you want to proceed?", "Êtes-vous sur de vouloir continuer?");
+i18n.addTag("msgConfirmClone", "Are you sure you want to clone this?", "Êtes-vous sur de vouloir dupliquer ce gabarit?");
 i18n.addTag("msgSuccess", "The action has been completed successfully.", "L'action a été complétée avec succès.");
 i18n.addTag("displayType", "Display Type", "Type d'affichage");
 i18n.addTag("tab", "Tab", "Onglet");

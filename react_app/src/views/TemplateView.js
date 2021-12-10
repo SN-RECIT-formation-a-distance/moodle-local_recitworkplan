@@ -179,7 +179,7 @@ export class TemplatesView extends Component{
             }
         };
 
-        if(window.confirm($glVars.i18n.tags.msgConfirm)){
+        if(window.confirm($glVars.i18n.tags.msgConfirmClone)){
             $glVars.webApi.cloneTemplate(templateId, callback);
         }
     }
