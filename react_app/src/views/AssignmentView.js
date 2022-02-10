@@ -1,4 +1,3 @@
-
 import React, { Component } from 'react';
 import { ButtonToolbar, ButtonGroup, Button, Form, FormGroup, InputGroup, FormControl, Col, Table, Badge} from 'react-bootstrap';
 import { faPencilAlt,  faTrashAlt, faPlusSquare, faSearch, faSync} from '@fortawesome/free-solid-svg-icons';
@@ -7,6 +6,7 @@ import {ComboBox, FeedbackCtrl, DataGrid, Modal} from '../libs/components/Compon
 import {$glVars} from '../common/common';
 import { JsNx, UtilsString, UtilsDateTime } from '../libs/utils/Utils';
 import { Pagination } from '../libs/components/Pagination';
+import { ModalTemplateForm } from './TemplateView';
 
 export class AssignmentsView extends Component{
     static defaultProps = {        
@@ -20,7 +20,7 @@ export class AssignmentsView extends Component{
         this.getData = this.getData.bind(this);
         this.getDataResult = this.getDataResult.bind(this);
 
-        this.state = {dataProvider: [], templateId: -1, queryStr: this.props.queryStr, pagination: {current_page: 1, count: 0, item_per_page: 25}};
+        this.state = {dataProvider: [], templateId: -1, editTemplateId: -1, queryStr: this.props.queryStr, pagination: {current_page: 1, count: 0, item_per_page: 25}};
     }
 
     componentDidMount(){
@@ -79,10 +79,10 @@ export class AssignmentsView extends Component{
             <div>
                 <ButtonToolbar  className="mb-4 justify-content-end">                    
                     <ButtonGroup className="mr-1">
-                        <Button  title="Ajouter" onClick={() => this.setState({templateId: 0})} variant="primary"><FontAwesomeIcon icon={faPlusSquare}/>{" Attribuer un plan de travail"}</Button>
+                        <Button title="Ajouter" onClick={() => this.setState({templateId: 0})} variant="primary"><FontAwesomeIcon icon={faPlusSquare}/>{" Attribuer un plan de travail"}</Button>
                     </ButtonGroup>
                     <ButtonGroup >
-                    <Button  title="Actualiser" onClick={() => this.getData()} variant="primary"><FontAwesomeIcon icon={faSync}/></Button>
+                    <Button title="Actualiser" onClick={() => this.getData()} variant="primary"><FontAwesomeIcon icon={faSync}/></Button>
                     </ButtonGroup>
                 </ButtonToolbar>
                 
@@ -114,7 +114,7 @@ export class AssignmentsView extends Component{
                                 let row = 
                                     <DataGrid.Body.Row key={index}>
                                     <DataGrid.Body.Cell>{(this.state.pagination.item_per_page * (this.state.pagination.current_page-1)) + index + 1}</DataGrid.Body.Cell>
-                                        <DataGrid.Body.Cell>{item.template.name}</DataGrid.Body.Cell>
+                                        <DataGrid.Body.Cell><a href="#" onClick={() => this.setState({editTemplateId: item.template.id})}>{item.template.name}</a></DataGrid.Body.Cell>
                                         <DataGrid.Body.Cell>{`${item.firstName} ${item.lastName}`}</DataGrid.Body.Cell>
                                         <DataGrid.Body.Cell>{UtilsDateTime.getDate(item.startDate)}</DataGrid.Body.Cell>
                                         <DataGrid.Body.Cell>{UtilsDateTime.getDate(item.endDate)}</DataGrid.Body.Cell>
@@ -134,6 +134,7 @@ export class AssignmentsView extends Component{
                 </DataGrid>
                 <Pagination pagination={this.state.pagination} onChangePage={(p) => this.changePage(p)}/>
                 {this.state.templateId >= 0 && <ModalAssignmentForm templateId={this.state.templateId} onClose={this.onClose}/>}
+                {this.state.editTemplateId >= 0 && <ModalTemplateForm templateId={this.state.editTemplateId} title={'Modifer un gabarit'} onClose={this.onClose}/>}
             </div>;
 
         return main;
@@ -144,7 +145,7 @@ export class AssignmentsView extends Component{
             this.getData();
         }
         else{
-            this.setState({templateId: -1});
+            this.setState({templateId: -1, editTemplateId: -1});
         }
     }
 

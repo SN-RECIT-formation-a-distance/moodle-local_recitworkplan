@@ -126,7 +126,7 @@ export class TemplatesView extends Component{
                     </DataGrid.Body>
                 </DataGrid>
                 <Pagination pagination={this.state.pagination} onChangePage={(p) => this.changePage(p)}/>
-                {this.state.templateId >= 0 && <ModalTemplateForm templateId={this.state.templateId} onClose={this.onClose}/>}
+                {this.state.templateId >= 0 && <ModalTemplateForm templateId={this.state.templateId} title={this.state.templateId == 0 ? 'Créer un gabarit' : 'Modifer un gabarit'} onClose={this.onClose}/>}
             </div>;
 
         return main;
@@ -185,10 +185,11 @@ export class TemplatesView extends Component{
     }
 }
 
-class ModalTemplateForm extends Component{
+export class ModalTemplateForm extends Component{
     static defaultProps = {        
         templateId: 0,
-        onClose: null
+        onClose: null,
+        title: 'Créer un gabarit'
     };
 
     constructor(props){
@@ -311,7 +312,7 @@ class ModalTemplateForm extends Component{
                 </div>
             </div>;
 
-        let main = <Modal title={'Créer un gabarit'} body={body} onClose={this.onClose} />;
+        let main = <Modal title={this.props.title} body={body} onClose={this.onClose} />;
 
         return (main);
     }
