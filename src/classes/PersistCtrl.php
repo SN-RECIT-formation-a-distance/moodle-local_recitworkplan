@@ -25,6 +25,8 @@ namespace recitworkplan;
 require_once "$CFG->dirroot/local/recitcommon/php/PersistCtrl.php";
 require_once "$CFG->dirroot/local/recitcommon/php/Utils.php";
 require_once "$CFG->dirroot/user/externallib.php";
+require_once "$CFG->dirroot/calendar/lib.php";
+
 
 use DateTime;
 use recitcommon;
@@ -271,7 +273,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
     }
 
     public function getStudentList($templateId){
-        global $DB;
+        global $DB, $OUTPUT;
 
         $result = array();
 
@@ -293,6 +295,8 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         
 		foreach($rst as $item){
             $obj = new stdClass();
+            $obj->userPix = $OUTPUT->user_picture($item, array('size'=>30));
+            $obj->userUrl = (new \moodle_url('/user/profile.php', array('id' => $item->id)))->out();
             $obj->userId = $item->id;
             $obj->firstName = $item->firstname;
             $obj->lastName = $item->lastname;
@@ -538,11 +542,17 @@ class Assignment{
     }
 
     public static function create($dbData){
+        global $OUTPUT;
         $result = new Assignment();
         $result->id = $dbData->id;
         $result->template = Template::create($dbData);
 
+        $user = new stdClass();
+        $user->id = $dbData->userid;
+        $result->userPix = $OUTPUT->user_picture($user, array('size'=>30));
+
         $result->userId = $dbData->userid;
+        $result->userUrl = (new \moodle_url('/user/profile.php', array('id' => $result->userId)))->out();
         $result->firstName = $dbData->firstname;
         $result->lastName = $dbData->lastname;
         $result->startDate = $dbData->startdate;

@@ -115,7 +115,7 @@ export class AssignmentsView extends Component{
                                     <DataGrid.Body.Row key={index}>
                                     <DataGrid.Body.Cell>{(this.state.pagination.item_per_page * (this.state.pagination.current_page-1)) + index + 1}</DataGrid.Body.Cell>
                                         <DataGrid.Body.Cell><a href="#" onClick={() => this.setState({editTemplateId: item.template.id})}>{item.template.name}</a></DataGrid.Body.Cell>
-                                        <DataGrid.Body.Cell>{`${item.firstName} ${item.lastName}`}</DataGrid.Body.Cell>
+                                        <DataGrid.Body.Cell><a href={item.userUrl} target="_blank"><span dangerouslySetInnerHTML={{__html: item.userPix}}></span>{`${item.firstName} ${item.lastName}`}</a></DataGrid.Body.Cell>
                                         <DataGrid.Body.Cell>{UtilsDateTime.getDate(item.startDate)}</DataGrid.Body.Cell>
                                         <DataGrid.Body.Cell>{UtilsDateTime.getDate(item.endDate)}</DataGrid.Body.Cell>
                                         <DataGrid.Body.Cell>{item.nbHoursPerWeek}</DataGrid.Body.Cell>
@@ -228,7 +228,7 @@ class ModalAssignmentForm extends Component{
                                     {studentList.map((item, index) => {
                                         let row =
                                             <tr key={index}>
-                                                <td>{`${item.firstName} ${item.lastName}`}</td>
+                                                <td><a href={item.userUrl} target="_blank"><span dangerouslySetInnerHTML={{__html: item.userPix}}></span>{`${item.firstName} ${item.lastName}`}</a></td>
                                                 <td><Button onClick={() => this.onAdd(item)} size="sm" variant="primary" title="Ajouter" className="mr-2"><FontAwesomeIcon icon={faPlusSquare}/></Button></td>
                                             </tr>
 
