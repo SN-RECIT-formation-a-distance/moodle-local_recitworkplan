@@ -251,6 +251,8 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
                 $this->mysqlConn->execSQL($query);
             }
 
+            $this->recalculateCalendarEvents($data->templateId);
+
             $result = new StdClass();
             $result->templateId = $data->templateId;
             $result->tplActId = $data->id;
@@ -386,18 +388,24 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
     }
 
     public function saveAssignment($data){
-        try{		
+        try{
+            $startDate = $data->startDate;
+            if (is_string($data->startDate)) $startDate = new DateTime($data->startDate);
+
             $fields = array("templateid", "userid", "nb_hours_per_week", "startdate", "lastupdate");
-            $values = array($data->template->id, $data->userId, $data->nbHoursPerWeek, strtotime($data->startDate), time());
+            $values = array($data->template->id, $data->userId, $data->nbHoursPerWeek, $startDate->getTimestamp(), time());
 
             if($data->id == 0){
                 $query = $this->mysqlConn->prepareStmt("insertorupdate", "{$this->prefix}recit_wk_tpl_assign", $fields, $values);
                 $this->mysqlConn->execSQL($query);
                 $data->id = $this->mysqlConn->getLastInsertId("{$this->prefix}recit_wk_tpl_assign", "id");
+                $this->addCalendarEvent($data->template->id, $data->userId);
             }
             else{
                 $query = $this->mysqlConn->prepareStmt("update", "{$this->prefix}recit_wk_tpl_assign", $fields, $values, array("id"), array($data->id));
                 $this->mysqlConn->execSQL($query);
+                $this->deleteCalendarEvent($data->id, $data->userId);
+                $this->addCalendarEvent($data->template->id, $data->userId);
             }
 
             return $data->id;
@@ -440,6 +448,59 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         }
         catch(\Exception $ex){
             throw $ex;
+        }
+    }
+
+    private function addCalendarEvent($templateId, $userId){
+        global $DB;
+        $tpl = $DB->get_record('recit_wp_tpl', array('id' => $templateId));
+
+        $name = "Fin du plan ".$tpl->name;
+        $desc = $name; 
+        $assignments = $this->getAssignment($userId, $templateId);
+        if (!isset($assignments[0])) return;
+        $assignment = $assignments[0];
+        $assignment->setEndDate();
+        if (!$assignment->endDate) return;
+
+        $event = new stdClass();
+        $event->eventtype = 'planformation';
+        $event->type = CALENDAR_EVENT_TYPE_STANDARD; // This is used for events we only want to display on the calendar, and are not needed on the block_myoverview.
+        $event->name = $name;
+        $event->description = $desc;
+        $event->format = FORMAT_HTML;
+        $event->courseid = 0;
+        $event->groupid = 0;
+        $event->userid = $userId;
+        $event->modulename = '';
+        $event->instance = $assignment->id;
+        $event->timestart = $assignment->endDate->getTimestamp();
+        $event->visible = TRUE;
+        $event->timeduration = 0;
+
+        \calendar_event::create($event);
+    }
+
+    private function deleteCalendarEvent($assignmentId = 0, $userId = 0){
+        global $DB;
+        $where = array('eventtype' => 'planformation');
+        if ($assignmentId > 0){
+            $where['instance'] = $assignmentId;
+        }
+        if ($userId > 0){
+            $where['userid'] = $userId;
+        }
+        $DB->delete_records('event', $where);
+    }
+
+    private function recalculateCalendarEvents($tplId, $assignments = false){
+        global $DB;
+        if (!$assignments){
+            $assignments = $DB->get_records('recit_wk_tpl_assign', array('templateid' => $tplId));
+        }
+        foreach($assignments as $assignment){
+            $this->deleteCalendarEvent($assignment->id);
+            $this->addCalendarEvent($assignment->templateid, $assignment->userid);
         }
     }
 }
@@ -556,6 +617,9 @@ class Assignment{
         $result->firstName = $dbData->firstname;
         $result->lastName = $dbData->lastname;
         $result->startDate = $dbData->startdate;
+        if (is_string($dbData->startdate)){
+            $result->startDate = new DateTime($dbData->startdate);
+        }
         $result->nbHoursPerWeek = $dbData->nbhoursperweek;
         $result->completionState = $dbData->wpcompletionstate;
 
@@ -570,7 +634,7 @@ class Assignment{
             $nbHoursCompletion += $item->nbHoursCompletion;
         }
 
-        $nbWeeks = $nbHoursCompletion / $this->nbHoursPerWeek;
+        $nbWeeks = ceil($nbHoursCompletion / $this->nbHoursPerWeek); //Round to highest number
 
         $this->endDate = clone $this->startDate;
         $this->endDate->modify("+$nbWeeks week");
