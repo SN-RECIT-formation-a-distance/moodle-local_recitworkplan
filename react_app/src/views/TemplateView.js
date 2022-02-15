@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { ButtonToolbar, ButtonGroup, Button, Form, FormGroup, InputGroup, FormControl, Col, Table, Badge} from 'react-bootstrap';
-import { faPencilAlt,  faTrashAlt, faPlusSquare,  faSearch, faCopy, faSync} from '@fortawesome/free-solid-svg-icons';
+import { faPencilAlt,  faTrashAlt, faPlusSquare,  faSearch, faCopy, faSync, faGripVertical} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {ComboBox, FeedbackCtrl, DataGrid, Modal} from '../libs/components/Components';
 import {$glVars} from '../common/common';
@@ -204,8 +204,10 @@ export class ModalTemplateForm extends Component{
         this.onClose = this.onClose.bind(this);
         this.onDataChange = this.onDataChange.bind(this);
         this.onFilterChange = this.onFilterChange.bind(this);
+        this.onDragRow = this.onDragRow.bind(this);
+        this.onDropRow = this.onDropRow.bind(this);
 
-        this.state = {data: null, dropdownLists: {categoryId: "0", categoryList: [], courseId: "0", courseList: [], activityList: []}, flags: {dataChanged: false, refresh: false}};
+        this.state = {data: null, draggingItem: null, dropdownLists: {categoryId: "0", categoryList: [], courseId: "0", courseList: [], activityList: []}, flags: {dataChanged: false, refresh: false}};
     }
 
     componentDidMount(){
@@ -218,6 +220,8 @@ export class ModalTemplateForm extends Component{
         let tmpActivityList = this.state.dropdownLists.activityList.filter(item => (JsNx.getItem(this.state.data.activities, 'cmId', item.cmId, null) === null) );
 
         let tmpCourseList = this.state.dropdownLists.courseList.filter(item => (item.data.categoryId === this.state.dropdownLists.categoryId));
+
+        let activities = this.state.data.activities.sort((item, item2) => { return item.slot - item2.slot });
 
         let body = 
             <div style={{display: 'grid', gridTemplateColumns: '48% 48%', gridGap: '2rem'}}>
@@ -280,32 +284,34 @@ export class ModalTemplateForm extends Component{
                         <div>
                             <h6>Activités sélectionnées <Badge variant="warning" className="p-2 rounded">{`${this.state.data.activities.length}`}</Badge></h6>
                             <div style={{maxHeight: 500, overflowY: 'scroll'}}>
-                                <Table striped bordered hover>
-                                    <thead>
-                                        <tr>
-                                            <th>#</th>
-                                            <th>Cours</th>
-                                            <th>Activité</th>
-                                            <th>Temps en heure</th>
-                                            <th></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {this.state.data.activities.map((item, index) => {
+                                <DataGrid>
+                                    <DataGrid.Header>
+                                        <DataGrid.Header.Row>
+                                            <DataGrid.Header.Cell></DataGrid.Header.Cell>
+                                            <DataGrid.Header.Cell>#</DataGrid.Header.Cell>
+                                            <DataGrid.Header.Cell>Cours</DataGrid.Header.Cell>
+                                            <DataGrid.Header.Cell>Activité</DataGrid.Header.Cell>
+                                            <DataGrid.Header.Cell>Temps en heure</DataGrid.Header.Cell>
+                                            <DataGrid.Header.Cell></DataGrid.Header.Cell>
+                                        </DataGrid.Header.Row>
+                                    </DataGrid.Header>
+                                    <DataGrid.Body>
+                                        {activities.map((item, index) => {
                                                 let row =
-                                                    <tr key={index}>
-                                                        <td>{index + 1}</td>
-                                                        <td>{item.courseName}</td>
-                                                        <td>{item.cmName}</td>
-                                                        <td><Form.Control type="text" placeholder="" value={item.nbHoursCompletion} onBlur={() => this.onSaveTplAct(item)} name="nbHoursCompletion" onChange={(event) => this.onDataChange(event, index)} /></td>
-                                                        <td><Button size="sm" variant="primary" title="Supprimer" onClick={() => this.onRemoveTplAct(item.id)}><FontAwesomeIcon icon={faTrashAlt}/></Button></td>
-                                                    </tr>;
+                                                    <DataGrid.Body.RowDraggable data={item} onDrag={this.onDragRow} onDrop={this.onDropRow} key={index}>
+                                                    <DataGrid.Body.Cell><FontAwesomeIcon icon={faGripVertical} title="Déplacer l'item"/></DataGrid.Body.Cell>
+                                                        <DataGrid.Body.Cell>{index + 1}</DataGrid.Body.Cell>
+                                                        <DataGrid.Body.Cell>{item.courseName}</DataGrid.Body.Cell>
+                                                        <DataGrid.Body.Cell>{item.cmName}</DataGrid.Body.Cell>
+                                                        <DataGrid.Body.Cell><Form.Control type="text" placeholder="" value={item.nbHoursCompletion} onBlur={() => this.onSaveTplAct(item)} name="nbHoursCompletion" onChange={(event) => this.onDataChange(event, index)} /></DataGrid.Body.Cell>
+                                                        <DataGrid.Body.Cell><Button size="sm" variant="primary" title="Supprimer" onClick={() => this.onRemoveTplAct(item.id)}><FontAwesomeIcon icon={faTrashAlt}/></Button></DataGrid.Body.Cell>
+                                                    </DataGrid.Body.RowDraggable>;
 
                                                 return row;
                                             }
                                         )}
-                                    </tbody>
-                                </Table>
+                                    </DataGrid.Body>
+                                </DataGrid>
                             </div>
                         </div>
                     </Form>
@@ -347,9 +353,24 @@ export class ModalTemplateForm extends Component{
         });
     }
 
+    onDragRow(item, index){
+        this.setState({draggingItem: item});
+    }
+
+    onDropRow(item, index){
+        let data = this.state.data;
+        item = JsNx.getItem(data.activities, 'id', item.id, null);
+        let draggingItem = JsNx.getItem(data.activities, 'id', this.state.draggingItem.id, null);
+        let oldSlot = item.slot;
+        item.slot = draggingItem.slot;
+        draggingItem.slot = oldSlot;
+        this.setState({flags: {dataChanged: true, refresh: true}}, () => {this.onSaveTplAct(item); this.onSaveTplAct(draggingItem)});
+    }
+
     onAddTplAct(item){
         let newItem = {};
         newItem.id = 0;
+        newItem.slot = this.state.data.activities.length + 1;
         newItem.cmId = item.cmId;
         newItem.cmName = item.cmName;
         newItem.courseName = item.courseName;
@@ -455,7 +476,7 @@ export class ModalTemplateForm extends Component{
         }
 
         if(this.state.flags.dataChanged){
-            $glVars.webApi.saveTplAct({templateId: this.state.data.id, id: tplAct.id, cmId: tplAct.cmId, nbHoursCompletion: tplAct.nbHoursCompletion}, callback);
+            $glVars.webApi.saveTplAct({templateId: this.state.data.id, id: tplAct.id, cmId: tplAct.cmId, nbHoursCompletion: tplAct.nbHoursCompletion, slot: tplAct.slot}, callback);
         }
     }
 

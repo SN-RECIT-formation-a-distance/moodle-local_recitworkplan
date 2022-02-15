@@ -20,6 +20,7 @@
      <TABLE NAME="recit_wp_tpl_act" COMMENT="work plan template activities">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="slot" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="templateid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="recit_wp_tpl.id"/>
         <FIELD NAME="cmid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="nb_hours_completion" TYPE="float" NOTNULL="false" DEFAULT="0" SEQUENCE="false"/>

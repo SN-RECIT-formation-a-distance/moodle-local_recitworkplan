@@ -120,7 +120,7 @@ export class AssignmentsView extends Component{
                                         <DataGrid.Body.Cell>{UtilsDateTime.getDate(item.endDate)}</DataGrid.Body.Cell>
                                         <DataGrid.Body.Cell>{item.nbHoursPerWeek}</DataGrid.Body.Cell>
                                         <DataGrid.Body.Cell>{this.getActivityCompletion(item.template.activities)}</DataGrid.Body.Cell>
-                                        <DataGrid.Body.Cell>{this.getCompletionState(item)}</DataGrid.Body.Cell>
+                                        <DataGrid.Body.Cell><a href={$glVars.recitDashboardUrl} target="_blank">{this.getCompletionState(item)}</a></DataGrid.Body.Cell>
                                         <DataGrid.Body.Cell style={{textAlign: 'center'}}>
                                             <ButtonGroup size="sm">
                                                 <Button title="Éditer" onClick={() => this.setState({templateId: item.template.id})} variant="primary"><FontAwesomeIcon icon={faPencilAlt}/></Button>

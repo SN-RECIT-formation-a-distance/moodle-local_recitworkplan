@@ -124,7 +124,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         $DB->execute("set @uniqueId = 0");
 
         $query = "select  @uniqueId := @uniqueId + 1 as uniqueId, t1.id as templateid, t1.creatorid, t1.name as templatename, t1.description as templatedesc,  if(t1.lastupdate > 0, from_unixtime(t1.lastupdate), null) as lastupdate, 
-        t2.id as tpl_act_id, t2.cmid, t2.nb_hours_completion, t4.id as courseid, t4.shortname as coursename, t5.id as categoryid, t5.name as categoryname, tblRoles.roles
+        t2.id as tpl_act_id, t2.cmid, t2.nb_hours_completion, t2.slot, t4.id as courseid, t4.shortname as coursename, t5.id as categoryid, t5.name as categoryname, tblRoles.roles
         from {recit_wp_tpl} as t1
         inner join {recit_wp_tpl_act} as t2 on t1.id = t2.templateid
         inner join {course_modules} as t3 on t2.cmid = t3.id
@@ -132,7 +132,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         inner join {course_categories} as t5 on t4.category = t5.id
         left join (".$this->getAdminRolesStmt($userId).") as tblRoles on t4.id = tblRoles.courseId
         where t1.id =:templateid
-        order by t4.id asc, t1.name asc";
+        order by t4.id asc, t1.name asc, t2.slot asc";
 
         $rst = $DB->get_records_sql($query, array('templateid' => $templateId));
 
@@ -237,8 +237,8 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
                 $this->mysqlConn->execSQL($query);
             }
 
-            $fields = array("templateid", "cmid", "nb_hours_completion");
-            $values = array($data->templateId, $data->cmId, $data->nbHoursCompletion);
+            $fields = array("slot", "templateid", "cmid", "nb_hours_completion");
+            $values = array($data->slot, $data->templateId, $data->cmId, $data->nbHoursCompletion);
 
             if($data->id == 0){
                 $query = $this->mysqlConn->prepareStmt("insertorupdate", "{$this->prefix}recit_wp_tpl_act", $fields, $values);
@@ -551,6 +551,7 @@ class TemplateActivity{
     public $cmId = 0;
     public $cmName = "";
     public $courseId = 0;
+    public $slot = 0;
     public $courseName = "";
     public $categoryId = 0;
     public $categoryName = "";
@@ -567,6 +568,7 @@ class TemplateActivity{
         $result->id = (isset($dbData->tpl_act_id) ? $dbData->tpl_act_id : $result->id);
         $result->cmId = (isset($dbData->cmid) ? $dbData->cmid : $result->cmId);
         $result->cmName = (isset($dbData->cmname) ? $dbData->cmname : $result->cmName);
+        $result->slot = (isset($dbData->slot) ? $dbData->slot : $result->slot);
         $result->courseId = (isset($dbData->courseid) ? $dbData->courseid : $result->courseId);
         $result->courseName = (isset($dbData->coursename) ? $dbData->coursename : $result->courseName);
         $result->categoryId = (isset($dbData->categoryid) ? $dbData->categoryid : $result->categoryId);

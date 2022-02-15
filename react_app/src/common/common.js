@@ -9,5 +9,6 @@ export const $glVars = {
     feedback: new FeedbackCtrl(),
     i18n: new I18n(),
     webApi: new AppWebApi(),
-    urlParams: {}
+    urlParams: {},
+    recitDashboardUrl: M.cfg.wwwroot + "/local/recitdashboard/view.php"
 }
