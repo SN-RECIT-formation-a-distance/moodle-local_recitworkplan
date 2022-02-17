@@ -460,3 +460,32 @@ export class UtilsTreeStruct
         return false;
     }*/
 }
+
+export class WorkPlanUtils {
+    
+    static getActivityCompletion(activities){
+        let count = 0;
+        for(let item of activities){
+            if(item.completionState >= 1){
+                count++;
+            }
+        }
+
+        return `${count}/${activities.length}`;
+    }
+
+    static getCompletionState(item){
+        let result = "";
+
+        switch(item.completionState){
+            case 0:
+                result = "En cours"; break;
+            case 1:
+                result = "Terminé"; break;
+            case 2:
+                result = "En retard"; break;
+        }
+
+        return result;
+    }
+}

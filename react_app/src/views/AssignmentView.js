@@ -4,13 +4,14 @@ import { faPencilAlt,  faTrashAlt, faPlusSquare, faSearch, faSync} from '@fortaw
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {ComboBox, FeedbackCtrl, DataGrid, Modal} from '../libs/components/Components';
 import {$glVars} from '../common/common';
-import { JsNx, UtilsString, UtilsDateTime } from '../libs/utils/Utils';
+import { JsNx, UtilsString, UtilsDateTime, WorkPlanUtils } from '../libs/utils/Utils';
 import { Pagination } from '../libs/components/Pagination';
 import { ModalTemplateForm } from './TemplateView';
 
 export class AssignmentsView extends Component{
     static defaultProps = {        
-        queryStr: ""
+        queryStr: "",
+        onReport: null,
     };
 
     constructor(props){
@@ -119,8 +120,8 @@ export class AssignmentsView extends Component{
                                         <DataGrid.Body.Cell>{UtilsDateTime.getDate(item.startDate)}</DataGrid.Body.Cell>
                                         <DataGrid.Body.Cell>{UtilsDateTime.getDate(item.endDate)}</DataGrid.Body.Cell>
                                         <DataGrid.Body.Cell>{item.nbHoursPerWeek}</DataGrid.Body.Cell>
-                                        <DataGrid.Body.Cell>{this.getActivityCompletion(item.template.activities)}</DataGrid.Body.Cell>
-                                        <DataGrid.Body.Cell><a href={$glVars.recitDashboardUrl} target="_blank">{this.getCompletionState(item)}</a></DataGrid.Body.Cell>
+                                        <DataGrid.Body.Cell>{WorkPlanUtils.getActivityCompletion(item.template.activities)}</DataGrid.Body.Cell>
+                                        <DataGrid.Body.Cell><a href='#' onClick={() => this.props.onReport(item)}>{WorkPlanUtils.getCompletionState(item)}</a></DataGrid.Body.Cell>
                                         <DataGrid.Body.Cell style={{textAlign: 'center'}}>
                                             <ButtonGroup size="sm">
                                                 <Button title="Éditer" onClick={() => this.setState({templateId: item.template.id})} variant="primary"><FontAwesomeIcon icon={faPencilAlt}/></Button>
@@ -143,37 +144,13 @@ export class AssignmentsView extends Component{
     onClose(refresh){
         if(refresh){
             this.getData();
+            this.setState({editTemplateId: -1});
         }
         else{
             this.setState({templateId: -1, editTemplateId: -1});
         }
     }
 
-    getActivityCompletion(activities){
-        let count = 0;
-        for(let item of activities){
-            if(item.completionState >= 1){
-                count++;
-            }
-        }
-
-        return `${count}/${activities.length}`;
-    }
-
-    getCompletionState(item){
-        let result = "";
-
-        switch(item.completionState){
-            case 0:
-                result = "En cours"; break;
-            case 1:
-                result = "Terminé"; break;
-            case 2:
-                result = "En retard"; break;
-        }
-
-        return result;
-    }
 }
 
 class ModalAssignmentForm extends Component{

@@ -73,7 +73,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
 
         $DB->execute("set @uniqueId = 0");
 
-        $query = "select  @uniqueId := @uniqueId + 1 as uniqueId, t1.id as templateid, t1.creatorid, t1.name as templatename, t1.description as templatedesc,  
+        $query = "select  @uniqueId := @uniqueId + 1 as uniqueId, t1.id as templateid, t1.creatorid, t1.name as templatename, t1.description as templatedesc, t4.fullname as coursename,
         if(t1.lastupdate > 0, from_unixtime(t1.lastupdate), null) as lastupdate, t2.cmid, t5.name as categoryName, tblRoles.roles, count(*) OVER() AS total_count
         from {recit_wp_tpl} as t1
         inner join {recit_wp_tpl_act} as t2 on t1.id = t2.templateid
@@ -123,7 +123,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
 
         $DB->execute("set @uniqueId = 0");
 
-        $query = "select  @uniqueId := @uniqueId + 1 as uniqueId, t1.id as templateid, t1.creatorid, t1.name as templatename, t1.description as templatedesc,  if(t1.lastupdate > 0, from_unixtime(t1.lastupdate), null) as lastupdate, 
+        $query = "select  @uniqueId := @uniqueId + 1 as uniqueId, t1.id as templateid, t1.creatorid, t1.name as templatename, t1.description as templatedesc,  if(t1.lastupdate > 0, from_unixtime(t1.lastupdate), null) as lastupdate, t4.fullname as coursename, 
         t2.id as tpl_act_id, t2.cmid, t2.nb_hours_completion, t2.slot, t4.id as courseid, t4.shortname as coursename, t5.id as categoryid, t5.name as categoryname, tblRoles.roles
         from {recit_wp_tpl} as t1
         inner join {recit_wp_tpl_act} as t2 on t1.id = t2.templateid
@@ -346,7 +346,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
     }
 
     public function getAssignmentList($userId, $limit = 0, $offset = 0){
-        $query = "select  t1.id, t1.nb_hours_per_week as nbhoursperweek, from_unixtime(t1.startdate) as startdate, t1.completionstate as wpcompletionstate, t2.id as templateid, t2.creatorid, t2.name as templatename, 
+        $query = "select  t1.id, t1.nb_hours_per_week as nbhoursperweek, from_unixtime(t1.startdate) as startdate, t1.completionstate as wpcompletionstate, t2.id as templateid, t2.creatorid, t2.name as templatename, t7.fullname as coursename, t7.id as courseid,
         t2.description as templatedesc, from_unixtime(t2.lastupdate) as lastupdate, t3.cmid, t3.nb_hours_completion as nb_hours_completion, t4.id as userid, t4.firstname, t4.lastname, count(*) OVER() AS total_count,
         t6.completionstate, tblRoles.roles
         from {$this->prefix}recit_wk_tpl_assign as t1
@@ -354,6 +354,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         inner join {$this->prefix}recit_wp_tpl_act as t3 on t3.templateid = t2.id
         inner join {$this->prefix}user as t4 on t1.userid = t4.id
         inner join {$this->prefix}course_modules as t5 on t3.cmid = t5.id
+        inner join {$this->prefix}course as t7 on t7.id = t5.course
         left join {$this->prefix}course_modules_completion as t6 on t5.id = t6.coursemoduleid and t6.userid = t4.id
         left join (".$this->getAdminRolesStmt($userId).") as tblRoles on t5.course = tblRoles.courseId";
         
@@ -579,6 +580,12 @@ class TemplateActivity{
         $result->roles = Utils::moodleRoles2RecitRoles($result->roles);
 
         $result->completionState = (isset($dbData->completionstate) ? $dbData->completionstate : $result->completionState);
+
+        //Get cm name
+        if ($result->cmId > 0 && empty($result->cmName)){
+            list ($course, $cm) = get_course_and_cm_from_cmId($result->cmId);
+            $result->cmName = $cm->name;
+        }
 
         return $result;
     }

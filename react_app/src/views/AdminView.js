@@ -1,20 +1,22 @@
 import React, { Component } from 'react';
 import {ButtonToolbar, Tabs, Tab, ButtonGroup, Button} from 'react-bootstrap';
-import {faTachometerAlt, faTasks, faHome, faFileAlt, faSync} from '@fortawesome/free-solid-svg-icons';
+import {faTachometerAlt, faTasks, faHome, faFileAlt, faSync, faFile} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {FeedbackCtrl, DataGrid} from '../libs/components/Components';
 import { TemplatesView } from './TemplateView';
 import { AssignmentsView } from './AssignmentView';
 import {$glVars} from '../common/common';
 import { Pagination } from '../libs/components/Pagination';
+import { ReportView } from './ReportView';
 
 export class AdminView extends Component {
     constructor(props) {
         super(props);
 
         this.onDetail = this.onDetail.bind(this);
+        this.onReport = this.onReport.bind(this);
 
-        this.state = {tab: 'home', queryStr: ""};
+        this.state = {tab: 'home', queryStr: "", reportData: null};
     }
  
     render() {       
@@ -24,18 +26,25 @@ export class AdminView extends Component {
                     <HomeView onDetail={this.onDetail}/>
                 </Tab>
                 <Tab eventKey="assignments" title={<><FontAwesomeIcon icon={faTasks}/>{" Affectations"}</>}>
-                    <AssignmentsView queryStr={this.state.queryStr}/>
+                    <AssignmentsView onReport={this.onReport} queryStr={this.state.queryStr}/>
                 </Tab>
                 <Tab eventKey="templates" title={<><FontAwesomeIcon icon={faFileAlt}/>{" Gabarits"}</>}>
                     <TemplatesView/>
                 </Tab>
-            </Tabs>
+                <Tab eventKey="report" title={<><FontAwesomeIcon icon={faFile}/>{" Rapport"}</>}>
+                    <ReportView reportData={this.state.reportData}/>
+                </Tab>
+            </Tabs>;
 
         return (main);
     }
 
     onDetail(templateName){
         this.setState({tab: 'assignments', queryStr: templateName});
+    }
+
+    onReport(query){
+        this.setState({tab: 'report', reportData: query});
     }
 }
 
