@@ -45,7 +45,13 @@ class MainView{
 
     public function display(){    
         $studentId = $this->user->id;
-        echo sprintf("<div id='recit_workplan' data-user-id='%ld'></div>", $studentId);
+        $mode = $this->isTeacher() ? 'a' : 's';
+        echo sprintf("<div id='recit_workplan' data-user-id='%ld' data-mode='%s'></div>", $studentId, $mode);
+    }
+
+    public function isTeacher(){
+        global $DB;
+        return $DB->record_exists_sql('select id from {role_assignments} where userid=:userid and roleid in (select id from {role} where shortname=:name1 or shortname=:name2)', ['userid' => $this->user->id, 'name1' => 'editingteacher', 'name2' => 'teacher']);
     }
 }
 

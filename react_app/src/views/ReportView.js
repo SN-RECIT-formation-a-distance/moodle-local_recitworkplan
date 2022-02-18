@@ -1,4 +1,4 @@
-import { faCheck, faCross } from '@fortawesome/free-solid-svg-icons';
+import { faCheck, faCross, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { Component } from 'react';
 import { DataGrid } from '../libs/components/DataGrid';
@@ -41,9 +41,9 @@ export class ReportView extends Component {
                         let row = 
                             <DataGrid.Body.Row key={index}>
                                 <DataGrid.Body.Cell>{index + 1}</DataGrid.Body.Cell>
-                                <DataGrid.Body.Cell>{item.courseName}</DataGrid.Body.Cell>
-                                <DataGrid.Body.Cell>{item.cmName}</DataGrid.Body.Cell>
-                                <DataGrid.Body.Cell>{item.completionState == 1 ? <FontAwesomeIcon icon={faCheck} style={{color:'#00ff00'}} title='Complété'/> : <FontAwesomeIcon style={{color:'#ff0000'}} icon={faCross}/>}</DataGrid.Body.Cell>
+                                <DataGrid.Body.Cell><a href={item.courseUrl}>{item.courseName}</a></DataGrid.Body.Cell>
+                                <DataGrid.Body.Cell><a href={item.cmUrl}>{item.cmName}</a></DataGrid.Body.Cell>
+                                <DataGrid.Body.Cell>{item.completionState == 1 ? <FontAwesomeIcon icon={faCheck} style={{color:'#00ff00'}} title='Complété'/> : <FontAwesomeIcon style={{color:'#ff0000'}} icon={faTimes}/>}</DataGrid.Body.Cell>
                             </DataGrid.Body.Row>
                         return (row);                                    
                     }

@@ -28,8 +28,8 @@ export class AppWebApi extends WebApi
         }
     }
     
-    getAssignmentList(summary, limit, offset, onSuccess){
-        let data = {summary: summary, limit: limit, offset: offset, service: "getAssignmentList"};
+    getAssignmentList(summary, limit, offset, forStudent, onSuccess){
+        let data = {summary: summary, limit: limit, offset: offset, forStudent: forStudent, service: "getAssignmentList"};
         this.post(this.gateway, data, onSuccess);
     }
 

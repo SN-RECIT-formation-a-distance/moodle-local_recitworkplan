@@ -345,7 +345,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         return array_values($result);
     }
 
-    public function getAssignmentList($userId, $limit = 0, $offset = 0){
+    public function getAssignmentList($userId, $limit = 0, $offset = 0, $forStudent = false){
         $query = "select  t1.id, t1.nb_hours_per_week as nbhoursperweek, from_unixtime(t1.startdate) as startdate, t1.completionstate as wpcompletionstate, t2.id as templateid, t2.creatorid, t2.name as templatename, t7.fullname as coursename, t7.id as courseid,
         t2.description as templatedesc, from_unixtime(t2.lastupdate) as lastupdate, t3.cmid, t3.nb_hours_completion as nb_hours_completion, t4.id as userid, t4.firstname, t4.lastname, count(*) OVER() AS total_count,
         t6.completionstate, tblRoles.roles
@@ -357,6 +357,10 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         inner join {$this->prefix}course as t7 on t7.id = t5.course
         left join {$this->prefix}course_modules_completion as t6 on t5.id = t6.coursemoduleid and t6.userid = t4.id
         left join (".$this->getAdminRolesStmt($userId).") as tblRoles on t5.course = tblRoles.courseId";
+
+        if ($forStudent){
+            $query .= " where t1.userid=".$userId;
+        }
         
         if ($limit > 0){
             $offsetsql = $offset * $limit;
@@ -373,7 +377,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         }  
 
         foreach($result->detailed as $index => $item){
-            if(!$item->template->verifyRoles()){
+            if(!$item->template->verifyRoles($forStudent)){
                 unset($result->detailed[$index]);
                 continue;
             }
@@ -536,9 +540,12 @@ class Template{
         }
     }
 
-    public function verifyRoles(){
+    public function verifyRoles($isStudent = false){
         foreach($this->activities as $act){
-            if(!Utils::isAdminRole($act->roles)){
+            if(!Utils::isAdminRole($act->roles) && !$isStudent){
+                return false;
+            }
+            if($act->roles[0] != 'sd' && $isStudent){
                 return false;
             }
         }
@@ -551,6 +558,7 @@ class TemplateActivity{
     public $id = 0;
     public $cmId = 0;
     public $cmName = "";
+    public $cmUrl = "";
     public $courseId = 0;
     public $slot = 0;
     public $courseName = "";
@@ -585,6 +593,8 @@ class TemplateActivity{
         if ($result->cmId > 0 && empty($result->cmName)){
             list ($course, $cm) = get_course_and_cm_from_cmId($result->cmId);
             $result->cmName = $cm->name;
+            $result->cmUrl = $cm->__get('url')->out();
+            $result->courseUrl = (new \moodle_url('/course/view.php?id='.$course->id))->out();
         }
 
         return $result;

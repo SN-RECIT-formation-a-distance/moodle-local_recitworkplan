@@ -252,6 +252,11 @@ export class UtilsDateTime
         }
     }
 
+    static toTimestamp (strDate) {  
+        const dt = Date.parse(strDate);  
+        return dt / 1000;  
+    }
+
     static nbMinSinceSundayToDate(nbMinSinceSunday){
         nbMinSinceSunday = parseInt(nbMinSinceSunday,10);
         if(nbMinSinceSunday === 0){

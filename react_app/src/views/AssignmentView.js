@@ -40,7 +40,7 @@ export class AssignmentsView extends Component{
     }
 
     getData(){
-        $glVars.webApi.getAssignmentList(false, this.state.pagination.item_per_page, this.state.pagination.current_page - 1, this.getDataResult);
+        $glVars.webApi.getAssignmentList(false, this.state.pagination.item_per_page, this.state.pagination.current_page - 1, false, this.getDataResult);
     }
 
     getDataResult(result){

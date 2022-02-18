@@ -40,13 +40,17 @@ class WebApi extends recitcommon\MoodleApi
     
     public function getAssignmentList($request){
         try{
-            $this->canUserAccess('a');
 
-            $summary = boolval($request['summary']);
+           $summary = boolval($request['summary']);
+           $forStudent = boolval($request['forStudent']);
             $limit = intval($request['limit']);
             $offset = intval($request['offset']);
 
-            $result = $this->ctrl->getAssignmentList($this->signedUser->id, $limit, $offset);
+            if (!$forStudent){
+                $this->canUserAccess('a');
+            }
+
+            $result = $this->ctrl->getAssignmentList($this->signedUser->id, $limit, $offset, $forStudent);
             if($summary){
                 $result->items = $result->items->getSummary();
             }

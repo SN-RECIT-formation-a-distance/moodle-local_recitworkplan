@@ -12,12 +12,14 @@ import './common/i18n';
 import {AdminView} from "./views/AdminView";
 import {$glVars} from "./common/common";
 import "./css/style.scss";
+import { StudentView } from './views/StudentView';
 
 export * from "./common/i18n";
  
 class App extends Component {
     static defaultProps = {
-        signedUser: null
+        signedUser: null,
+        mode: 'a'
     };
 
     constructor(props) {
@@ -30,7 +32,7 @@ class App extends Component {
 
         //(UtilsMoodle.checkRoles($glVars.signedUser.roles, UtilsMoodle.rolesL2) ? 't' : 's');
 
-        this.state = {mode: 'a'};
+        this.state = {mode: this.props.mode};
     }
 
     componentDidMount(){
@@ -44,7 +46,7 @@ class App extends Component {
     render() {       
         let main =
             <div>
-                {this.state.mode  === 'a' ? <AdminView/> : null}
+                {this.state.mode  === 'a' ? <AdminView/> : <StudentView/>}
                 {$glVars.feedback.msg.map((item, index) => {  
                     return (<VisualFeedback key={index} id={index} msg={item.msg} type={item.type} title={item.title} timeout={item.timeout}/>);                                    
                 })}
@@ -63,6 +65,6 @@ document.addEventListener('DOMContentLoaded', function(){
     let domContainer = document.getElementById('recit_workplan');
     if (domContainer){
         let signedUser = {userId: domContainer.getAttribute('data-user-id')};
-        ReactDOM.render(<App signedUser={signedUser}/>, domContainer);
+        ReactDOM.render(<App signedUser={signedUser} mode={domContainer.getAttribute('data-mode')}/>, domContainer);
     }
 }, false);
