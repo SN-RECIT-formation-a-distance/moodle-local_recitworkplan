@@ -283,7 +283,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
             return $result;
         }
 
-        $query = "select t1.id, t1.firstname, t1.lastname
+        $query = "select t1.id, t1.firstname, t1.lastname, t1.picture
         from {user} as t1
         inner join {user_enrolments} as t2 on t1.id = t2.userid
         inner join {enrol} as t3 on t2.enrolid = t3.id
@@ -622,13 +622,12 @@ class Assignment{
     }
 
     public static function create($dbData){
-        global $OUTPUT;
+        global $OUTPUT, $DB;
         $result = new Assignment();
         $result->id = $dbData->id;
         $result->template = Template::create($dbData);
 
-        $user = new stdClass();
-        $user->id = $dbData->userid;
+        $user = $DB->get_record('user', array('id' => $dbData->userid));
         $result->userPix = $OUTPUT->user_picture($user, array('size'=>30));
 
         $result->userId = $dbData->userid;
