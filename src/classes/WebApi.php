@@ -235,6 +235,8 @@ class WebApi extends recitcommon\MoodleApi
 }
 
 ///////////////////////////////////////////////////////////////////////////////////
+
+$PAGE->set_context(\context_system::instance());
 $webapi = new WebApi($DB, $COURSE, $USER);
 $webapi->getRequest($_REQUEST);
 $webapi->processRequest();
