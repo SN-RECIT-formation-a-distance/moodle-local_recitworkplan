@@ -207,7 +207,7 @@ export class ModalTemplateForm extends Component{
         this.onDragRow = this.onDragRow.bind(this);
         this.onDropRow = this.onDropRow.bind(this);
 
-        this.state = {data: null, draggingItem: null, dropdownLists: {categoryId: "0", categoryList: [], courseId: "0", courseList: [], activityList: []}, flags: {dataChanged: false, refresh: false}};
+        this.state = {data: null, draggingItem: null, dropdownLists: {categoryId: "0", categoryList: [], courseId: "0", courseList: [], sectionId: "0", sectionList: [], activityList: []}, flags: {dataChanged: false, refresh: false}};
     }
 
     componentDidMount(){
@@ -217,9 +217,11 @@ export class ModalTemplateForm extends Component{
     render(){
         if(this.state.data === null){ return null; }
 
-        let tmpActivityList = this.state.dropdownLists.activityList.filter(item => (JsNx.getItem(this.state.data.activities, 'cmId', item.cmId, null) === null) );
+        let tmpActivityList = this.state.dropdownLists.activityList.filter(item => (JsNx.getItem(this.state.data.activities, 'cmId', item.cmId, null) === null && item.sectionId === this.state.dropdownLists.sectionId) );
 
         let tmpCourseList = this.state.dropdownLists.courseList.filter(item => (item.data.categoryId === this.state.dropdownLists.categoryId));
+        
+        let tmpSectionList = this.state.dropdownLists.sectionList.filter(item => (item.courseId === this.state.dropdownLists.courseId));
 
         let activities = this.state.data.activities.sort((item, item2) => { return item.slot - item2.slot });
 
@@ -238,6 +240,12 @@ export class ModalTemplateForm extends Component{
                             <Form.Group as={Col}>
                                 <Form.Label>{"Cours"}</Form.Label>
                                 <ComboBox placeholder={"Sélectionnez votre option"} name="courseId" value={this.state.dropdownLists.courseId} options={tmpCourseList} onChange={this.onFilterChange} />
+                            </Form.Group>
+                        </Form.Row>
+                        <Form.Row>
+                            <Form.Group as={Col}>
+                                <Form.Label>{"Section"}</Form.Label>
+                                <ComboBox placeholder={"Sélectionnez votre option"} name="sectionId" value={this.state.dropdownLists.sectionId} options={tmpSectionList} onChange={this.onFilterChange} />
                             </Form.Group>
                         </Form.Row>
                     </fieldset>
@@ -272,13 +280,13 @@ export class ModalTemplateForm extends Component{
                         <Form.Row>
                             <Form.Group as={Col}>
                                 <Form.Label>{"Nom"}</Form.Label>
-                                <Form.Control type="text" value={this.state.data.name}  onBlur={() => this.onSave(this.state.data)} name="name" onChange={this.onDataChange} />
+                                <Form.Control type="text" value={this.state.data.name} onBlur={() => this.onSave(this.state.data)} name="name" onChange={this.onDataChange} />
                             </Form.Group>
                         </Form.Row>
                         <Form.Row>
                             <Form.Group as={Col}>
                                 <Form.Label>{"Description"}</Form.Label>
-                                <Form.Control as="textarea" rows={4}  value={this.state.data.description} onBlur={() => this.onSave(this.state.data)}  name="description" onChange={this.onDataChange} />
+                                <Form.Control as="textarea" rows={4} className='w-100' value={this.state.data.description} onBlur={() => this.onSave(this.state.data)}  name="description" onChange={this.onDataChange} />
                             </Form.Group>
                         </Form.Row>
                         <div>
@@ -332,24 +340,25 @@ export class ModalTemplateForm extends Component{
             FeedbackCtrl.instance.showError($glVars.i18n.tags.appName, result.msg);
             return;
         }
+        let list = this.state.dropdownLists;
 
-        let categoryList = [];
+        list.categoryList = [];
         for(let item of result.data.catCourseList){
-            if(JsNx.getItem(categoryList, 'value', item.categoryId, null) === null){
-                categoryList.push({text: item.categoryName, value: item.categoryId});
+            if(JsNx.getItem(list.categoryList, 'value', item.categoryId, null) === null){
+                list.categoryList.push({text: item.categoryName, value: item.categoryId});
             }
         }
 
-        let courseList = [];
+        list.courseList = [];
         for(let item of result.data.catCourseList){
-            if(JsNx.getItem(courseList, 'value', item.courseId, null) === null){
-                courseList.push({text: item.courseName, value: item.courseId, data: item});
+            if(JsNx.getItem(list.courseList, 'value', item.courseId, null) === null){
+                list.courseList.push({text: item.courseName, value: item.courseId, data: item});
             }
         }
 
         this.setState({
             data: result.data.data, 
-            dropdownLists: {categoryList: categoryList, courseList: courseList, activityList: []}
+            dropdownLists: list
         });
     }
 
@@ -423,11 +432,22 @@ export class ModalTemplateForm extends Component{
         if(event.target.name === "categoryId"){
             item.courseId = "0";
             item.activityList = [];
+            item.sectionList = [];
         }
 
         if(item.courseId !== "0"){
             $glVars.webApi.getCatCourseSectionActivityList(true, item.categoryId, item.courseId, (result) => {
                 item.activityList = result.data;
+                item.sectionList = [];
+                for (let v of result.data){
+                    if(JsNx.getItem(item.sectionList, 'value', v.sectionId, null) === null){
+                        let sectionName = v.sectionName;
+                        if (sectionName == ""){
+                            sectionName = "Section "+v.sectionId;
+                        }
+                        item.sectionList.push({text: sectionName, value: v.sectionId, courseId: v.courseId});
+                    }
+                }
                 that.setState({dropdownLists: item});
             });
         }
