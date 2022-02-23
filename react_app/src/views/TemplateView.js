@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { ButtonToolbar, ButtonGroup, Button, Form, FormGroup, InputGroup, FormControl, Col, Table, Badge} from 'react-bootstrap';
-import { faPencilAlt,  faTrashAlt, faPlusSquare,  faSearch, faCopy, faSync, faGripVertical} from '@fortawesome/free-solid-svg-icons';
+import { faPencilAlt,  faTrashAlt, faPlusSquare,  faSearch, faCopy, faSync, faGripVertical, faArrowsAlt} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {ComboBox, FeedbackCtrl, DataGrid, Modal} from '../libs/components/Components';
 import {$glVars} from '../common/common';
@@ -299,7 +299,7 @@ export class ModalTemplateForm extends Component{
                                         {activities.map((item, index) => {
                                                 let row =
                                                     <DataGrid.Body.RowDraggable data={item} onDrag={this.onDragRow} onDrop={this.onDropRow} key={index}>
-                                                    <DataGrid.Body.Cell><FontAwesomeIcon icon={faGripVertical} title="Déplacer l'item"/></DataGrid.Body.Cell>
+                                                    <DataGrid.Body.Cell><FontAwesomeIcon icon={faArrowsAlt} title="Déplacer l'item"/></DataGrid.Body.Cell>
                                                         <DataGrid.Body.Cell>{index + 1}</DataGrid.Body.Cell>
                                                         <DataGrid.Body.Cell>{item.courseName}</DataGrid.Body.Cell>
                                                         <DataGrid.Body.Cell>{item.cmName}</DataGrid.Body.Cell>
