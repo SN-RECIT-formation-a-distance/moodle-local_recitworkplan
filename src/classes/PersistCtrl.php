@@ -56,6 +56,18 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         parent::__construct($mysqlConn, $signedUser);
     }
     
+    protected function getCatAdminRolesStmt($userId){
+        $query = " select st4.instanceid as categoryId,
+        group_concat(distinct st1.shortname) as categoryroles
+        from {$this->prefix}role as st1 
+        inner join {$this->prefix}role_assignments as st2 on st1.id = st2.roleid 
+        inner join {$this->prefix}context as st4 on st2.contextid = st4.id and contextlevel = 40
+        where st2.userid = $userId 
+        group by st4.instanceid";
+
+        return $query;
+    }
+    
     protected function getAdminRolesStmt($userId){
         $query = " select st3.instanceid as courseId, 
         group_concat(distinct st1.shortname) as roles
@@ -74,13 +86,14 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         $DB->execute("set @uniqueId = 0");
 
         $query = "select  @uniqueId := @uniqueId + 1 as uniqueId, t1.id as templateid, t1.creatorid, t1.name as templatename, t1.description as templatedesc, t4.fullname as coursename,
-        if(t1.lastupdate > 0, from_unixtime(t1.lastupdate), null) as lastupdate, t2.cmid, t5.name as categoryName, tblRoles.roles, count(*) OVER() AS total_count
+        if(t1.lastupdate > 0, from_unixtime(t1.lastupdate), null) as lastupdate, t2.cmid, t5.name as categoryName, tblRoles.roles, tblCatRoles.categoryroles, count(*) OVER() AS total_count
         from {recit_wp_tpl} as t1
         inner join {recit_wp_tpl_act} as t2 on t1.id = t2.templateid
         inner join {course_modules} as t3 on t2.cmid = t3.id
         inner join {course} as t4 on t3.course = t4.id
         inner join {course_categories} as t5 on t4.category = t5.id
         left join (".$this->getAdminRolesStmt($userId).") as tblRoles on t4.id = tblRoles.courseId
+        left join (".$this->getCatAdminRolesStmt($userId).") as tblCatRoles on t4.category = tblCatRoles.categoryId
         group by t1.id, t2.cmid
         order by t1.name asc";
 
@@ -124,13 +137,14 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         $DB->execute("set @uniqueId = 0");
 
         $query = "select  @uniqueId := @uniqueId + 1 as uniqueId, t1.id as templateid, t1.creatorid, t1.name as templatename, t1.description as templatedesc,  if(t1.lastupdate > 0, from_unixtime(t1.lastupdate), null) as lastupdate, t4.fullname as coursename, 
-        t2.id as tpl_act_id, t2.cmid, t2.nb_hours_completion, t2.slot, t4.id as courseid, t4.shortname as coursename, t5.id as categoryid, t5.name as categoryname, tblRoles.roles
+        t2.id as tpl_act_id, t2.cmid, t2.nb_hours_completion, t2.slot, t4.id as courseid, t4.shortname as coursename, t5.id as categoryid, t5.name as categoryname, tblRoles.roles, tblCatRoles.categoryroles
         from {recit_wp_tpl} as t1
         inner join {recit_wp_tpl_act} as t2 on t1.id = t2.templateid
         inner join {course_modules} as t3 on t2.cmid = t3.id
         inner join {course} as t4 on t3.course = t4.id
         inner join {course_categories} as t5 on t4.category = t5.id
         left join (".$this->getAdminRolesStmt($userId).") as tblRoles on t4.id = tblRoles.courseId
+        left join (".$this->getCatAdminRolesStmt($userId).") as tblCatRoles on t4.category = tblCatRoles.categoryId
         where t1.id =:templateid
         order by t4.id asc, t1.name asc, t2.slot asc";
 
@@ -315,13 +329,15 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
 
         $query = "select  @uniqueId := @uniqueId + 1 as uniqueId, t1.id, t1.nb_hours_per_week as nbhoursperweek, from_unixtime(t1.startdate) as startdate, t1.completionstate as wpcompletionstate,
         t2.id as templateid, t2.creatorid, t2.name as templatename, 
-        t2.description as templatedesc, from_unixtime(t2.lastupdate) as lastupdate, t3.id as tpl_act_id, t3.cmid, t3.nb_hours_completion, t4.id as userid, t4.firstname, t4.lastname, tblRoles.roles
+        t2.description as templatedesc, from_unixtime(t2.lastupdate) as lastupdate, t3.id as tpl_act_id, t3.cmid, t3.nb_hours_completion, t4.id as userid, t4.firstname, t4.lastname, tblRoles.roles, tblCatRoles.categoryroles
         from {recit_wk_tpl_assign} as t1
         inner join {recit_wp_tpl} as t2 on t1.templateid = t2.id
         inner join {recit_wp_tpl_act} as t3 on t3.templateid = t2.id
         inner join {user} as t4 on t1.userid = t4.id
+        inner join {course} as t6 on t5.course = t6.id
         inner join {course_modules} as t5 on t3.cmid = t5.id
         left join (".$this->getAdminRolesStmt($userId).") as tblRoles on t5.course = tblRoles.courseId
+        left join (".$this->getCatAdminRolesStmt($userId).") as tblCatRoles on t6.category = tblCatRoles.categoryId
         where t2.id =:templateid";
 
         $rst = $DB->get_records_sql($query, array('templateid' => $templateId));
@@ -348,7 +364,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
     public function getAssignmentList($userId, $limit = 0, $offset = 0, $forStudent = false){
         $query = "select  t1.id, t1.nb_hours_per_week as nbhoursperweek, from_unixtime(t1.startdate) as startdate, t1.completionstate as wpcompletionstate, t2.id as templateid, t2.creatorid, t2.name as templatename, t7.fullname as coursename, t7.id as courseid,
         t2.description as templatedesc, from_unixtime(t2.lastupdate) as lastupdate, t3.cmid, t3.nb_hours_completion as nb_hours_completion, t4.id as userid, t4.firstname, t4.lastname, count(*) OVER() AS total_count,
-        t6.completionstate, tblRoles.roles
+        t6.completionstate, tblRoles.roles, tblCatRoles.categoryroles
         from {$this->prefix}recit_wk_tpl_assign as t1
         inner join {$this->prefix}recit_wp_tpl as t2 on t1.templateid = t2.id
         inner join {$this->prefix}recit_wp_tpl_act as t3 on t3.templateid = t2.id
@@ -356,7 +372,8 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         inner join {$this->prefix}course_modules as t5 on t3.cmid = t5.id
         inner join {$this->prefix}course as t7 on t7.id = t5.course
         left join {$this->prefix}course_modules_completion as t6 on t5.id = t6.coursemoduleid and t6.userid = t4.id
-        left join (".$this->getAdminRolesStmt($userId).") as tblRoles on t5.course = tblRoles.courseId";
+        left join (".$this->getAdminRolesStmt($userId).") as tblRoles on t5.course = tblRoles.courseId
+        left join (".$this->getCatAdminRolesStmt($userId).") as tblCatRoles on t7.category = tblCatRoles.categoryId";
 
         if ($forStudent){
             $query .= " where t1.userid=".$userId;
@@ -542,7 +559,7 @@ class Template{
 
     public function verifyRoles($isStudent = false){
         foreach($this->activities as $act){
-            if(!Utils::isAdminRole($act->roles) && !$isStudent){
+            if(!Utils::isAdminRole($act->roles) && !Utils::isAdminRole($act->categoryroles) && !$isStudent){
                 return false;
             }
             if($act->roles[0] != 'sd' && $isStudent){
@@ -566,6 +583,7 @@ class TemplateActivity{
     public $categoryName = "";
     public $nbHoursCompletion = 0;
     public $roles = "";
+    public $categoryroles = "";
     /**
      * Whether or not the user has completed the activity. 
      * Available states: 0 = not completed if there's no row in this table, that also counts as 0 1 = completed 2 = completed, show passed 3 = completed, show failed
@@ -586,6 +604,9 @@ class TemplateActivity{
 
         $result->roles = explode(",", $dbData->roles);
         $result->roles = Utils::moodleRoles2RecitRoles($result->roles);
+
+        $result->categoryroles = explode(",", $dbData->categoryroles);
+        $result->categoryroles = Utils::moodleRoles2RecitRoles($result->categoryroles);
 
         $result->completionState = (isset($dbData->completionstate) ? $dbData->completionstate : $result->completionState);
 

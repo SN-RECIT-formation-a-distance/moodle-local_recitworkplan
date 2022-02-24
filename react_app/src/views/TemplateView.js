@@ -3,6 +3,7 @@ import { ButtonToolbar, ButtonGroup, Button, Form, FormGroup, InputGroup, FormCo
 import { faPencilAlt,  faTrashAlt, faPlusSquare,  faSearch, faCopy, faSync, faGripVertical, faArrowsAlt} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {ComboBox, FeedbackCtrl, DataGrid, Modal} from '../libs/components/Components';
+import {ComboBoxPlus} from '../libs/components/ComboBoxPlus';
 import {$glVars} from '../common/common';
 import { JsNx, UtilsString } from '../libs/utils/Utils';
 import { Pagination } from '../libs/components/Pagination';
@@ -233,19 +234,19 @@ export class ModalTemplateForm extends Component{
                         <Form.Row>
                             <Form.Group as={Col}>
                                 <Form.Label>{"Catégorie"}</Form.Label>
-                                <ComboBox placeholder={"Sélectionnez votre option"} name="categoryId" value={this.state.dropdownLists.categoryId} options={this.state.dropdownLists.categoryList} onChange={this.onFilterChange} />
+                                <ComboBoxPlus placeholder={"Sélectionnez votre option"} name="categoryId" value={this.state.dropdownLists.categoryId} options={this.state.dropdownLists.categoryList} onChange={this.onFilterChange} />
                             </Form.Group>
                         </Form.Row>
                         <Form.Row>
                             <Form.Group as={Col}>
                                 <Form.Label>{"Cours"}</Form.Label>
-                                <ComboBox placeholder={"Sélectionnez votre option"} name="courseId" value={this.state.dropdownLists.courseId} options={tmpCourseList} onChange={this.onFilterChange} />
+                                <ComboBoxPlus placeholder={"Sélectionnez votre option"} name="courseId" value={this.state.dropdownLists.courseId} options={tmpCourseList} onChange={this.onFilterChange} />
                             </Form.Group>
                         </Form.Row>
                         <Form.Row>
                             <Form.Group as={Col}>
                                 <Form.Label>{"Section"}</Form.Label>
-                                <ComboBox placeholder={"Sélectionnez votre option"} name="sectionId" value={this.state.dropdownLists.sectionId} options={tmpSectionList} onChange={this.onFilterChange} />
+                                <ComboBoxPlus placeholder={"Sélectionnez votre option"} name="sectionId" value={this.state.dropdownLists.sectionId} options={tmpSectionList} onChange={this.onFilterChange} />
                             </Form.Group>
                         </Form.Row>
                     </fieldset>
@@ -345,14 +346,15 @@ export class ModalTemplateForm extends Component{
         list.categoryList = [];
         for(let item of result.data.catCourseList){
             if(JsNx.getItem(list.categoryList, 'value', item.categoryId, null) === null){
-                list.categoryList.push({text: item.categoryName, value: item.categoryId});
+                list.categoryList.push({label: item.categoryName, value: item.categoryId});
             }
         }
 
         list.courseList = [];
         for(let item of result.data.catCourseList){
             if(JsNx.getItem(list.courseList, 'value', item.courseId, null) === null){
-                list.courseList.push({text: item.courseName, value: item.courseId, data: item});
+                let isDisabled = !item.roles && !item.categoryroles;
+                list.courseList.push({label: item.courseName, value: item.courseId, data: item, isDisabled: isDisabled});
             }
         }
 
@@ -445,7 +447,7 @@ export class ModalTemplateForm extends Component{
                         if (sectionName == ""){
                             sectionName = "Section "+v.sectionId;
                         }
-                        item.sectionList.push({text: sectionName, value: v.sectionId, courseId: v.courseId});
+                        item.sectionList.push({label: sectionName, value: v.sectionId, courseId: v.courseId});
                     }
                 }
                 that.setState({dropdownLists: item});
