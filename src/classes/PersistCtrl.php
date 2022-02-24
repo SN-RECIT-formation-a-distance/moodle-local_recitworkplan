@@ -301,9 +301,15 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         from {user} as t1
         inner join {user_enrolments} as t2 on t1.id = t2.userid
         inner join {enrol} as t3 on t2.enrolid = t3.id
+        left join (select st3.instanceid as courseId, 
+        group_concat(distinct st1.shortname) as roles, st2.userid
+        from {role} as st1 
+        inner join {role_assignments} as st2 on st1.id = st2.roleid 
+        inner join {context} as st3 on st2.contextid = st3.id and contextlevel = 50
+        group by st2.userid, st3.instanceid) as tblRoles on t3.courseid = tblRoles.courseId and t1.id = tblRoles.userid
         where t3.courseid in (select st2.course from {recit_wp_tpl_act} as st1 
                              inner join {course_modules} as st2 on st1.cmid = st2.id 
-                             where st1.templateid = $templateId)
+                             where st1.templateid = $templateId) and tblRoles.roles = 'student'
         order by firstname, lastname asc";
 
         $rst = $DB->get_records_sql($query);
@@ -334,8 +340,8 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         inner join {recit_wp_tpl} as t2 on t1.templateid = t2.id
         inner join {recit_wp_tpl_act} as t3 on t3.templateid = t2.id
         inner join {user} as t4 on t1.userid = t4.id
-        inner join {course} as t6 on t5.course = t6.id
         inner join {course_modules} as t5 on t3.cmid = t5.id
+        inner join {course} as t6 on t5.course = t6.id
         left join (".$this->getAdminRolesStmt($userId).") as tblRoles on t5.course = tblRoles.courseId
         left join (".$this->getCatAdminRolesStmt($userId).") as tblCatRoles on t6.category = tblCatRoles.categoryId
         where t2.id =:templateid";
