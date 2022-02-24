@@ -131,6 +131,29 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         return $pagination;
     }
 
+    public function getUserRoles($userId, $courseId){
+        global $DB;
+
+        $DB->execute("set @uniqueId = 0");
+
+        $query = "select @uniqueId := @uniqueId + 1 as uniqueId, st1.shortname from {role_assignments} as t1
+        inner join {role} as st1 on st1.id = t1.roleid where t1.userid=$userId
+        ";
+
+        $rst = $DB->get_records_sql($query);
+        $rst = array_values($rst);
+
+        $result = array();
+        if (isset($rst[0])){
+            foreach ($rst as $data){
+                $result[] = $data->shortname;
+            }
+        }
+        $result = Utils::moodleRoles2RecitRoles($result);
+
+        return $result;
+    }
+
     public function getTemplate($userId, $templateId){
         global $DB;
 

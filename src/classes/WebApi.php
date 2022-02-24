@@ -23,11 +23,13 @@ namespace recitworkplan;
 
 require_once(dirname(__FILE__).'../../../../config.php');
 require_once "$CFG->dirroot/local/recitcommon/php/WebApi.php";
+require_once "$CFG->dirroot/local/recitcommon/php/Utils.php";
 require_once dirname(__FILE__).'/PersistCtrl.php';
 require_once "$CFG->dirroot/local/recitcommon/php/ReportDiagTag.php";
 
 use recitcommon;
 use recitcommon\WebApiResult;
+use recitcommon\Utils;
 use Exception;
 use stdClass;
 
@@ -36,6 +38,32 @@ class WebApi extends recitcommon\MoodleApi
     public function __construct($DB, $COURSE, $USER){
         parent::__construct($DB, $COURSE, $USER);
         $this->ctrl = PersistCtrl::getInstance($DB, $USER);
+    }
+    /**
+     * $level [a = admin | s = student]
+     */
+    public function canUserAccess($level, $cmId = 0, $userId = 0, $courseId = 0){
+        $userRoles = array();
+        $userId = $this->signedUser->id;
+        $courseId = $this->course->id;
+        $userRoles = $this->ctrl->getUserRoles($userId, $courseId);
+
+
+        // if the user is admin then it has access to all
+        if(Utils::isAdminRole($userRoles)){
+            return true;
+        }
+         // if the level is admin then the user must have a admin role to have access
+        else if(($level == 'a') && Utils::isAdminRole($userRoles)){
+            return true;
+        }
+        // if the user is student then it has access only if it is accessing its own stuff
+        else if(($level == 's') && ($userId == $this->signedUser->id)){
+            return true;
+        }
+        else{
+            throw new Exception("L’accès a ce ressource est restreint.");
+        }
     }
     
     public function getAssignmentList($request){

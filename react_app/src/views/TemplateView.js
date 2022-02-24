@@ -444,9 +444,6 @@ export class ModalTemplateForm extends Component{
                 for (let v of result.data){
                     if(JsNx.getItem(item.sectionList, 'value', v.sectionId, null) === null){
                         let sectionName = v.sectionName;
-                        if (sectionName == ""){
-                            sectionName = "Section "+v.sectionId;
-                        }
                         item.sectionList.push({label: sectionName, value: v.sectionId, courseId: v.courseId});
                     }
                 }

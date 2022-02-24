@@ -51,7 +51,7 @@ class MainView{
 
     public function isTeacher(){
         global $DB;
-        return $DB->record_exists_sql('select id from {role_assignments} where userid=:userid and roleid in (select id from {role} where shortname=:name1 or shortname=:name2)', ['userid' => $this->user->id, 'name1' => 'editingteacher', 'name2' => 'teacher']);
+        return $DB->record_exists_sql('select id from {role_assignments} where userid=:userid and roleid in (select id from {role} where shortname=:name1 or shortname=:name2 or shortname=:name3 or shortname=:name4)', ['userid' => $this->user->id, 'name1' => 'editingteacher', 'name2' => 'teacher', 'name3' => 'coursecreator', 'name4' => 'manager']);
     }
 }
 
