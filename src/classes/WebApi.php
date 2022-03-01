@@ -69,8 +69,8 @@ class WebApi extends recitcommon\MoodleApi
     public function getAssignmentList($request){
         try{
 
-           $summary = boolval($request['summary']);
-           $forStudent = boolval($request['forStudent']);
+            $summary = boolval($request['summary']);
+            $forStudent = boolval($request['forStudent']);
             $limit = intval($request['limit']);
             $offset = intval($request['offset']);
 

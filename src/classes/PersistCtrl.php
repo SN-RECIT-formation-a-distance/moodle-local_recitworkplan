@@ -429,7 +429,8 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
             }
 
             $item->setEndDate();
-        } 
+        }
+        $result->detailed = array_values($result->detailed);
 
         $pagination = new Pagination();
         $pagination->items = $result;
