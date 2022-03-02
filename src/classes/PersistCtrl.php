@@ -430,7 +430,9 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
 
             $item->setEndDate();
         }
-        $result->detailed = array_values($result->detailed);
+        if (count($result->detailed) > 0){
+            $result->detailed = array_values($result->detailed);
+        }
 
         $pagination = new Pagination();
         $pagination->items = $result;
@@ -592,7 +594,7 @@ class Template{
             if(!Utils::isAdminRole($act->roles) && !Utils::isAdminRole($act->categoryroles) && !$isStudent){
                 return false;
             }
-            if($act->roles[0] != 'sd' && $isStudent){
+            if(isset($act->roles[0]) && $act->roles[0] != 'sd' && $isStudent){
                 return false;
             }
         }
