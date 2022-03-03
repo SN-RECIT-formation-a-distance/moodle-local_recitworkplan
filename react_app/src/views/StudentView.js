@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import {ButtonToolbar, Tabs, Tab, ButtonGroup, Button} from 'react-bootstrap';
-import {faTachometerAlt, faTasks, faHome, faFileAlt, faSync, faFile, faCross, faCheck, faTimes} from '@fortawesome/free-solid-svg-icons';
+import {faTachometerAlt, faTasks, faHome, faFileAlt, faSync, faFile, faCross, faCheck, faTimes, faBackward} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {FeedbackCtrl, DataGrid} from '../libs/components/Components';
 import { TemplatesView } from './TemplateView';
@@ -15,22 +15,25 @@ export class StudentView extends Component {
         super(props);
 
 
-        this.state = {tab: '0', dataProvider: null};
+        this.state = {activeReport: null, dataProvider: null};
     }
  
     render() {
         if (!this.state.dataProvider) return null;
-        let main =
-            <Tabs activeKey={this.state.tab}  onSelect={(t) => this.setState({tab: t})}>
+        let main = <div>
+            <h2>Plans</h2>
+            <div className='tiles'>
             {this.state.dataProvider.map((item, index) => {
-                    let row = 
-                        <Tab key={index} eventKey={index} title={item.template.name}>
-                            <StudentReportView reportData={item}/>
-                        </Tab>
-                    return (row);                                    
+                    let row = <StudentTemplateTile key={index} reportData={item} onClick={() => this.setState({activeReport: item})}/>
+                    return (row);
                 }
             )}
-            </Tabs>;
+            </div>
+            </div>;
+
+            if (this.state.activeReport) {
+                main = <StudentReportView reportData={this.state.activeReport} onBack={() => this.setState({activeReport: null})}/>;
+            }
 
         return (main);
     }
@@ -54,10 +57,10 @@ export class StudentView extends Component {
      }
 }
 
-
-export class StudentReportView extends Component {
+export class StudentTemplateTile extends Component {
     static defaultProps = {        
-        reportData: null
+        reportData: null,
+        onClick: null,
     };
 
     constructor(props) {
@@ -67,21 +70,64 @@ export class StudentReportView extends Component {
  
     render() {
         if (!this.props.reportData) return null;
-           
+        let completionPercentage = StudentReportView.getActivityCompletionPercentage(this.props.reportData.template.activities);
+
+        let main = <div className='templatetile' onClick={() => this.props.onClick()}>
+            <div className="progress" style={{height:'4px'}}>
+                <div className="progress-bar" role="progressbar" style={{width:completionPercentage+'%'}} aria-valuenow={completionPercentage} aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+            <p className='title'>{this.props.reportData.template.name}</p>
+            Début : {UtilsDateTime.getDate(this.props.reportData.startDate)}<br/>
+            Fin : {UtilsDateTime.getDate(this.props.reportData.endDate)}<br/>
+            État : {WorkPlanUtils.getCompletionState(this.props.reportData)}<br/>
+            Rythme (h/semaine) : {this.props.reportData.nbHoursPerWeek}<br/>
+        </div>
+        return main;
+    }
+}
+
+export class StudentReportView extends Component {
+    static defaultProps = {        
+        reportData: null,
+        onBack: null,
+    };
+
+    constructor(props) {
+        super(props);
+
+    }
+ 
+    render() {
+        if (!this.props.reportData) return null;
+        
+        let completionPercentage = StudentReportView.getActivityCompletionPercentage(this.props.reportData.template.activities);
+        let rythmePercentage = this.getExpectedRhythmPercentage(this.props.reportData.template.activities);
+        let rythmeColor = this.getProgressBarRythmColor();
+        
+        let activities = this.props.reportData.template.activities.sort((item, item2) => { return item.slot - item2.slot });
+
         let main = <div>
-        <span style={{fontWeight:'bold'}}>Nom du plan de travail :</span> {this.props.reportData.template.name}<br/>
-        <span style={{fontWeight:'bold'}}>Progrès :</span> 
-            <div className="progress" style={{height:'20px'}}>
-                <div className="progress-bar" role="progressbar" style={{width:this.getActivityCompletionPercentage(this.props.reportData.template.activities) + '%'}} aria-valuenow={this.getActivityCompletionPercentage(this.props.reportData.template.activities)} aria-valuemin="0" aria-valuemax="100"></div>
-            </div><br/>
-        <span style={{fontWeight:'bold'}}>Rythme attendu :</span> 
-            <div className="progress" style={{height:'20px'}}>
-                <div className="progress-bar" role="progressbar" style={{width:this.getExpectedRhythmPercentage(this.props.reportData.template.activities) + '%'}} aria-valuenow={this.getExpectedRhythmPercentage(this.props.reportData.template.activities)} aria-valuemin="0" aria-valuemax="100"></div>
-            </div><br/>
-        <span style={{fontWeight:'bold'}}>Début :</span> {UtilsDateTime.getDate(this.props.reportData.startDate)}<br/>
-        <span style={{fontWeight:'bold'}}>Fin :</span> {UtilsDateTime.getDate(this.props.reportData.endDate)}<br/>
-        <span style={{fontWeight:'bold'}}>État :</span> {WorkPlanUtils.getCompletionState(this.props.reportData)}<br/>
-        <span style={{fontWeight:'bold'}}>Rythme (h/semaine) :</span> {this.props.reportData.nbHoursPerWeek}
+            <a href='#' onClick={() => this.props.onBack()}><FontAwesomeIcon icon={faBackward}/> Retour</a>
+            <div className='row'>
+                <div className='col-md-6'>
+                    <span style={{fontWeight:'bold'}}>Nom du plan de travail :</span> {this.props.reportData.template.name}<br/>
+                    <span style={{fontWeight:'bold'}}>Progrès :</span> 
+                    <div className="progress" style={{height:'20px'}}>
+                        <div className="progress-bar" role="progressbar" style={{width:completionPercentage+'%'}} aria-valuenow={completionPercentage} aria-valuemin="0" aria-valuemax="100">{completionPercentage+'%'}</div>
+                    </div><br/>
+                    <span style={{fontWeight:'bold'}}>Rythme attendu :</span> 
+                    <div className="progress" style={{height:'20px'}}>
+                        <div className={"progress-bar "+rythmeColor} role="progressbar" style={{width:rythmePercentage+'%'}} aria-valuenow={rythmePercentage} aria-valuemin="0" aria-valuemax="100">{rythmePercentage+'%'}</div>
+                    </div>
+                </div>
+                <div className='col-md-6'>
+                    <span style={{fontWeight:'bold'}}>Début :</span> {UtilsDateTime.getDate(this.props.reportData.startDate)}<br/>
+                    <span style={{fontWeight:'bold'}}>Fin :</span> {UtilsDateTime.getDate(this.props.reportData.endDate)}<br/>
+                    <span style={{fontWeight:'bold'}}>État :</span> {WorkPlanUtils.getCompletionState(this.props.reportData)}<br/>
+                    <span style={{fontWeight:'bold'}}>Rythme (h/semaine) :</span> {this.props.reportData.nbHoursPerWeek}<br/>
+                    <span style={{fontWeight:'bold'}}>Professeur :</span> <a href={this.props.reportData.assignorUrl} target="_blank"><span dangerouslySetInnerHTML={{__html: this.props.reportData.assignorPix}}></span>{`${this.props.reportData.assignorFirstName} ${this.props.reportData.assignorLastName}`}</a>
+                </div>
+            </div>
         <hr/>
 
         <DataGrid orderBy={true}>
@@ -90,17 +136,19 @@ export class StudentReportView extends Component {
                     <DataGrid.Header.Cell style={{width: 80}}>{"#"}</DataGrid.Header.Cell>
                     <DataGrid.Header.Cell >{"Cours"}</DataGrid.Header.Cell>
                     <DataGrid.Header.Cell >{"Activité"}</DataGrid.Header.Cell>
+                    <DataGrid.Header.Cell >{"Durée estimée"}</DataGrid.Header.Cell>
                     <DataGrid.Header.Cell >{"État"}</DataGrid.Header.Cell>
                 </DataGrid.Header.Row>
             </DataGrid.Header>
             <DataGrid.Body>
-                {this.props.reportData.template.activities.map((item, index) => {
+                {activities.map((item, index) => {
                         let row = 
                             <DataGrid.Body.Row key={index}>
                                 <DataGrid.Body.Cell>{index + 1}</DataGrid.Body.Cell>
                                 <DataGrid.Body.Cell><a href={item.courseUrl}>{item.courseName}</a></DataGrid.Body.Cell>
                                 <DataGrid.Body.Cell><a href={item.cmUrl}>{item.cmName}</a></DataGrid.Body.Cell>
-                                <DataGrid.Body.Cell><input type="checkbox" checked={item.completionState == 1}/></DataGrid.Body.Cell>
+                                <DataGrid.Body.Cell>{item.nbHoursCompletion+' h'}</DataGrid.Body.Cell>
+                                <DataGrid.Body.Cell><input type="checkbox" readOnly checked={item.completionState == 1}/></DataGrid.Body.Cell>
                             </DataGrid.Body.Row>
                         return (row);                                    
                     }
@@ -113,7 +161,7 @@ export class StudentReportView extends Component {
     }
     
     
-    getActivityCompletionPercentage(activities){
+    static getActivityCompletionPercentage(activities){
         let count = 0;
         for(let item of activities){
             if(item.completionState >= 1){
@@ -137,7 +185,14 @@ export class StudentReportView extends Component {
         if (percentage > 100){
             percentage = 100;
         }
+        if (isNaN(percentage)) percentage = 0;
         return percentage;
+    }
 
+    getProgressBarRythmColor(){
+        if (this.props.reportData.completionState == 2) return 'bg-danger';
+        let percentage = this.getExpectedRhythmPercentage(this.props.reportData.template.activities);
+        if (percentage == 100) return 'bg-success';
+        return 'bg-warning';
     }
 }

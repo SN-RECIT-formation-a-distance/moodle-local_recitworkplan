@@ -190,8 +190,8 @@ class ModalAssignmentForm extends Component{
                         <ComboBox placeholder={"Sélectionnez votre option"} required={true}  name="templateId" value={this.state.templateId} options={this.state.dropdownLists.templateList} onChange={this.onDataChange} />
                     </Form.Group>
                 </Form.Row>
-                <div style={{display: 'grid',gridTemplateColumns: '400px 65%', gridGap: '1rem', marginTop: "1rem"}}>
-                    <div>
+                <div className='row'>
+                    <div className='col-md-6'>
                         <h6>Liste d'élèves <Badge variant="warning" className="p-2 rounded">{`${studentList.length}`}</Badge></h6>
                         <div style={{maxHeight: 500, overflowY: 'scroll'}}>
                             <Table striped bordered hover>                                
@@ -216,7 +216,7 @@ class ModalAssignmentForm extends Component{
                             </Table>
                         </div>
                     </div>
-                    <div >
+                    <div className='col-md-6'>
                         <div>
                             <h6>Élèves assignés <Badge variant="warning" className="p-2 rounded">{`${this.state.assignmentList.length}`}</Badge></h6>
                             <div style={{maxHeight: 500, overflowY: 'scroll'}}>

@@ -227,8 +227,8 @@ export class ModalTemplateForm extends Component{
         let activities = this.state.data.activities.sort((item, item2) => { return item.slot - item2.slot });
 
         let body = 
-            <div style={{display: 'grid', gridTemplateColumns: '48% 48%', gridGap: '2rem'}}>
-                <div style={{backgroundColor: '#f9f9f9', padding: '1rem'}}>
+            <div className='row'>
+                <div style={{backgroundColor: '#f9f9f9', padding: '1rem'}} className='col-md-6'>
                     <h6>Filtrez par catégorie et cours</h6>
                     <fieldset className="mb-3">
                         <Form.Row>
@@ -276,7 +276,7 @@ export class ModalTemplateForm extends Component{
                         </div>
                     </div>
                 </div>
-                <div>
+                <div className='col-md-6'>
                     <Form noValidate validated={this.state.formValidated} ref={this.formRef}>
                         <Form.Row>
                             <Form.Group as={Col}>
