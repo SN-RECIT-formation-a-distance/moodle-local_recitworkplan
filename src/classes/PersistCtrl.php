@@ -520,7 +520,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
 
         $event = new stdClass();
         $event->eventtype = 'planformation';
-        $event->type = CALENDAR_EVENT_TYPE_STANDARD; // This is used for events we only want to display on the calendar, and are not needed on the block_myoverview.
+        $event->type = CALENDAR_EVENT_TYPE_ACTION; // This is used for events we only want to display on the calendar, and are not needed on the block_myoverview.
         $event->name = $name;
         $event->description = $desc;
         $event->format = FORMAT_HTML;
@@ -530,6 +530,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         $event->modulename = '';
         $event->instance = $assignment->id;
         $event->timestart = $assignment->endDate->getTimestamp();
+        $event->timeend = $assignment->endDate->getTimestamp();
         $event->visible = TRUE;
         $event->timeduration = 0;
 
