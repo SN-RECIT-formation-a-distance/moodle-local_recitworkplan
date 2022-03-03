@@ -357,7 +357,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         $DB->execute("set @uniqueId = 0");
 
         $query = "select  @uniqueId := @uniqueId + 1 as uniqueId, t1.id, t1.nb_hours_per_week as nbhoursperweek, from_unixtime(t1.startdate) as startdate, t1.completionstate as wpcompletionstate,
-        t2.id as templateid, t2.creatorid, t2.name as templatename, 
+        t2.id as templateid, t2.creatorid, t2.name as templatename, t1.assignorid,
         t2.description as templatedesc, from_unixtime(t2.lastupdate) as lastupdate, t3.id as tpl_act_id, t3.cmid, t3.nb_hours_completion, t4.id as userid, t4.firstname, t4.lastname, tblRoles.roles, tblCatRoles.categoryroles
         from {recit_wk_tpl_assign} as t1
         inner join {recit_wp_tpl} as t2 on t1.templateid = t2.id
@@ -393,7 +393,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
     public function getAssignmentList($userId, $limit = 0, $offset = 0, $forStudent = false){
         $query = "select  t1.id, t1.nb_hours_per_week as nbhoursperweek, from_unixtime(t1.startdate) as startdate, t1.completionstate as wpcompletionstate, t2.id as templateid, t2.creatorid, t2.name as templatename, t7.fullname as coursename, t7.id as courseid,
         t2.description as templatedesc, from_unixtime(t2.lastupdate) as lastupdate, t3.cmid, t3.nb_hours_completion as nb_hours_completion, t4.id as userid, t4.firstname, t4.lastname, count(*) OVER() AS total_count,
-        t6.completionstate, tblRoles.roles, tblCatRoles.categoryroles
+        t6.completionstate, tblRoles.roles, tblCatRoles.categoryroles, t1.assignorid
         from {$this->prefix}recit_wk_tpl_assign as t1
         inner join {$this->prefix}recit_wp_tpl as t2 on t1.templateid = t2.id
         inner join {$this->prefix}recit_wp_tpl_act as t3 on t3.templateid = t2.id
@@ -442,12 +442,13 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
     }
 
     public function saveAssignment($data){
+        global $USER;
         try{
             $startDate = $data->startDate;
             if (is_string($data->startDate)) $startDate = new DateTime($data->startDate);
 
-            $fields = array("templateid", "userid", "nb_hours_per_week", "startdate", "lastupdate");
-            $values = array($data->template->id, $data->userId, $data->nbHoursPerWeek, $startDate->getTimestamp(), time());
+            $fields = array("templateid", "userid", "assignorid", "nb_hours_per_week", "startdate", "lastupdate");
+            $values = array($data->template->id, $data->userId, $USER->id, $data->nbHoursPerWeek, $startDate->getTimestamp(), time());
 
             if($data->id == 0){
                 $query = $this->mysqlConn->prepareStmt("insertorupdate", "{$this->prefix}recit_wk_tpl_assign", $fields, $values);
@@ -659,6 +660,7 @@ class Assignment{
     //@Template
     public $template = null;
     public $userId = 0;
+    public $assignorId = 0;
     public $firstName = "";
     public $lastName = "";
     public $startDate = null;
@@ -682,8 +684,15 @@ class Assignment{
 
         $user = $DB->get_record('user', array('id' => $dbData->userid));
         $result->userPix = $OUTPUT->user_picture($user, array('size'=>30));
+        $assignor = $DB->get_record('user', array('id' => $dbData->assignorid));
+        $result->assignorPix = $OUTPUT->user_picture($assignor, array('size'=>30));
 
         $result->userId = $dbData->userid;
+        $result->firstName = $dbData->firstname;
+        $result->assignorFirstName = $assignor->firstname;
+        $result->assignorLastName = $assignor->lastname;
+        $result->assignorId = $assignor->id;
+        $result->assignorUrl = (new \moodle_url('/user/profile.php', array('id' => $result->assignorId)))->out();
         $result->userUrl = (new \moodle_url('/user/profile.php', array('id' => $result->userId)))->out();
         $result->firstName = $dbData->firstname;
         $result->lastName = $dbData->lastname;
