@@ -58,15 +58,22 @@ class MainView{
 require_login();
 
 // Globals.
-$PAGE->set_url("/local/recitworkplan/view.php");
-$PAGE->requires->css(new moodle_url($CFG->wwwroot . '/local/recitworkplan/react_app/index.css?v='.rand()), true);
-$PAGE->requires->js(new moodle_url($CFG->wwwroot . '/local/recitworkplan/react_app/index.js?v='.rand()), true);
+$PAGE->set_url("/local/recitworkplan/view.php"); 
+$PAGE->requires->css(new moodle_url($CFG->wwwroot . '/local/recitworkplan/react_app/index.css?v='.mt_rand()), true);
+if(isset($_COOKIE['lastid'])){
+    $_COOKIE['lastid']++;
+    setcookie('lastid',  $_COOKIE['lastid'],  time() + (86400 * 30));  
+}
+else{
+    setcookie('lastid', 100,  time() + (86400 * 30));
+}
+$PAGE->requires->js(new moodle_url($CFG->wwwroot . '/local/recitworkplan/react_app/index.js?aaa='.$_COOKIE['lastid']), true);
 
 // Set page context.
 $PAGE->set_context(\context_system::instance());
 
 // Set page layout.
-$PAGE->set_pagelayout('base');
+$PAGE->set_pagelayout('standard');
 
 $PAGE->set_title(get_string('pluginname', 'local_recitworkplan'));
 $PAGE->set_heading(get_string('pluginname', 'local_recitworkplan'));

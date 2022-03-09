@@ -25,7 +25,7 @@ export class ToggleButtons extends Component {
                 <ToggleButtonGroup size={this.props.bsSize} type={this.props.type} name={this.props.name} defaultValue={this.props.defaultValue} onChange={this.onChange}>                                
                     {this.props.options.map((item, index) => {   
                         let element = 
-                            <BsToggleButton key={index} variant={(this.props.defaultValue.includes(item.value) ? "primary" : "secondary")} value={item.value} disabled={this.props.disabled}>
+                            <BsToggleButton key={index} variant={(this.props.defaultValue.includes(item.value) ? "primary" : "light")} value={item.value} disabled={this.props.disabled}>
                                 {item.text}
                             </BsToggleButton>;
                         return (element);

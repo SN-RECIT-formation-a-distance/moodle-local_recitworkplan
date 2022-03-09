@@ -1,12 +1,10 @@
 import React, { Component } from 'react';
-import { ButtonToolbar, ButtonGroup, Button, Form, FormGroup, InputGroup, FormControl, Col, Table, Badge} from 'react-bootstrap';
-import { faPencilAlt,  faTrashAlt, faPlusSquare,  faSearch, faCopy, faSync, faGripVertical, faArrowsAlt} from '@fortawesome/free-solid-svg-icons';
+import { Collapse, ButtonGroup, Button, Form, FormGroup, InputGroup, FormControl, Col, Table, Badge, Card} from 'react-bootstrap';
+import { faPencilAlt,  faTrashAlt, faPlusSquare,  faSearch, faCopy, faSync, faMinus, faPlus, faArrowsAlt, faArrowRight} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {ComboBox, FeedbackCtrl, DataGrid, Modal} from '../libs/components/Components';
-import {ComboBoxPlus} from '../libs/components/ComboBoxPlus';
+import {ComboBoxPlus, FeedbackCtrl, DataGrid, Modal, Pagination} from '../libs/components/Components';
 import {$glVars} from '../common/common';
 import { JsNx, UtilsString } from '../libs/utils/Utils';
-import { Pagination } from '../libs/components/Pagination';
 
 export class TemplatesView extends Component{
     constructor(props){
@@ -27,12 +25,6 @@ export class TemplatesView extends Component{
 
     componentWillUnmount(){
       //  $glVars.webApi.removeObserver("TemplatesView");
-    }
-
-    componentDidUpdate(prevProps){
-        /*if(prevProps.userId !== this.props.userId){
-            this.getData();
-        }*/
     }
 
     getData(){
@@ -186,11 +178,11 @@ export class TemplatesView extends Component{
     }
 }
 
-export class ModalTemplateForm extends Component{
+export class ActivityPicker extends Component{
     static defaultProps = {        
         templateId: 0,
         onClose: null,
-        title: 'Créer un gabarit'
+        title: "Sélecteur d'activités"
     };
 
     constructor(props){
@@ -198,7 +190,6 @@ export class ModalTemplateForm extends Component{
 
         this.getData = this.getData.bind(this);
         this.getDataResult = this.getDataResult.bind(this);
-        this.onSave = this.onSave.bind(this);
         this.onSaveTplAct = this.onSaveTplAct.bind(this);
         this.onRemoveTplAct = this.onRemoveTplAct.bind(this);
         this.onAddTplAct = this.onAddTplAct.bind(this);
@@ -208,7 +199,23 @@ export class ModalTemplateForm extends Component{
         this.onDragRow = this.onDragRow.bind(this);
         this.onDropRow = this.onDropRow.bind(this);
 
-        this.state = {data: null, draggingItem: null, dropdownLists: {categoryId: "0", categoryList: [], courseId: "0", courseList: [], sectionId: "0", sectionList: [], activityList: []}, flags: {dataChanged: false, refresh: false}};
+        this.state = {
+            data: null, 
+            collapse: true, 
+            draggingItem: null, 
+            dropdownLists: {
+                categoryId: "0", 
+                categoryList: [], 
+                courseId: "0", 
+                courseList: [], 
+                sectionId: "0", 
+                sectionList: [], 
+                activityList: []
+            }, 
+            flags: {
+                dataChanged: false
+            }
+        };
     }
 
     componentDidMount(){
@@ -227,107 +234,104 @@ export class ModalTemplateForm extends Component{
         let activities = this.state.data.activities.sort((item, item2) => { return item.slot - item2.slot });
 
         let body = 
-            <div className='row'>
-                <div style={{backgroundColor: '#f9f9f9', padding: '1rem'}} className='col-md-6'>
-                    <h6>Filtrez par catégorie et cours</h6>
-                    <fieldset className="mb-3">
-                        <Form.Row>
-                            <Form.Group as={Col}>
+            <div className='d-flex flex-wrap'>
+                <div className='w-100 d-flex align-items-center mb-3'>
+                    <span className='h4'>Filtrez par catégorie et cours</span>
+                    <Button variant="link" size="sm" onClick={() => {this.setState({collapse: !this.state.collapse})}}>
+                        {this.state.collapse ? <FontAwesomeIcon icon={faMinus}/> : <FontAwesomeIcon icon={faPlus}/>}
+                    </Button>
+                </div>
+                <Collapse in={this.state.collapse} className="mb-3">
+                    <div>
+                        <div style={{display: 'grid', gridGap: "1rem", gridTemplateColumns: "auto auto auto"}}>
+                            <Form.Group as={Col} >
                                 <Form.Label>{"Catégorie"}</Form.Label>
                                 <ComboBoxPlus placeholder={"Sélectionnez votre option"} name="categoryId" value={this.state.dropdownLists.categoryId} options={this.state.dropdownLists.categoryList} onChange={this.onFilterChange} />
                             </Form.Group>
-                        </Form.Row>
-                        <Form.Row>
-                            <Form.Group as={Col}>
+                            <Form.Group as={Col} >
                                 <Form.Label>{"Cours"}</Form.Label>
                                 <ComboBoxPlus placeholder={"Sélectionnez votre option"} name="courseId" value={this.state.dropdownLists.courseId} options={tmpCourseList} onChange={this.onFilterChange} />
                             </Form.Group>
-                        </Form.Row>
-                        <Form.Row>
-                            <Form.Group as={Col}>
+                            <Form.Group as={Col} >
                                 <Form.Label>{"Section"}</Form.Label>
                                 <ComboBoxPlus placeholder={"Sélectionnez votre option"} name="sectionId" value={this.state.dropdownLists.sectionId} options={tmpSectionList} onChange={this.onFilterChange} />
                             </Form.Group>
-                        </Form.Row>
-                    </fieldset>
-                    <div>
-                        <h6>Liste d'activités <Badge variant="warning" className="p-2 rounded">{`${tmpActivityList.length}`}</Badge></h6>
-                        <div style={{maxHeight: 500, overflowY: 'scroll'}}>
-                            <Table striped bordered hover>                                
-                                <thead>
-                                    <tr>
-                                        <th>Activité</th>
-                                        <th style={{width: 70}}></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {tmpActivityList.map((item, index) => {
-                                        let row =
-                                            <tr key={index}>
-                                                <td>{item.cmName}</td>
-                                                <td style={{textAlign: 'center'}}><Button onClick={() => this.onAddTplAct(item)} size="sm" variant="primary" title="Ajouter" className="mr-2"><FontAwesomeIcon icon={faPlusSquare}/></Button></td>
-                                            </tr>
-
-                                            return row;
-                                        }
-                                    )}
-                                </tbody>
-                            </Table>
                         </div>
                     </div>
-                </div>
-                <div className='col-md-6'>
-                    <Form noValidate validated={this.state.formValidated} ref={this.formRef}>
-                        <Form.Row>
-                            <Form.Group as={Col}>
-                                <Form.Label>{"Nom"}</Form.Label>
-                                <Form.Control type="text" value={this.state.data.name} onBlur={() => this.onSave(this.state.data)} name="name" onChange={this.onDataChange} />
-                            </Form.Group>
-                        </Form.Row>
-                        <Form.Row>
-                            <Form.Group as={Col}>
-                                <Form.Label>{"Description"}</Form.Label>
-                                <Form.Control as="textarea" rows={4} className='w-100' value={this.state.data.description} onBlur={() => this.onSave(this.state.data)}  name="description" onChange={this.onDataChange} />
-                            </Form.Group>
-                        </Form.Row>
+                </Collapse>
+                <div className='row w-100'>
+                    <div style={{backgroundColor: '#f9f9f9', padding: '1rem'}} className='col-md-4'>
                         <div>
-                            <h6>Activités sélectionnées <Badge variant="warning" className="p-2 rounded">{`${this.state.data.activities.length}`}</Badge></h6>
+                            <h6>Liste d'activités</h6>
                             <div style={{maxHeight: 500, overflowY: 'scroll'}}>
-                                <DataGrid>
-                                    <DataGrid.Header>
-                                        <DataGrid.Header.Row>
-                                            <DataGrid.Header.Cell></DataGrid.Header.Cell>
-                                            <DataGrid.Header.Cell>#</DataGrid.Header.Cell>
-                                            <DataGrid.Header.Cell>Cours</DataGrid.Header.Cell>
-                                            <DataGrid.Header.Cell>Activité</DataGrid.Header.Cell>
-                                            <DataGrid.Header.Cell>Temps en heure</DataGrid.Header.Cell>
-                                            <DataGrid.Header.Cell></DataGrid.Header.Cell>
-                                        </DataGrid.Header.Row>
-                                    </DataGrid.Header>
-                                    <DataGrid.Body>
-                                        {activities.map((item, index) => {
-                                                let row =
-                                                    <DataGrid.Body.RowDraggable data={item} onDrag={this.onDragRow} onDrop={this.onDropRow} key={index}>
-                                                    <DataGrid.Body.Cell><FontAwesomeIcon icon={faArrowsAlt} title="Déplacer l'item"/></DataGrid.Body.Cell>
-                                                        <DataGrid.Body.Cell>{index + 1}</DataGrid.Body.Cell>
-                                                        <DataGrid.Body.Cell>{item.courseName}</DataGrid.Body.Cell>
-                                                        <DataGrid.Body.Cell>{item.cmName}</DataGrid.Body.Cell>
-                                                        <DataGrid.Body.Cell><Form.Control type="text" placeholder="" value={item.nbHoursCompletion} onBlur={() => this.onSaveTplAct(item)} name="nbHoursCompletion" onChange={(event) => this.onDataChange(event, index)} /></DataGrid.Body.Cell>
-                                                        <DataGrid.Body.Cell><Button size="sm" variant="primary" title="Supprimer" onClick={() => this.onRemoveTplAct(item.id)}><FontAwesomeIcon icon={faTrashAlt}/></Button></DataGrid.Body.Cell>
-                                                    </DataGrid.Body.RowDraggable>;
+                                <Table striped bordered hover>                                
+                                    <thead>
+                                        <tr>
+                                            <th>Activité</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {tmpActivityList.map((item, index) => {
+                                            let row =
+                                                <tr key={index}>
+                                                    <td>
+                                                        {item.cmName}
+                                                        <Button onClick={() => this.onAddTplAct(item)} variant="link" title="Ajouter" className="mr-2 float-right"><FontAwesomeIcon icon={faArrowRight}/></Button>
+                                                    </td>
+                                                </tr>
 
                                                 return row;
                                             }
                                         )}
-                                    </DataGrid.Body>
-                                </DataGrid>
+                                    </tbody>
+                                </Table>
                             </div>
                         </div>
-                    </Form>
-                </div>
+                    </div>
+                    <div className='col-md-8'>
+                        <h6>Activités sélectionnées <Badge variant="warning" className="p-2 rounded">{`${this.state.data.activities.length}`}</Badge></h6>
+                        <div style={{maxHeight: 500, overflowY: 'scroll'}}>
+                            <DataGrid>
+                                <DataGrid.Header>
+                                    <DataGrid.Header.Row>
+                                        <DataGrid.Header.Cell>Cours/Activité</DataGrid.Header.Cell>
+                                    </DataGrid.Header.Row>
+                                </DataGrid.Header>
+                                <DataGrid.Body>
+                                    {activities.map((item, index) => {
+                                            let row =
+                                                <DataGrid.Body.RowDraggable data={item} onDrag={this.onDragRow} onDrop={this.onDropRow} key={index}>
+                                                    <DataGrid.Body.Cell>
+                                                        <div className='d-flex align-items-center' style={{justifyContent: 'space-between'}}>
+                                                            <div>
+                                                                <FontAwesomeIcon icon={faArrowsAlt} title="Déplacer l'item"/>
+                                                            </div>
+                                                            <div>
+                                                                <div>{item.cmName}</div>
+                                                                <span className='text-muted'>{item.courseName}</span>
+                                                                <div className='d-flex align-items-center'>
+                                                                    <Form.Control className='mr-3' style={{width: '100px'}} type="text" placeholder="Durée" value={item.nbHoursCompletion} onBlur={() => this.onSaveTplAct(item)} name="nbHoursCompletion" onChange={(event) => this.onDataChange(event, index)} />
+                                                                    <span>heures</span>
+                                                                </div>
+                                                            </div>
+                                                            <div>
+                                                                <Button variant="link" title="Supprimer" onClick={() => this.onRemoveTplAct(item.id)}><FontAwesomeIcon icon={faTrashAlt}/></Button>
+                                                            </div>
+                                                        </div>
+                                                    </DataGrid.Body.Cell>
+                                                </DataGrid.Body.RowDraggable>;
+
+                                            return row;
+                                        }
+                                    )}
+                                </DataGrid.Body>
+                            </DataGrid>
+                        </div>
+                    </div>
+                </div>                
             </div>;
 
-        let main = <Modal title={this.props.title} body={body} onClose={this.onClose} />;
+        let main = <Modal title={this.props.title} width="60%" body={body} onClose={this.onClose} />;
 
         return (main);
     }
@@ -372,10 +376,14 @@ export class ModalTemplateForm extends Component{
         let data = this.state.data;
         item = JsNx.getItem(data.activities, 'id', item.id, null);
         let draggingItem = JsNx.getItem(data.activities, 'id', this.state.draggingItem.id, null);
+        
+        if(item.id === draggingItem.id){ return; }
+
         let oldSlot = item.slot;
         item.slot = draggingItem.slot;
         draggingItem.slot = oldSlot;
-        this.setState({flags: {dataChanged: true, refresh: true}}, () => {this.onSaveTplAct(item); this.onSaveTplAct(draggingItem)});
+
+        this.setState({flags: {dataChanged: true}}, () => {this.onSaveTplAct(item); this.onSaveTplAct(draggingItem)});
     }
 
     onAddTplAct(item){
@@ -387,7 +395,7 @@ export class ModalTemplateForm extends Component{
         newItem.courseName = item.courseName;
         newItem.templateId = this.state.data.id;
         newItem.nbHoursCompletion = 0;
-        this.setState({flags: {dataChanged: true, refresh: true}}, () => this.onSaveTplAct(newItem));
+        this.setState({flags: {dataChanged: true}}, () => this.onSaveTplAct(newItem));
     }
 
     onRemoveTplAct(tplActId){
@@ -400,7 +408,7 @@ export class ModalTemplateForm extends Component{
 
             let data = that.state.data;
             JsNx.removeItem(data.activities, 'id', tplActId);
-            that.setState({data: data, flags: {dataChanged: that.state.flags.dataChanged, refresh: true}});
+            that.setState({data: data, flags: {dataChanged: true}});
         }
 
         if(window.confirm($glVars.i18n.tags.msgConfirmDeletion)){
@@ -417,12 +425,7 @@ export class ModalTemplateForm extends Component{
             flags.dataChanged = (data.activities[index][event.target.name] !== event.target.value);
             data.activities[index][event.target.name] = event.target.value;
         }
-        else{
-            flags.dataChanged = (data[event.target.name] !== event.target.value);
-            data[event.target.name] = event.target.value;
-        }
 
-        flags.refresh = true;
         this.setState({data: data, flags: flags});
     }
 
@@ -455,23 +458,6 @@ export class ModalTemplateForm extends Component{
         }
     }
     
-    onSave(data){
-        let that = this;
-        let callback = function(result){
-            if(!result.success){
-                $glVars.feedback.showError($glVars.i18n.tags.appName, result.msg);
-                return;
-            }
-
-            data.id = result.data;
-            that.setState({data: data, flags: {dataChanged: false, refresh: that.state.flags.refresh}});
-        }
-
-        if(this.state.flags.dataChanged){
-            $glVars.webApi.saveTemplate(data, callback);
-        }
-    }
-
     onSaveTplAct(tplAct){
         let that = this;
         let callback = function(result){
@@ -491,7 +477,7 @@ export class ModalTemplateForm extends Component{
                 data.id = result.data.templateId;
             }
 
-            that.setState({data: data, flags: {dataChanged: false, refresh: that.state.flags.refresh}});
+            that.setState({data: data});
         }
 
         if(this.state.flags.dataChanged){
@@ -500,6 +486,6 @@ export class ModalTemplateForm extends Component{
     }
 
     onClose(){
-        this.props.onClose(this.state.flags.refresh);
+        this.props.onClose(this.state.flags.dataChanged);
     }
 }

@@ -80,57 +80,6 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         return $query;
     }
 
-    public function getTemplateList($userId, $limit = 0, $offset = 0){
-        global $DB;
-
-        $DB->execute("set @uniqueId = 0");
-
-        $query = "select  @uniqueId := @uniqueId + 1 as uniqueId, t1.id as templateid, t1.creatorid, t1.name as templatename, t1.description as templatedesc, t4.fullname as coursename,
-        if(t1.lastupdate > 0, from_unixtime(t1.lastupdate), null) as lastupdate, t2.cmid, t5.name as categoryName, tblRoles.roles, tblCatRoles.categoryroles, count(*) OVER() AS total_count
-        from {recit_wp_tpl} as t1
-        inner join {recit_wp_tpl_act} as t2 on t1.id = t2.templateid
-        inner join {course_modules} as t3 on t2.cmid = t3.id
-        inner join {course} as t4 on t3.course = t4.id
-        inner join {course_categories} as t5 on t4.category = t5.id
-        left join (".$this->getAdminRolesStmt($userId).") as tblRoles on t4.id = tblRoles.courseId
-        left join (".$this->getCatAdminRolesStmt($userId).") as tblCatRoles on t4.category = tblCatRoles.categoryId
-        group by t1.id, t2.cmid
-        order by t1.name asc";
-
-        if ($limit > 0){
-            $offsetsql = $offset * $limit;
-            $query .= " LIMIT $limit OFFSET $offsetsql";
-        }
-
-        $rst = $DB->get_records_sql($query);
-
-        $result = array();
-        $total_count = 0;
-
-		foreach($rst as $item){
-            if(!isset($result[$item->templateid])){
-                $result[$item->templateid] = Template::create($item);
-            }
-            else{
-                $result[$item->templateid]->addActivity($item);
-            }
-            $total_count = $item->total_count;
-        } 
-
-        foreach($result as $index => $item){
-            if(!$item->verifyRoles()){
-                unset($result[$index]);
-            }
-        }
-
-        $pagination = new Pagination();
-        $pagination->items = array_values($result);
-        $pagination->current_offset = $offset;
-        $pagination->total_count = $total_count;
-
-        return $pagination;
-    }
-
     public function getUserRoles($userId, $courseId){
         global $DB;
 
@@ -154,6 +103,49 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         return $result;
     }
 
+    public function getTemplateList($userId, $limit = 0, $offset = 0){
+        
+        $query = "select  t2.id as templateid, t2.creatorid, t2.name as templatename, t7.fullname as coursename, t7.id as courseid,
+        t2.description as templatedesc, from_unixtime(t2.lastupdate) as lastupdate, t3.cmid, t3.nb_hours_completion as nb_hours_completion, 
+        count(*) OVER() AS total_count,
+        tblRoles.roles, tblCatRoles.categoryroles, t8.name as categoryname, t3.id as tpl_act_id
+        from  {$this->prefix}recit_wp_tpl as t2 
+        left join {$this->prefix}recit_wp_tpl_act as t3 on t3.templateid = t2.id
+        left join {$this->prefix}course_modules as t5 on t3.cmid = t5.id
+        left join {$this->prefix}course as t7 on t7.id = t5.course
+        left join {$this->prefix}course_categories as t8 on t7.category = t8.id
+        left join (".$this->getAdminRolesStmt($userId).") as tblRoles on t5.course = tblRoles.courseId
+        left join (".$this->getCatAdminRolesStmt($userId).") as tblCatRoles on t7.category = tblCatRoles.categoryId";
+
+        if ($limit > 0){
+            $offsetsql = $offset * $limit;
+            $query .= " LIMIT $limit OFFSET $offsetsql";
+        }
+
+        $rst = $this->mysqlConn->execSQLAndGetObjects($query);
+
+        $workPlanList = array();
+        $total_count = 0;
+		foreach($rst as $item){
+            if(!isset($workPlanList[$item->templateid])){
+                $workPlanList[$item->templateid] = new WorkPlan();
+            }
+            $workPlanList[$item->templateid]->addTemplateActivity($item);
+            $total_count = $item->total_count;
+        }  
+
+        foreach($workPlanList as $item){
+            $item->verifyRoles(false);
+        }
+
+        $pagination = new Pagination();
+        $pagination->items = array_values($workPlanList);
+        $pagination->current_offset = $offset;
+        $pagination->total_count = $total_count;
+
+        return $pagination;
+    }
+
     public function getTemplate($userId, $templateId){
         global $DB;
 
@@ -162,10 +154,10 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         $query = "select  @uniqueId := @uniqueId + 1 as uniqueId, t1.id as templateid, t1.creatorid, t1.name as templatename, t1.description as templatedesc,  if(t1.lastupdate > 0, from_unixtime(t1.lastupdate), null) as lastupdate, t4.fullname as coursename, 
         t2.id as tpl_act_id, t2.cmid, t2.nb_hours_completion, t2.slot, t4.id as courseid, t4.shortname as coursename, t5.id as categoryid, t5.name as categoryname, tblRoles.roles, tblCatRoles.categoryroles
         from {recit_wp_tpl} as t1
-        inner join {recit_wp_tpl_act} as t2 on t1.id = t2.templateid
-        inner join {course_modules} as t3 on t2.cmid = t3.id
-        inner join {course} as t4 on t3.course = t4.id
-        inner join {course_categories} as t5 on t4.category = t5.id
+        left join {recit_wp_tpl_act} as t2 on t1.id = t2.templateid
+        left join {course_modules} as t3 on t2.cmid = t3.id
+        left join {course} as t4 on t3.course = t4.id
+        left join {course_categories} as t5 on t4.category = t5.id
         left join (".$this->getAdminRolesStmt($userId).") as tblRoles on t4.id = tblRoles.courseId
         left join (".$this->getCatAdminRolesStmt($userId).") as tblCatRoles on t4.category = tblCatRoles.categoryId
         where t1.id =:templateid
@@ -177,18 +169,19 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         $modinfo = null;
         $result = null;
 		foreach($rst as $item){
+            if($result == null){
+                $result = Template::create($item);
+            }
+
+            if($item->cmid == 0){ continue;}
+
             if($lastCourseId != $item->courseid){
                 $modinfo = get_fast_modinfo($item->courseid);
             }
             
             $item->cmname = $this->getCmNameFromCmId($item->cmid, $item->courseid, $modinfo);
-
-            if($result == null){
-                $result = Template::create($item);
-            }
-            else{
-                $result->addActivity($item);
-            }
+            
+            $result->addActivity($item);
         }  
 
         if(!$result->verifyRoles()){
@@ -225,7 +218,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         }
     }
 
-    public function deleteTemplate($templateId){
+   /*public function deleteTemplate($templateId){
         try{
             $query = "delete t1, t2, t3
                      from {$this->prefix}recit_wp_tpl as t1
@@ -235,7 +228,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
 
             $this->mysqlConn->execSQL($query);
             return true;
-        }
+        } 
         catch(\Exception $ex){
             throw $ex;
         }  
@@ -259,7 +252,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
             $this->mysqlConn->rollbackTransaction();
             throw $ex;
         }  
-    }
+    }*/
 
     public function saveTplAct($data){
         try{	
@@ -288,8 +281,6 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
                 $this->mysqlConn->execSQL($query);
             }
 
-            $this->recalculateCalendarEvents($data->templateId);
-
             $result = new StdClass();
             $result->templateId = $data->templateId;
             $result->tplActId = $data->id;
@@ -310,7 +301,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
             throw $ex;
         }  
     }
-
+/*
     public function getStudentList($templateId){
         global $DB, $OUTPUT;
 
@@ -349,65 +340,77 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         } 
 
         return $result;
-    }
+    }*/
 
-    public function getAssignment($userId, $templateId){
-        global $DB;
-
-        $DB->execute("set @uniqueId = 0");
-
-        $query = "select  @uniqueId := @uniqueId + 1 as uniqueId, t1.id, t1.nb_hours_per_week as nbhoursperweek, from_unixtime(t1.startdate) as startdate, t1.completionstate as wpcompletionstate,
-        t2.id as templateid, t2.creatorid, t2.name as templatename, t1.assignorid,
-        t2.description as templatedesc, from_unixtime(t2.lastupdate) as lastupdate, t3.id as tpl_act_id, t3.cmid, t3.nb_hours_completion, t4.id as userid, t4.firstname, t4.lastname, tblRoles.roles, tblCatRoles.categoryroles
-        from {recit_wk_tpl_assign} as t1
-        inner join {recit_wp_tpl} as t2 on t1.templateid = t2.id
-        inner join {recit_wp_tpl_act} as t3 on t3.templateid = t2.id
-        inner join {user} as t4 on t1.userid = t4.id
-        inner join {course_modules} as t5 on t3.cmid = t5.id
-        inner join {course} as t6 on t5.course = t6.id
+    public function getWorkPlan($userId, $templateId){
+        /*$query = "select  t1.id, t1.nb_hours_per_week as nbhoursperweek, from_unixtime(t1.startdate) as startdate, t1.completionstate as wpcompletionstate, t2.id as templateid, t2.creatorid, t2.name as templatename, t7.fullname as coursename, t7.id as courseid,
+        t2.description as templatedesc, from_unixtime(t2.lastupdate) as lastupdate, t3.cmid, t3.nb_hours_completion as nb_hours_completion, t4.id as userid, t4.firstname, t4.lastname, count(*) OVER() AS total_count,
+        t6.completionstate as activitycompletionstate, tblRoles.roles, tblCatRoles.categoryroles, t1.assignorid, t8.name as categoryname, t3.id as tpl_act_id, group_concat(t10.name) as groups
+        from {$this->prefix}recit_wp_tpl as t2
+        left join {$this->prefix}recit_wk_tpl_assign as t1 on t1.templateid = t2.id
+        left join {$this->prefix}recit_wp_tpl_act as t3 on t3.templateid = t2.id
+        left join {$this->prefix}user as t4 on t1.userid = t4.id
+        left join {$this->prefix}course_modules as t5 on t3.cmid = t5.id
+        left join {$this->prefix}course as t7 on t7.id = t5.course
+        left join {$this->prefix}course_categories as t8 on t7.category = t8.id
+        left join {$this->prefix}course_modules_completion as t6 on t5.id = t6.coursemoduleid and t6.userid = t4.id
+        left join {$this->prefix}groups_members as t9 on t9.userid = t1.userid
+        inner join {$this->prefix}groups as t10 on t9.groupid = t10.id and t10.courseid = t5.course
         left join (".$this->getAdminRolesStmt($userId).") as tblRoles on t5.course = tblRoles.courseId
-        left join (".$this->getCatAdminRolesStmt($userId).") as tblCatRoles on t6.category = tblCatRoles.categoryId
-        where t2.id =:templateid";
+        left join (".$this->getCatAdminRolesStmt($userId).") as tblCatRoles on t7.category = tblCatRoles.categoryId
+        group by t1.userid
+        where  t2.id = $templateId";*/
 
-        $rst = $DB->get_records_sql($query, array('templateid' => $templateId));
+         $query = "select  t1.id, t1.nb_hours_per_week as nbhoursperweek, from_unixtime(t1.startdate) as startdate, t1.completionstate as wpcompletionstate, t2.id as templateid, t2.creatorid, t2.name as templatename, t7.fullname as coursename, t7.id as courseid,
+        t2.description as templatedesc, from_unixtime(t2.lastupdate) as lastupdate, t3.cmid, t3.nb_hours_completion as nb_hours_completion, count(*) OVER() AS total_count,
+        t6.completionstate as activitycompletionstate, tblRoles.roles, tblCatRoles.categoryroles, t1.assignorid, t8.name as categoryname, t3.id as tpl_act_id, users.*
+        from {$this->prefix}recit_wp_tpl as t2
+        left join {$this->prefix}recit_wk_tpl_assign as t1 on t1.templateid = t2.id
+        left join {$this->prefix}recit_wp_tpl_act as t3 on t3.templateid = t2.id
+        left join {$this->prefix}course_modules as t5 on t3.cmid = t5.id
+        left join {$this->prefix}course as t7 on t7.id = t5.course
+        left join {$this->prefix}course_categories as t8 on t7.category = t8.id
+        left join (select t4.id as userid, t4.firstname, t4.lastname, from_unixtime(t4.lastaccess) as lastaccess, group_concat(t10.name) as grouplist, t10.courseid
+            from {$this->prefix}user as t4
+            left join {$this->prefix}groups_members as t9 on t4.id = t9.userid 
+            left join {$this->prefix}groups as t10 on t9.groupid = t10.id 
+            group by t4.id, t10.courseid) as users on users.userid = t1.userid and (users.courseid = t5.course or users.courseid is null)
+        left join {$this->prefix}course_modules_completion as t6 on t5.id = t6.coursemoduleid and t6.userid = users.userid 
+        left join (".$this->getAdminRolesStmt($userId).") as tblRoles on t5.course = tblRoles.courseId
+        left join (".$this->getCatAdminRolesStmt($userId).") as tblCatRoles on t7.category = tblCatRoles.categoryId
+        where  t2.id = $templateId";
 
-        $result = array();
+        $rst = $this->mysqlConn->execSQLAndGetObjects($query);
+
+        $result = new WorkPlan();
 		foreach($rst as $item){
-            if(!isset($result[$item->userid])){
-                $result[$item->userid] = Assignment::create($item);
-            }
-            else{
-                $result[$item->userid]->template->addActivity($item);
-            }
-        } 
+            $result->addAssignment($item);
+        }  
 
-        foreach($result as $index => $item){
-            if(!$item->template->verifyRoles()){
-                unset($result[$index]);
-            }
-        } 
+        $result->verifyRoles(false);
+        $result->setAssignmentsEndDate();       
+        $result->setStats();
 
-        return array_values($result);
+        return $result; 
     }
 
-    public function getAssignmentList($userId, $limit = 0, $offset = 0, $forStudent = false){
+    public function getWorkPlanList($userId, $limit = 0, $offset = 0, $completionState = 0){
+
         $query = "select  t1.id, t1.nb_hours_per_week as nbhoursperweek, from_unixtime(t1.startdate) as startdate, t1.completionstate as wpcompletionstate, t2.id as templateid, t2.creatorid, t2.name as templatename, t7.fullname as coursename, t7.id as courseid,
         t2.description as templatedesc, from_unixtime(t2.lastupdate) as lastupdate, t3.cmid, t3.nb_hours_completion as nb_hours_completion, t4.id as userid, t4.firstname, t4.lastname, count(*) OVER() AS total_count,
-        t6.completionstate, tblRoles.roles, tblCatRoles.categoryroles, t1.assignorid
+        t6.completionstate as activitycompletionstate, tblRoles.roles, tblCatRoles.categoryroles, t1.assignorid, t8.name as categoryname, t3.id as tpl_act_id
         from {$this->prefix}recit_wk_tpl_assign as t1
         inner join {$this->prefix}recit_wp_tpl as t2 on t1.templateid = t2.id
         inner join {$this->prefix}recit_wp_tpl_act as t3 on t3.templateid = t2.id
         inner join {$this->prefix}user as t4 on t1.userid = t4.id
         inner join {$this->prefix}course_modules as t5 on t3.cmid = t5.id
         inner join {$this->prefix}course as t7 on t7.id = t5.course
+        inner join {$this->prefix}course_categories as t8 on t7.category = t8.id
         left join {$this->prefix}course_modules_completion as t6 on t5.id = t6.coursemoduleid and t6.userid = t4.id
         left join (".$this->getAdminRolesStmt($userId).") as tblRoles on t5.course = tblRoles.courseId
-        left join (".$this->getCatAdminRolesStmt($userId).") as tblCatRoles on t7.category = tblCatRoles.categoryId";
+        left join (".$this->getCatAdminRolesStmt($userId).") as tblCatRoles on t7.category = tblCatRoles.categoryId
+        where t1.completionstate = $completionState ";
 
-        if ($forStudent){
-            $query .= " where t1.userid=".$userId;
-        }
-        
         if ($limit > 0){
             $offsetsql = $offset * $limit;
             $query .= " LIMIT $limit OFFSET $offsetsql";
@@ -415,30 +418,72 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
 
         $rst = $this->mysqlConn->execSQLAndGetObjects($query);
 
-        $result = new MyAssignments();
+        $workPlanList = array();
         $total_count = 0;
 		foreach($rst as $item){
-            $result->addAssignment($item);
+            if(!isset($workPlanList[$item->templateid])){
+                $workPlanList[$item->templateid] = new WorkPlan();
+            }
+            $workPlanList[$item->templateid]->addAssignment($item);
             $total_count = $item->total_count;
         }  
 
-        foreach($result->detailed as $index => $item){
-            if(!$item->template->verifyRoles($forStudent)){
-                unset($result->detailed[$index]);
-                continue;
-            }
-
-            $item->setEndDate();
-        }
-        if (count($result->detailed) > 0){
-            $result->detailed = array_values($result->detailed);
+        foreach($workPlanList as $item){
+            $item->verifyRoles(false);
+            $item->setAssignmentsEndDate();       
+            $item->setStats();
         }
 
         $pagination = new Pagination();
-        $pagination->items = $result;
+        $pagination->items = array_values($workPlanList);
         $pagination->current_offset = $offset;
         $pagination->total_count = $total_count;
+
         return $pagination;
+    }
+
+   /* public function saveObjectData($id, $name, $value, $object, $datatype){
+        $table = "";
+        $fields = [];
+        $values = [];
+
+        $result = $id;
+
+        if($object == 'Template'){
+            $table = "{$this->prefix}recit_wp_tpl";
+            if($id == 0){
+                $fields[] = "creatorid";
+                $values[] = $this->signedUser->id;
+            }
+            $fields[] = "lastupdate";
+            $values[] = time();
+        }
+        else{
+            throw new \Exception("Object '$object' unknown.");
+        }
+
+        if($datatype == 'int'){
+            $value = intval($value);
+        }
+        else{
+            $value = strval($value);
+        }
+
+        $fields[] = $name;
+        $values[] = $value;
+
+        if($id == 0){
+            $query = $this->mysqlConn->prepareStmt("insert",  $table, $fields, $values);
+            $this->mysqlConn->execSQL($query);
+
+            $result = $this->mysqlConn->getLastInsertId("$table", "id");
+        }
+        else{
+            $query = $this->mysqlConn->prepareStmt("update", $table, $fields, $values, array("id"), array($id));
+            $this->mysqlConn->execSQL($query);
+        }
+
+        return $result;
     }
 
     public function saveAssignment($data){
@@ -505,18 +550,19 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
             throw $ex;
         }
     }
+    */
 
     private function addCalendarEvent($templateId, $userId){
-        global $DB;
+       /* global $DB;
         $tpl = $DB->get_record('recit_wp_tpl', array('id' => $templateId));
 
         $name = "Fin du plan ".$tpl->name;
         $desc = $name; 
-        $assignments = $this->getAssignment($userId, $templateId);
-        if (!isset($assignments[0])) return;
-        $assignment = $assignments[0];
-        $assignment->setEndDate();
-        if (!$assignment->endDate) return;
+        $workPlan = $this->getWorkPlan($userId, $templateId);
+        if ($workPlan == null){ return; } 
+
+        $workPlan->setAssignmentsEndDate();
+        if (!$workPlan->endDate){ return; } 
 
         $event = new stdClass();
         $event->eventtype = 'planformation';
@@ -528,13 +574,13 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         $event->groupid = 0;
         $event->userid = $userId;
         $event->modulename = '';
-        $event->instance = $assignment->id;
+        $event->instance = $workPlan->id;
         $event->timestart = $assignment->endDate->getTimestamp();
         $event->timeend = $assignment->endDate->getTimestamp();
         $event->visible = TRUE;
         $event->timeduration = 0;
 
-        \calendar_event::create($event);
+        \calendar_event::create($event);*/
     }
 
     private function deleteCalendarEvent($assignmentId = 0, $userId = 0){
@@ -548,15 +594,15 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         }
         $DB->delete_records('event', $where);
     }
-
-    private function recalculateCalendarEvents($tplId, $assignments = false){
+    
+    public function recalculateCalendarEvents($tplId, $assignments = false){
         global $DB;
         if (!$assignments){
             $assignments = $DB->get_records('recit_wk_tpl_assign', array('templateid' => $tplId));
         }
         foreach($assignments as $assignment){
-            $this->deleteCalendarEvent($assignment->id);
-            $this->addCalendarEvent($assignment->templateid, $assignment->userid);
+            //$this->deleteCalendarEvent($assignment->id);
+            //$this->addCalendarEvent($assignment->templateid, $assignment->userid);
         }
     }
 }
@@ -568,8 +614,16 @@ class Template{
     public $creatorId = 0;
     public $lastUpdate = null;
     //@array of TemplateActivity
-    public $categories = "";
     public $activities = array();
+
+    public $followUps = array();
+    public $stats = null;
+ 
+    public function __construct(){
+        $this->stats = new stdClass;
+        $this->stats->nbStudents = 0;
+        $this->stats->nbCompletion = 0;
+    }
 
     public static function create($dbData){
         $result = new Template();
@@ -584,11 +638,15 @@ class Template{
     }
 
     public function addActivity($dbData){
-        if($this->id == $dbData->templateid){
-            if(isset($dbData->cmid) && $dbData->cmid > 0){
-                $this->activities[] = TemplateActivity::create($dbData);
+        if(!isset($dbData->cmid) || !isset($dbData->tpl_act_id) || $dbData->cmid <= 0){ return; }
+
+        foreach($this->activities as $item){
+            if($item->id == $dbData->tpl_act_id){
+                return;
             }
         }
+
+        $this->activities[] = TemplateActivity::create($dbData);
     }
 
     public function verifyRoles($isStudent = false){
@@ -642,15 +700,15 @@ class TemplateActivity{
         $result->categoryroles = explode(",", $dbData->categoryroles);
         $result->categoryroles = Utils::moodleRoles2RecitRoles($result->categoryroles);
 
-        $result->completionState = (isset($dbData->completionstate) ? $dbData->completionstate : $result->completionState);
+        $result->completionState = (isset($dbData->activitycompletionstate) ? $dbData->activitycompletionstate : $result->completionState);
 
         //Get cm name
-        if ($result->cmId > 0 && empty($result->cmName)){
+        /*if ($result->cmId > 0 && empty($result->cmName)){
             list ($course, $cm) = get_course_and_cm_from_cmId($result->cmId);
             $result->cmName = $cm->name;
             $result->cmUrl = $cm->__get('url')->out();
             $result->courseUrl = (new \moodle_url('/course/view.php?id='.$course->id))->out();
-        }
+        }*/
 
         return $result;
     }
@@ -660,10 +718,8 @@ class Assignment{
     public $id = 0;
     //@Template
     public $template = null;
-    public $userId = 0;
-    public $assignorId = 0;
-    public $firstName = "";
-    public $lastName = "";
+    public $user = null;
+    public $assignor = null;
     public $startDate = null;
     public $endDate = null;
     public $nbHoursPerWeek = 0;
@@ -671,47 +727,70 @@ class Assignment{
      * 0 = ongoing, 1 = finished, 2 = late
      */
     public $completionState = 0;
+
+    public $stats = null;
     
     public function __construct(){
-        $this->template = new Template();      
-        $this->startDate = new DateTime();      
+        $this->template = new Template();    
+
+        $this->startDate = new DateTime();    
+        
+        $this->stats = new stdClass;
+        $this->stats->nbActivities = 0;
+        $this->stats->nbCompletion = 0;
     }
 
     public static function create($dbData){
         global $OUTPUT, $DB;
+
+        if(!isset($dbData->id) || $dbData->id == null || $dbData->id == 0){
+            return null;
+        }
+
         $result = new Assignment();
         $result->id = $dbData->id;
         $result->template = Template::create($dbData);
+      
+        if((isset($dbData->userid)) && ($dbData->userid != 0)){
+            $user = $DB->get_record('user', array('id' => $dbData->userid));
+            $result->user = new stdClass();
+            $result->user->id = $dbData->userid;
+            $result->user->firstName = $dbData->firstname;
+            $result->user->lastName = $dbData->lastname;
+            $result->user->groupList = (isset($dbData->grouplist) ? $dbData->grouplist : ''); 
+            $result->user->lastAccess = (isset($dbData->lastaccess) ? $dbData->lastaccess : ''); 
+            $result->user->avatar = $OUTPUT->user_picture($user, array('size'=>30));
+        }
+        
+        if((isset($dbData->assignorid)) && ($dbData->assignorid != 0)){
+            $assignor = $DB->get_record('user', array('id' => $dbData->assignorid));        
+            $result->assignor = new stdClass();
+            $result->assignor->id = $dbData->assignorid;
+            $result->assignor->firstName = $assignor->firstname;
+            $result->assignor->lastName = $assignor->lastname;
+            $result->assignor->avatar = $OUTPUT->user_picture($assignor, array('size'=>30));
+        }
 
-        $user = $DB->get_record('user', array('id' => $dbData->userid));
-        $result->userPix = $OUTPUT->user_picture($user, array('size'=>30));
-        $assignor = $DB->get_record('user', array('id' => $dbData->assignorid));
-        $result->assignorPix = $OUTPUT->user_picture($assignor, array('size'=>30));
+        // $result->assignorUrl = (new \moodle_url('/user/profile.php', array('id' => $result->assignorId)))->out();
+        // $result->userUrl = (new \moodle_url('/user/profile.php', array('id' => $result->userId)))->out();
 
-        $result->userId = $dbData->userid;
-        $result->firstName = $dbData->firstname;
-        $result->assignorFirstName = $assignor->firstname;
-        $result->assignorLastName = $assignor->lastname;
-        $result->assignorId = $assignor->id;
-        $result->assignorUrl = (new \moodle_url('/user/profile.php', array('id' => $result->assignorId)))->out();
-        $result->userUrl = (new \moodle_url('/user/profile.php', array('id' => $result->userId)))->out();
-        $result->firstName = $dbData->firstname;
-        $result->lastName = $dbData->lastname;
         $result->startDate = $dbData->startdate;
         if (is_string($dbData->startdate)){
             $result->startDate = new DateTime($dbData->startdate);
         }
+
         $result->nbHoursPerWeek = $dbData->nbhoursperweek;
         $result->completionState = $dbData->wpcompletionstate;
 
         return $result;
     }
 
-    public function setEndDate(){
+    public function setEndDate($template){
         if($this->nbHoursPerWeek == 0){ return; }
+        if(empty($template)){ return;}
 
         $nbHoursCompletion = 0;
-        foreach($this->template->activities as $item){
+        foreach($template->activities as $item){
             $nbHoursCompletion += $item->nbHoursCompletion;
         }
 
@@ -722,35 +801,92 @@ class Assignment{
     }
 }
 
-class MyAssignments{
-    public $detailed = array();
+class WorkPlan{
+    //@Template
+    public $template = null;
+    public $assignments = array();
+    public $followUps = array();
+    public $stats = null;
  
-    public function addAssignment($dbData){   
-       foreach($this->detailed as $item){
-           if($item->id == $dbData->id){
-                $item->template->addActivity($dbData);
-                return;
-           }
-       }
-
-       $this->detailed[] = Assignment::create($dbData);
+    public function __construct(){
+        $this->stats = new stdClass;
+        $this->stats->nbStudents = 0;
+        $this->stats->nbWorkPlanCompletion = 0;
+        $this->stats->activityCompletion = array();
+        $this->stats->assignmentCompletion = array();
+        $this->template = new Template();
     }
 
-    public function getSummary(){
-        $result = array();
-
-        foreach($this->detailed as $item){
-            if(!isset($result[$item->template->id])){
-                $result[$item->template->id] = new \stdClass();
-                $result[$item->template->id]->id = $item->id;
-                $result[$item->template->id]->name = $item->template->name;
-                $result[$item->template->id]->nbStudents = 0;
-            }
-
-            $result[$item->template->id]->nbStudents++;
+    public function addAssignment($dbData){   
+        if($this->template->id == 0){
+            $this->template = Template::create($dbData);
         }
 
-        return array_values($result);
+        foreach($this->assignments as $item){
+           if($item->id == $dbData->id){
+                $this->template->addActivity($dbData);
+                return;
+           }
+        }
+
+        $obj = Assignment::create($dbData);
+        if($obj != null){
+            $this->assignments[] = $obj;
+        }
+    }
+
+    public function addTemplateActivity($dbData){   
+        if($this->template->id == 0){
+            $this->template = Template::create($dbData);
+        }
+
+        $this->template->addActivity($dbData);
+    }
+
+    public function verifyRoles($isStudent = false){
+        if(empty($template)){ return;}
+
+        foreach($this->assignments as $index => $item){
+            if(!$this->template->verifyRoles($isStudent)){
+                unset($this->assignments[$index]);
+                continue;
+            }
+        }
+
+        if (count($this->assignments) > 0){
+            $this->assignments = array_values($this->assignments);
+        }
+    }
+
+    public function setAssignmentsEndDate(){        
+        foreach($this->assignments as $item){
+            if($item != null){
+                $item->setEndDate($this->template);
+            }
+        }
+    }
+
+    public function setStats(){
+        $this->stats->nbStudents = count($this->assignments);
+        $this->stats->nbActivities = count($this->template->activities);
+        $this->stats->nbCompletion = 0;
+
+        foreach($this->assignments as $assignment){
+            if($assignment->completionState == 1){
+                $this->stats->nbWorkPlanCompletion++;
+            }
+
+            if(!isset($this->stats->assignmentCompletion[$assignment->user->id])){
+                $this->stats->assignmentCompletion[$assignment->user->id] = 0;
+            }
+
+            foreach($assignment->template->activities as $item){
+                if($item->completionState == 1){
+                    $this->stats->assignmentCompletion[$assignment->user->id]++;
+                }
+            }
+            
+        }
     }
 }
 

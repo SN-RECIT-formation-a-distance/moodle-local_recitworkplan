@@ -66,21 +66,19 @@ class WebApi extends recitcommon\MoodleApi
         }
     }
     
-    public function getAssignmentList($request){
+    public function getWorkPlanList($request){
         try{
-
-            $summary = boolval($request['summary']);
-            $forStudent = boolval($request['forStudent']);
+            $completionState = intval($request['completionState']);
             $limit = intval($request['limit']);
             $offset = intval($request['offset']);
 
-            if (!$forStudent){
-                $this->canUserAccess('a');
-            }
+            $this->canUserAccess('a');
 
-            $result = $this->ctrl->getAssignmentList($this->signedUser->id, $limit, $offset, $forStudent);
-            if($summary){
-                $result->items = $result->items->getSummary();
+            if($completionState == -1){
+                $result = $this->ctrl->getTemplateList($this->signedUser->id, $limit, $offset);
+            }
+            else{
+                $result = $this->ctrl->getWorkPlanList($this->signedUser->id, $limit, $offset, $completionState);
             }
             
             $this->prepareJson($result);
@@ -92,25 +90,15 @@ class WebApi extends recitcommon\MoodleApi
         }
     }
 
-    public function getAssignmentFormKit($request){
+    public function getWorkPlanFormKit($request){
         try{
             $this->canUserAccess('a');
 
             $templateId = intval($request['templateId']);
-            $complete = boolval($request['complete']);
 
             $result = new stdClass();
-            $result->prototype = null;
-            $result->templateList = null;
-            $result->data = $this->ctrl->getAssignment($this->signedUser->id, $templateId);
-            $result->studentList =  $this->ctrl->getStudentList($templateId);
+            $result->data = ($templateId > 0 ? $this->ctrl->getWorkPlan($this->signedUser->id, $templateId) : new WorkPlan());
 
-            if($complete){
-                $result->templateList = $this->ctrl->getTemplateList($this->signedUser->id);
-                $result->templateList = $result->templateList->items;
-                $result->prototype = new Assignment();
-            }
-            
             $this->prepareJson($result);
             
             return new WebApiResult(true, $result);
@@ -120,7 +108,7 @@ class WebApi extends recitcommon\MoodleApi
         }
     }
 
-    public function getAssignment($request){
+    /*public function getAssignment($request){
         try{
             $this->canUserAccess('a');
 
@@ -130,6 +118,24 @@ class WebApi extends recitcommon\MoodleApi
 
             $this->prepareJson($result);
             
+            return new WebApiResult(true, $result);
+        }
+        catch(Exception $ex){
+            return new WebApiResult(false, false, $ex->GetMessage());
+        }
+    }*/
+
+    /*public function saveObjectData($request){
+        try{
+            $this->canUserAccess('a');
+
+            $id = $request['id'];
+            $name = $request['name'];
+            $value = $request['value'];
+            $object = $request['object'];
+            $datatype = $request['datatype'];
+
+            $result = $this->ctrl->saveData($id, $name, $value, $object, $type);
             return new WebApiResult(true, $result);
         }
         catch(Exception $ex){
@@ -174,7 +180,7 @@ class WebApi extends recitcommon\MoodleApi
             return new WebApiResult(false, false, $ex->GetMessage());
         }
     }
-
+*/
     public function getTemplateFormFormKit($request){
         try{
             $this->canUserAccess('a');
@@ -210,7 +216,7 @@ class WebApi extends recitcommon\MoodleApi
         }
     }
 
-    public function deleteTemplate($request){
+    /*public function deleteTemplate($request){
         try{
             $this->canUserAccess('a');
             $templateId = intval($request['templateId']);
@@ -233,7 +239,7 @@ class WebApi extends recitcommon\MoodleApi
             return new WebApiResult(false, false, $ex->GetMessage());
         }
     }
-
+*/
     public function saveTplAct($request){
         try{
             $this->canUserAccess('a');
@@ -241,6 +247,8 @@ class WebApi extends recitcommon\MoodleApi
             $data = json_decode(json_encode($request['data']), FALSE);
 
             $result = $this->ctrl->saveTplAct($data);
+
+            $this->ctrl->recalculateCalendarEvents($result->templateId);
 
             return new WebApiResult(true, $result);
         }
@@ -259,7 +267,7 @@ class WebApi extends recitcommon\MoodleApi
         catch(Exception $ex){
             return new WebApiResult(false, false, $ex->GetMessage());
         }
-    }
+    } 
 }
 
 ///////////////////////////////////////////////////////////////////////////////////

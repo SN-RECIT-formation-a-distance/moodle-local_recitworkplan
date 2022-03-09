@@ -28,17 +28,43 @@ export class AppWebApi extends WebApi
         }
     }
     
-    getAssignmentList(summary, limit, offset, forStudent, onSuccess){
-        let data = {summary: summary, limit: limit, offset: offset, forStudent: forStudent, service: "getAssignmentList"};
+    getWorkPlanList(limit, offset, completionState, onSuccess){
+        let data = {limit: limit, offset: offset, completionState: completionState, service: "getWorkPlanList"};
         this.post(this.gateway, data, onSuccess);
     }
 
-    getAssignmentFormKit(templateId, complete, onSuccess){
-        let data = {templateId: templateId, complete: complete, service: "getAssignmentFormKit"};
+    getWorkPlanFormKit(templateId, onSuccess){
+        let data = {templateId: templateId, service: "getWorkPlanFormKit"};
         this.post(this.gateway, data, onSuccess);
+    } 
+
+    saveTemplate(data, onSuccess){
+        let that = this;
+        let onSuccessTmp = function(result){     
+            onSuccess(result);
+            if(result.success){
+                that.notifyObservers('saveTemplate');
+            }
+        };
+
+        let options = {data: data, service: "saveTemplate"};
+        this.post(this.gateway, options, onSuccessTmp);
     }
 
-    getAssignment(templateId, onSuccess){
+    /*saveObjectData(id, name, value, object, datatype, onSuccess){
+        let that = this;
+        let onSuccessTmp = function(result){     
+            onSuccess(result);
+            if(result.success){
+                that.notifyObservers('saveObjectData');
+            }
+        };
+
+        let options = {id: id, name: name, value: value, object: object, datatype: datatype, service: "saveObjectData"};
+        this.post(this.gateway, options, onSuccessTmp);
+    }*/
+
+   /* getAssignment(templateId, onSuccess){
         let data = {templateId: templateId, service: "getAssignment"};
         this.post(this.gateway, data, onSuccess);
     }
@@ -65,7 +91,7 @@ export class AppWebApi extends WebApi
         let data = {service: "getTemplateList", limit: limit, offset: offset};
         this.post(this.gateway, data, onSuccess);
     }
-
+*/
     getTemplateFormFormKit(templateId, onSuccess){
         let data = {templateId: templateId, service: "getTemplateFormFormKit"};
         this.post(this.gateway, data, onSuccess);
@@ -76,7 +102,7 @@ export class AppWebApi extends WebApi
         this.post(this.gateway, data, onSuccess);
     }  
 
-    saveTemplate(data, onSuccess){
+    /*saveTemplate(data, onSuccess){
         let that = this;
         let onSuccessTmp = function(result){     
             onSuccess(result);
@@ -98,7 +124,7 @@ export class AppWebApi extends WebApi
         let data = {templateId: templateId, service: "cloneTemplate"};
         this.post(this.gateway, data, onSuccess);
     }
-
+*/
     saveTplAct(data, onSuccess){
         let options = {data: data, service: "saveTplAct"};
         this.post(this.gateway, options, onSuccess);

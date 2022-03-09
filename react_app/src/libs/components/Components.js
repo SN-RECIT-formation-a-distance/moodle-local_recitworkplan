@@ -5,12 +5,14 @@
 import "./css/components.scss";
 
 export * from './ComboBox';
+export * from './ComboBoxPlus';
 export * from './DataGrid';
 export * from './Feedback';
 export * from './InputNumber';
 export * from './Loading';
 export * from './ToggleButtons';
 export * from './Modal';
+export * from './Pagination';
 
 export default class Components{
     static version = 1.0;

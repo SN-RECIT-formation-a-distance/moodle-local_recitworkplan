@@ -20,21 +20,7 @@ export class AdminView extends Component {
     }
  
     render() {       
-        let main =
-            <Tabs activeKey={this.state.tab}  onSelect={(t) => this.setState({tab: t})}>
-                <Tab eventKey="home" title={<><FontAwesomeIcon icon={faHome}/>{" Accueil"}</>}>
-                    <HomeView onDetail={this.onDetail}/>
-                </Tab>
-                <Tab eventKey="assignments" title={<><FontAwesomeIcon icon={faTasks}/>{" Affectations"}</>}>
-                    <AssignmentsView onReport={this.onReport} queryStr={this.state.queryStr}/>
-                </Tab>
-                <Tab eventKey="templates" title={<><FontAwesomeIcon icon={faFileAlt}/>{" Gabarits"}</>}>
-                    <TemplatesView/>
-                </Tab>
-                <Tab eventKey="report" title={<><FontAwesomeIcon icon={faFile}/>{" Rapport"}</>}>
-                    <ReportView reportData={this.state.reportData}/>
-                </Tab>
-            </Tabs>;
+        let main = <AssignmentsView />;
 
         return (main);
     }
