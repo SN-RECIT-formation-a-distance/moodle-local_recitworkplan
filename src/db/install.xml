@@ -47,6 +47,7 @@
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
         <KEY NAME="fktemplateid" TYPE="foreign" FIELDS="templateid" REFTABLE="recit_wp_tpl" REFFIELDS ="id"/>
         <KEY NAME="fkuserid" TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS ="id"/>
+        <KEY NAME="fkuserid" TYPE="unique" FIELDS="templateid,userid"/>
       </KEYS>
     </TABLE>
 

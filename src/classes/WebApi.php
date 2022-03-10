@@ -92,7 +92,7 @@ class WebApi extends recitcommon\MoodleApi
 
     public function getWorkPlanFormKit($request){
         try{
-            $this->canUserAccess('a');
+            $this->canUserAccess('a'); 
 
             $templateId = intval($request['templateId']);
 
@@ -108,34 +108,28 @@ class WebApi extends recitcommon\MoodleApi
         }
     }
 
-    /*public function getAssignment($request){
+    public function deleteWorkPlan($request){
+        try{
+            $this->canUserAccess('a');
+            $templateId = intval($request['templateId']);
+            $this->ctrl->deleteWorkPlan($templateId);
+            return new WebApiResult(true);
+        }
+        catch(Exception $ex){
+            return new WebApiResult(false, false, $ex->GetMessage());
+        }
+    }
+
+    public function getStudentList($request){
         try{
             $this->canUserAccess('a');
 
             $templateId = intval($request['templateId']);
 
-            $result = $this->ctrl->getAssignment($this->signedUser->id, $templateId);
+            $result = $this->ctrl->getStudentList($templateId);
 
             $this->prepareJson($result);
             
-            return new WebApiResult(true, $result);
-        }
-        catch(Exception $ex){
-            return new WebApiResult(false, false, $ex->GetMessage());
-        }
-    }*/
-
-    /*public function saveObjectData($request){
-        try{
-            $this->canUserAccess('a');
-
-            $id = $request['id'];
-            $name = $request['name'];
-            $value = $request['value'];
-            $object = $request['object'];
-            $datatype = $request['datatype'];
-
-            $result = $this->ctrl->saveData($id, $name, $value, $object, $type);
             return new WebApiResult(true, $result);
         }
         catch(Exception $ex){
@@ -166,7 +160,7 @@ class WebApi extends recitcommon\MoodleApi
             return new WebApiResult(false, false, $ex->GetMessage());
         }
     }
-
+/*
     public function getTemplateList($request){
         try{
             $this->canUserAccess('a');

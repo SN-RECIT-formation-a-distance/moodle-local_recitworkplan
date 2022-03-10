@@ -6,7 +6,7 @@ import {ComboBoxPlus, FeedbackCtrl, DataGrid, Modal, Pagination} from '../libs/c
 import {$glVars} from '../common/common';
 import { JsNx, UtilsString } from '../libs/utils/Utils';
 
-export class TemplatesView extends Component{
+/*export class TemplatesView extends Component{
     constructor(props){
         super(props);
         
@@ -176,7 +176,7 @@ export class TemplatesView extends Component{
             $glVars.webApi.cloneTemplate(templateId, callback);
         }
     }
-}
+}*/
 
 export class ActivityPicker extends Component{
     static defaultProps = {        
@@ -243,7 +243,7 @@ export class ActivityPicker extends Component{
                 </div>
                 <Collapse in={this.state.collapse} className="mb-3">
                     <div>
-                        <div style={{display: 'grid', gridGap: "1rem", gridTemplateColumns: "auto auto auto"}}>
+                        <div style={{display: 'grid', gridGap: "1rem", gridTemplateColumns: "37% 37% 37%"}}>
                             <Form.Group as={Col} >
                                 <Form.Label>{"Catégorie"}</Form.Label>
                                 <ComboBoxPlus placeholder={"Sélectionnez votre option"} name="categoryId" value={this.state.dropdownLists.categoryId} options={this.state.dropdownLists.categoryList} onChange={this.onFilterChange} />
@@ -265,11 +265,6 @@ export class ActivityPicker extends Component{
                             <h6>Liste d'activités</h6>
                             <div style={{maxHeight: 500, overflowY: 'scroll'}}>
                                 <Table striped bordered hover>                                
-                                    <thead>
-                                        <tr>
-                                            <th>Activité</th>
-                                        </tr>
-                                    </thead>
                                     <tbody>
                                         {tmpActivityList.map((item, index) => {
                                             let row =
@@ -292,11 +287,6 @@ export class ActivityPicker extends Component{
                         <h6>Activités sélectionnées <Badge variant="warning" className="p-2 rounded">{`${this.state.data.activities.length}`}</Badge></h6>
                         <div style={{maxHeight: 500, overflowY: 'scroll'}}>
                             <DataGrid>
-                                <DataGrid.Header>
-                                    <DataGrid.Header.Row>
-                                        <DataGrid.Header.Cell>Cours/Activité</DataGrid.Header.Cell>
-                                    </DataGrid.Header.Row>
-                                </DataGrid.Header>
                                 <DataGrid.Body>
                                     {activities.map((item, index) => {
                                             let row =

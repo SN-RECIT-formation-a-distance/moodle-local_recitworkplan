@@ -38,6 +38,16 @@ export class AppWebApi extends WebApi
         this.post(this.gateway, data, onSuccess);
     } 
 
+    deleteWorkPlan(templateId, onSuccess){
+        let data = {templateId: templateId, service: "deleteWorkPlan"};
+        this.post(this.gateway, data, onSuccess);
+    }
+
+    getStudentList(templateId, onSuccess){
+        let data = {templateId: templateId, service: "getStudentList"};
+        this.post(this.gateway, data, onSuccess);
+    } 
+
     saveTemplate(data, onSuccess){
         let that = this;
         let onSuccessTmp = function(result){     
@@ -51,24 +61,6 @@ export class AppWebApi extends WebApi
         this.post(this.gateway, options, onSuccessTmp);
     }
 
-    /*saveObjectData(id, name, value, object, datatype, onSuccess){
-        let that = this;
-        let onSuccessTmp = function(result){     
-            onSuccess(result);
-            if(result.success){
-                that.notifyObservers('saveObjectData');
-            }
-        };
-
-        let options = {id: id, name: name, value: value, object: object, datatype: datatype, service: "saveObjectData"};
-        this.post(this.gateway, options, onSuccessTmp);
-    }*/
-
-   /* getAssignment(templateId, onSuccess){
-        let data = {templateId: templateId, service: "getAssignment"};
-        this.post(this.gateway, data, onSuccess);
-    }
-    
     saveAssignment(data, onSuccess){
         let that = this;
         let onSuccessTmp = function(result){     
@@ -87,7 +79,7 @@ export class AppWebApi extends WebApi
         this.post(this.gateway, data, onSuccess);
     }
 
-    getTemplateList(limit, offset, onSuccess){
+ /*   getTemplateList(limit, offset, onSuccess){
         let data = {service: "getTemplateList", limit: limit, offset: offset};
         this.post(this.gateway, data, onSuccess);
     }
