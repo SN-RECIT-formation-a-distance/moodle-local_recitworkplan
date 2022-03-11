@@ -161,28 +161,26 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         left join (".$this->getAdminRolesStmt($userId).") as tblRoles on t4.id = tblRoles.courseId
         left join (".$this->getCatAdminRolesStmt($userId).") as tblCatRoles on t4.category = tblCatRoles.categoryId
         where t1.id =:templateid
-        order by t4.id asc, t1.name asc, t2.slot asc";
+        order by t4.id, t2.slot asc";
 
         $rst = $DB->get_records_sql($query, array('templateid' => $templateId));
 
-        $lastCourseId = null;
         $modinfo = null;
         $result = null;
 		foreach($rst as $item){
             if($result == null){
                 $result = Template::create($item);
             }
-
+            
             if($item->cmid == 0){ continue;}
 
-            if($lastCourseId != $item->courseid){
+            if($modinfo == null || $modinfo->__get('courseid') != $item->courseid){
                 $modinfo = get_fast_modinfo($item->courseid);
             }
             
             $item->cmname = $this->getCmNameFromCmId($item->cmid, $item->courseid, $modinfo);
             
             $result->addActivity($item);
-            $lastCourseId = $item->courseid;
         }  
 
         if(!$result->verifyRoles()){
@@ -233,7 +231,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         catch(\Exception $ex){
             throw $ex;
         }  
-    }
+    }*/
 
     public function cloneTemplate($templateId){
         try{
@@ -243,7 +241,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
             $this->mysqlConn->execSQL($query);
             $newTemplateId = $this->mysqlConn->getLastInsertId("{$this->prefix}recit_wp_tpl", "id");
 
-            $query = "insert into {$this->prefix}recit_wp_tpl_act (templateid, cmid, nb_hours_completion) select $newTemplateId, cmid, nb_hours_completion from {$this->prefix}recit_wp_tpl_act where templateid = $templateId";
+            $query = "insert into {$this->prefix}recit_wp_tpl_act (templateid, cmid, nb_hours_completion, slot) select $newTemplateId, cmid, nb_hours_completion, slot from {$this->prefix}recit_wp_tpl_act where templateid = $templateId";
             $this->mysqlConn->execSQL($query);
 
             $this->mysqlConn->commitTransaction();
@@ -253,7 +251,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
             $this->mysqlConn->rollbackTransaction();
             throw $ex;
         }  
-    }*/
+    }
 
     public function saveTplAct($data){
         try{	
@@ -352,9 +350,11 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
     }
 
     protected function getWorkPlanStats($templateId){
-        $query = "select templateid, count(distinct cmid) as nbActivities, count(DISTINCT userid) as nbStudents, sum(if(wpcompletionstate = 1, 1, 0)) as workPlanCompletion,
+        $query = "select templateid, count(distinct cmid) as nbActivities, count(DISTINCT userid) as nbStudents, 
+        (case wpcompletionstate when 1 then count(distinct userid,wpcompletionstate) else 0 end) as workPlanCompletion,
         coalesce(group_concat(if(activitycompletionstate = 1, concat('cmid',cmid), null)),0) activitycompleted, 
-        coalesce(group_concat(if(activitycompletionstate = 1, concat('userid',userid), null)),0) assignmentcompleted
+        coalesce(group_concat(if(activitycompletionstate = 1, concat('userid',userid), null)),0) assignmentcompleted,
+        (case wpcompletionstate when 2 then count(distinct userid,wpcompletionstate) else 0 end) as nbLateStudents
             from workplans where templateid = $templateId group by templateid";
 
         $result = $this->mysqlConn->execSQLAndGetObject($query);
@@ -385,7 +385,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         left join (".$this->getAdminRolesStmt($userId).") as tblRoles on t5.course = tblRoles.courseId
         left join (".$this->getCatAdminRolesStmt($userId).") as tblCatRoles on t7.category = tblCatRoles.categoryId
         where  t2.id = $templateId
-        order by t7.id asc";
+        order by t7.id asc, users.firstname asc, users.lastname asc, t3.slot ";
 
         $this->createTmpWorkPlanTable($query);
 
@@ -404,6 +404,10 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
             $result->addAssignment($item);
         }  
 
+        /*usort($result->template->activities, function ($a, $b) {
+            return strcmp($a->slot, $b->slot);
+        });*/
+
         $result->verifyRoles(false);
         $result->setAssignmentsEndDate();       
         $result->stats = $this->getWorkPlanStats($templateId);
@@ -413,7 +417,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         return $result; 
     }
 
-    public function getWorkPlanList($userId, $limit = 0, $offset = 0, $completionState = 0){
+    public function getWorkPlanList($userId, $limit = 0, $offset = 0, $completionState = array(0,2)){
         $query = "select t1.id, t1.nb_hours_per_week as nbhoursperweek, from_unixtime(t1.startdate) as startdate, t1.completionstate as wpcompletionstate, t2.id as templateid, t2.creatorid, t2.name as templatename, t7.fullname as coursename, t7.id as courseid,
         t2.description as templatedesc, from_unixtime(t2.lastupdate) as lastupdate, t3.cmid, t3.nb_hours_completion as nb_hours_completion, t4.id as userid, t4.firstname, t4.lastname, count(*) OVER() AS total_count,
         t6.completionstate as activitycompletionstate, tblRoles.roles, tblCatRoles.categoryroles, t1.assignorid, t8.name as categoryname, t3.id as tpl_act_id
@@ -426,8 +430,9 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         inner join {$this->prefix}course_categories as t8 on t7.category = t8.id
         left join {$this->prefix}course_modules_completion as t6 on t5.id = t6.coursemoduleid and t6.userid = t4.id
         left join (".$this->getAdminRolesStmt($userId).") as tblRoles on t5.course = tblRoles.courseId
-        left join (".$this->getCatAdminRolesStmt($userId).") as tblCatRoles on t7.category = tblCatRoles.categoryId ";
-        //where t1.completionstate = $completionState ";
+        left join (".$this->getCatAdminRolesStmt($userId).") as tblCatRoles on t7.category = tblCatRoles.categoryId 
+        where t1.completionstate in (". implode(",", $completionState) .")";
+
         if ($limit > 0){
             $offsetsql = $offset * $limit;
             $query .= " LIMIT $limit OFFSET $offsetsql";
@@ -622,7 +627,6 @@ class Template{
         $result->description = $dbData->templatedesc; 
         $result->creatorId = $dbData->creatorid;
         $result->lastUpdate = $dbData->lastupdate;
-        $result->addActivity($dbData);
 
         return $result;
     }
@@ -789,7 +793,6 @@ class WorkPlan{
     //@Template
     public $template = null;
     public $assignments = array();
-    public $followUps = array();
     public $stats = null;
  
     public function __construct(){

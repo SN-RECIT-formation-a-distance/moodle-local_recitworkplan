@@ -4,7 +4,7 @@ import React, { Component } from 'react';
 import { DataGrid } from '../libs/components/DataGrid';
 import { UtilsDateTime, WorkPlanUtils } from '../libs/utils/Utils';
 
-
+/*
 export class ReportView extends Component {
     static defaultProps = {        
         reportData: null
@@ -54,4 +54,4 @@ export class ReportView extends Component {
 
         return (main);
     }
-}
+}*/

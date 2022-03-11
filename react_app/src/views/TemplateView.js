@@ -297,7 +297,7 @@ export class ActivityPicker extends Component{
                                                                 <FontAwesomeIcon icon={faArrowsAlt} title="Déplacer l'item"/>
                                                             </div>
                                                             <div>
-                                                                <div>{item.cmName}</div>
+                                                                <div><strong>{item.cmName}</strong></div>
                                                                 <span className='text-muted'>{item.courseName}</span>
                                                                 <div className='d-flex align-items-center'>
                                                                     <Form.Control className='mr-3' style={{width: '100px'}} type="text" placeholder="Durée" value={item.nbHoursCompletion} onBlur={() => this.onSaveTplAct(item)} name="nbHoursCompletion" onChange={(event) => this.onDataChange(event, index)} />
@@ -321,7 +321,7 @@ export class ActivityPicker extends Component{
                 </div>                
             </div>;
 
-        let main = <Modal title={this.props.title} width="60%" body={body} onClose={this.onClose} />;
+        let main = <Modal title={this.props.title} width="990px" body={body} onClose={this.onClose} />;
 
         return (main);
     }

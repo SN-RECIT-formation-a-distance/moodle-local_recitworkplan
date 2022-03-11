@@ -33,7 +33,7 @@ export class AdminView extends Component {
         this.setState({tab: 'report', reportData: query});
     }
 }
-
+/*
 class HomeView extends Component{
     static defaultProps = {        
         onDetail: null
@@ -55,12 +55,6 @@ class HomeView extends Component{
 
     componentWillUnmount(){
         //$glVars.webApi.removeObserver("HomeView");
-    }
-
-    componentDidUpdate(prevProps){
-        /*if(prevProps.userId !== this.props.userId){
-            this.getData();
-        }*/
     }
 
     getData(){
@@ -126,4 +120,4 @@ class HomeView extends Component{
 
         return main;
     }
-}
+}*/

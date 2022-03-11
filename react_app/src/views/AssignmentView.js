@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { Card, Tabs, Tab, Button, Form, DropdownButton, Dropdown, InputGroup, FormControl, Col, Row, Table, Badge} from 'react-bootstrap';
-import { faPencilAlt,  faPlus, faTrashAlt, faPlusSquare, faCheck, faSearch, faArrowRight, faArrowLeft, faEllipsisV} from '@fortawesome/free-solid-svg-icons';
+import { faPencilAlt,  faPlus, faTrashAlt, faCopy, faCheck, faSearch, faArrowRight, faArrowLeft, faEllipsisV} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {ComboBoxPlus, FeedbackCtrl, DataGrid, Modal, ToggleButtons } from '../libs/components/Components';
 import {$glVars} from '../common/common';
@@ -21,8 +21,9 @@ export class AssignmentsView extends Component{
         this.onCompletionStateChange = this.onCompletionStateChange.bind(this);
         this.getData = this.getData.bind(this);
         this.getDataResult = this.getDataResult.bind(this);
+        this.onCopy = this.onCopy.bind(this);
 
-        this.state = {dataProvider: [], templateId: -1, completionState: '0', pagination: {current_page: 1, count: 0, item_per_page: 25}};
+        this.state = {dataProvider: [], templateId: -1, completionState: '0,2', pagination: {current_page: 1, count: 0, item_per_page: 25}};
     }
 
     componentDidMount(){
@@ -67,22 +68,28 @@ export class AssignmentsView extends Component{
                     </div>
                     <div>
                         <ToggleButtons name="completionState" onChange={this.onCompletionStateChange} type="radio"  defaultValue={this.state.completionState} options={
-                            [{value: "0", text: "En Cours"}, {value: "1", text: "Complétés"}, , {value: "-1", text: "Gabarits"}]}/> 
+                            [{value: "0,2", text: "En Cours"}, {value: "1", text: "Complétés"}, , {value: "-1", text: "Gabarits"}]}/> 
                     </div>
                 </div> 
 
                 <div style={{display: "grid", gridGap: "1rem", gridTemplateColumns: "auto auto auto"}}>
                     {dataProvider.map((workPlan, index) => {
-                            let progress = workPlan.stats.workPlanCompletion/workPlan.stats.nbStudents * 100;
+                            let progress = 0;
+                            
+                            if(workPlan.stats){
+                                progress = workPlan.stats.workPlanCompletion/workPlan.stats.nbStudents * 100;
+                            }
+
                             let card = 
                                 <Card key={index} className='rounded'>
-                                    <div style={{backgroundColor: '#0f6fc5', width: `${progress}%`, height: '5px'}}>
+                                    <div style={{backgroundColor: '#0f6fc5', width: `${progress}%`, height: '5px', maxWidth: "100%"}}>
                                          
                                     </div>
                                     <Card.Body style={{backgroundColor: "#f0f0f0"}}>
                                         <div className='d-flex' style={{justifyContent: 'space-between'}}>
                                             <span className='h3'>{workPlan.template.name}</span>
                                             <DropdownButton variant='outline-primary' title={<span><FontAwesomeIcon icon={faEllipsisV}  />{" "}</span>} id={`optionsWorkPlan${workPlan.template.id}`}>
+                                                <Dropdown.Item onClick={() => this.onCopy(workPlan.template.id)}><FontAwesomeIcon icon={faCopy}  />{" Copier"}</Dropdown.Item>
                                                 <Dropdown.Item onClick={() => this.onDelete(workPlan.template.id)}><FontAwesomeIcon icon={faTrashAlt}  />{" Supprimer"}</Dropdown.Item>
                                             </DropdownButton>
                                         </div>
@@ -93,11 +100,9 @@ export class AssignmentsView extends Component{
                                             <Button variant='outline-primary' className='rounded-circle' title='Attribuer un plan de travail.' onClick={() => this.onEdit(workPlan.template.id)}><FontAwesomeIcon icon={faPlus}/></Button>
                                         </div>
                                         <div className="m-3 p-2">
-                                            {workPlan.followUps.map((followUps, index2) => {
-                                                return <Button variant={followUps.variant}>{followUps.desc}</Button>;
-                                            })}
+                                            {workPlan.stats.nbLateStudents && <Button variant={"danger"}>{`${workPlan.stats.nbLateStudents} apprenants en retard`}</Button>}
                                         </div>  
-                                        {workPlan.stats.nbStudents > 0 && 
+                                        {workPlan.stats && workPlan.stats.nbStudents > 0 && 
                                             <div className="p-2 text-muted">
                                                 <span className='mr-5'>{"Achèvement"}</span><FontAwesomeIcon icon={faCheck}/><span className='ml-2'>{`${workPlan.stats.workPlanCompletion}/${workPlan.stats.nbStudents}`}</span>  
                                             </div>
@@ -144,6 +149,23 @@ export class AssignmentsView extends Component{
 
         if(window.confirm($glVars.i18n.tags.msgConfirmDeletion)){
             $glVars.webApi.deleteWorkPlan(templateId, callback);
+        }
+    }
+
+    onCopy(templateId){
+        let that = this;
+        let callback = function(result){
+            if(!result.success){
+                FeedbackCtrl.instance.showError($glVars.i18n.tags.appName, result.msg);
+            }
+            else{
+                FeedbackCtrl.instance.showInfo($glVars.i18n.tags.appName, $glVars.i18n.tags.msgSuccess, 3);
+                that.getData();
+            }
+        };
+
+        if(window.confirm($glVars.i18n.tags.msgConfirmClone)){
+            $glVars.webApi.cloneTemplate(templateId, callback);
         }
     }
 }
@@ -312,6 +334,9 @@ class WorkPlanForm extends Component{
                                                     <strong>{item.user.firstName}</strong><span  className='ml-3 text-muted'>Groupe:</span><span className='text-muted'>{` ${item.user.groupList}`}</span>
                                                     <div className='text-muted'>Dernière connexion: {item.user.lastAccess}</div>
                                                     <div className='text-muted'>{`Début: ${UtilsDateTime.getDate(item.startDate)} (${item.nbHoursPerWeek} h/semaine)`}</div>
+                                                </div>
+                                                <div>
+                                                    {item.completionState && <Button variant={"danger"}>{`Apprenants en retard`}</Button>}
                                                 </div>
                                                 <div className="p-2 text-muted" style={{alignItems: 'center', display: 'flex'}}>
                                                     <span className='mr-3'>{"Achèvement"}</span>
@@ -546,7 +571,7 @@ class ModalAssignmentPicker extends Component{
                 </div>
             </div>;
 
-        let main = <Modal title={'Attribuer un plan de travail'} body={body} width="60%" onClose={this.onClose} />;
+        let main = <Modal title={'Attribuer un plan de travail'} body={body} width="800px" onClose={this.onClose} />;
 
         return (main);
     }   

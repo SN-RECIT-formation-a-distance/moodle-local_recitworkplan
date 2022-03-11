@@ -56,7 +56,7 @@ export class StudentView extends Component {
          this.setState({dataProvider: result.data.items.detailed});
      }
 }
-
+/*
 export class StudentTemplateTile extends Component {
     static defaultProps = {        
         reportData: null,
@@ -195,4 +195,4 @@ export class StudentReportView extends Component {
         if (percentage == 100) return 'bg-success';
         return 'bg-warning';
     }
-}
+}*/

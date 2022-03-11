@@ -68,7 +68,7 @@ class WebApi extends recitcommon\MoodleApi
     
     public function getWorkPlanList($request){
         try{
-            $completionState = intval($request['completionState']);
+            $completionState = explode(",", $request['completionState']);
             $limit = intval($request['limit']);
             $offset = intval($request['offset']);
 
@@ -182,7 +182,6 @@ class WebApi extends recitcommon\MoodleApi
             $templateId = intval($request['templateId']);
 
             $result = new stdClass();
-            $result->prototype = new TemplateActivity();
             $result->data = ($templateId > 0 ? $this->ctrl->getTemplate($this->signedUser->id, $templateId) : new Template());
             $result->catCourseList = $this->ctrl->getCatCourseSectionActivityList();
 
@@ -220,7 +219,7 @@ class WebApi extends recitcommon\MoodleApi
         catch(Exception $ex){
             return new WebApiResult(false, false, $ex->GetMessage());
         }
-    }
+    }*/
 
     public function cloneTemplate($request){
         try{
@@ -233,7 +232,7 @@ class WebApi extends recitcommon\MoodleApi
             return new WebApiResult(false, false, $ex->GetMessage());
         }
     }
-*/
+
     public function saveTplAct($request){
         try{
             $this->canUserAccess('a');
