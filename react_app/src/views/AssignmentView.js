@@ -100,7 +100,7 @@ export class AssignmentsView extends Component{
                                             <Button variant='outline-primary' className='rounded-circle' title='Attribuer un plan de travail.' onClick={() => this.onEdit(workPlan.template.id)}><FontAwesomeIcon icon={faPlus}/></Button>
                                         </div>
                                         <div className="m-3 p-2">
-                                            {workPlan.stats.nbLateStudents && <Button variant={"danger"}>{`${workPlan.stats.nbLateStudents} apprenants en retard`}</Button>}
+                                            {workPlan.stats && workPlan.stats.nbLateStudents && <Button variant={"danger"}>{`${workPlan.stats.nbLateStudents} apprenants en retard`}</Button>}
                                         </div>  
                                         {workPlan.stats && workPlan.stats.nbStudents > 0 && 
                                             <div className="p-2 text-muted">

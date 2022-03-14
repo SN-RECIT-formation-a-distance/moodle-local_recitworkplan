@@ -74,7 +74,7 @@ class WebApi extends recitcommon\MoodleApi
 
             $this->canUserAccess('a');
 
-            if($completionState == -1){
+            if(in_array(-1, $completionState)){
                 $result = $this->ctrl->getTemplateList($this->signedUser->id, $limit, $offset);
             }
             else{
