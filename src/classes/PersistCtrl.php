@@ -558,16 +558,14 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
     
 
     private function addCalendarEvent($templateId, $userId){
-       /* global $DB;
-        $tpl = $DB->get_record('recit_wp_tpl', array('id' => $templateId));
 
-        $name = "Fin du plan ".$tpl->name;
-        $desc = $name; 
         $workPlan = $this->getWorkPlan($userId, $templateId);
-        if ($workPlan == null){ return; } 
+        if ($workPlan == null){ return; }
 
+        $name = "Fin du plan ".$workPlan->template->name;
+        $desc = $name; 
         $workPlan->setAssignmentsEndDate();
-        if (!$workPlan->endDate){ return; } 
+        if (!isset($workPlan->assignments[0]->endDate)){ return; } 
 
         $event = new stdClass();
         $event->eventtype = 'planformation';
@@ -579,13 +577,13 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         $event->groupid = 0;
         $event->userid = $userId;
         $event->modulename = '';
-        $event->instance = $workPlan->id;
-        $event->timestart = $assignment->endDate->getTimestamp();
-        $event->timeend = $assignment->endDate->getTimestamp();
+        $event->instance = $workPlan->assignments[0]->id;
+        $event->timestart = $workPlan->assignments[0]->endDate->getTimestamp();
+        $event->timeend = $workPlan->assignments[0]->endDate->getTimestamp();
         $event->visible = TRUE;
         $event->timeduration = 0;
 
-        \calendar_event::create($event);*/
+        \calendar_event::create($event);
     }
 
     private function deleteCalendarEvent($assignmentId = 0, $userId = 0){
