@@ -394,11 +394,14 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         $result = new WorkPlan();
         $modinfo = null;
 		foreach($rst as $item){
-            if($modinfo == null || $modinfo->__get('courseid') != $item->courseid){
-                $modinfo = get_fast_modinfo($item->courseid);
+            if($item->courseid > 0){
+                if($modinfo == null || $modinfo->__get('courseid') != $item->courseid){
+                    $modinfo = get_fast_modinfo($item->courseid);
+                }
+                
+                $item->cmname = $this->getCmNameFromCmId($item->cmid, $item->courseid, $modinfo);
             }
             
-            $item->cmname = $this->getCmNameFromCmId($item->cmid, $item->courseid, $modinfo);
 
             $result->addTemplateActivity($item);
             $result->addAssignment($item);
