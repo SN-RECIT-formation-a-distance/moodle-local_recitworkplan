@@ -105,7 +105,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
 
     public function getTemplateList($userId, $limit = 0, $offset = 0){
         
-        $query = "select  t2.id as templateid, t2.creatorid, t2.name as templatename, t7.fullname as coursename, t7.id as courseid,
+        $query = "select  t2.id as templateid, t2.creatorid, t2.name as templatename, t2.state as templatestate, t7.fullname as coursename, t7.id as courseid,
         t2.description as templatedesc, from_unixtime(t2.lastupdate) as lastupdate, t3.cmid, t3.nb_hours_completion as nb_hours_completion, 
         count(*) OVER() AS total_count,
         tblRoles.roles, tblCatRoles.categoryroles, t8.name as categoryname, t3.id as tpl_act_id
@@ -151,7 +151,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
 
         $DB->execute("set @uniqueId = 0");
 
-        $query = "select  @uniqueId := @uniqueId + 1 as uniqueId, t1.id as templateid, t1.creatorid, t1.name as templatename, t1.description as templatedesc,  if(t1.lastupdate > 0, from_unixtime(t1.lastupdate), null) as lastupdate, t4.fullname as coursename, 
+        $query = "select  @uniqueId := @uniqueId + 1 as uniqueId, t1.id as templateid, t1.creatorid, t1.name as templatename, t1.state as templatestate, t1.description as templatedesc,  if(t1.lastupdate > 0, from_unixtime(t1.lastupdate), null) as lastupdate, t4.fullname as coursename, 
         t2.id as tpl_act_id, t2.cmid, t2.nb_hours_completion, t2.slot, t4.id as courseid, t4.shortname as coursename, t5.id as categoryid, t5.name as categoryname, tblRoles.roles, tblCatRoles.categoryroles
         from {recit_wp_tpl} as t1
         left join {recit_wp_tpl_act} as t2 on t1.id = t2.templateid
@@ -193,8 +193,8 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
     public function saveTemplate($data){
         try{	
             $result = $data->id;
-            $fields = array("name", "description", "lastupdate");
-            $values = array($data->name, $data->description,  time());
+            $fields = array("name", "description", "lastupdate", "state");
+            $values = array($data->name, $data->description, time(), $data->state);
 
             if($data->id == 0){
                 $fields[] = "creatorid";
@@ -366,7 +366,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
     }
 
     public function getWorkPlan($userId, $templateId){
-        $query = "select  t1.id, t1.nb_hours_per_week as nbhoursperweek, from_unixtime(t1.startdate) as startdate, t1.completionstate as wpcompletionstate, t2.id as templateid, t2.creatorid, t2.name as templatename, t7.fullname as coursename, t7.id as courseid,
+        $query = "select  t1.id, t1.nb_hours_per_week as nbhoursperweek, from_unixtime(t1.startdate) as startdate, t1.completionstate as wpcompletionstate, t2.id as templateid, t2.creatorid, t2.name as templatename, t2.state as templatestate, t7.fullname as coursename, t7.id as courseid,
         t2.description as templatedesc, from_unixtime(t2.lastupdate) as lastupdate, t3.cmid, t3.nb_hours_completion as nb_hours_completion, count(*) OVER() AS total_count,
         t6.completionstate as activitycompletionstate, tblRoles.roles, tblCatRoles.categoryroles, t1.assignorid, t8.name as categoryname, t3.id as tpl_act_id, 
         users.userid, users.firstname, users.lastname, users.lastaccess, users.grouplist
@@ -423,7 +423,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
     public function getWorkPlanList($userId, $limit = 0, $offset = 0, $completionState = array(0,2)){
         $query = "select t1.id, t1.nb_hours_per_week as nbhoursperweek, from_unixtime(t1.startdate) as startdate, t1.completionstate as wpcompletionstate, t2.id as templateid, t2.creatorid, t2.name as templatename, t7.fullname as coursename, t7.id as courseid,
         t2.description as templatedesc, from_unixtime(t2.lastupdate) as lastupdate, t3.cmid, t3.nb_hours_completion as nb_hours_completion, t4.id as userid, t4.firstname, t4.lastname, count(*) OVER() AS total_count,
-        t6.completionstate as activitycompletionstate, tblRoles.roles, tblCatRoles.categoryroles, t1.assignorid, t8.name as categoryname, t3.id as tpl_act_id
+        t6.completionstate as activitycompletionstate, tblRoles.roles, tblCatRoles.categoryroles, t1.assignorid, t8.name as categoryname, t3.id as tpl_act_id, t2.state as templatestate
         from {$this->prefix}recit_wk_tpl_assign as t1
         inner join {$this->prefix}recit_wp_tpl as t2 on t1.templateid = t2.id
         inner join {$this->prefix}recit_wp_tpl_act as t3 on t3.templateid = t2.id
@@ -615,6 +615,7 @@ class Template{
     public $name = "";
     public $description = "";
     public $creatorId = 0;
+    public $state = 0;
     public $lastUpdate = null;
     //@array of TemplateActivity
     public $activities = array();
@@ -628,6 +629,7 @@ class Template{
         $result->description = $dbData->templatedesc; 
         $result->creatorId = $dbData->creatorid;
         $result->lastUpdate = $dbData->lastupdate;
+        $result->state = $dbData->templatestate;
 
         return $result;
     }

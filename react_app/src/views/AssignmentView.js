@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { Card, Tabs, Tab, Button, Form, DropdownButton, Dropdown, InputGroup, FormControl, Col, Row, Table, Badge} from 'react-bootstrap';
-import { faPencilAlt,  faPlus, faTrashAlt, faCopy, faCheck, faSearch, faArrowRight, faArrowLeft, faEllipsisV} from '@fortawesome/free-solid-svg-icons';
+import { faPencilAlt,  faPlus, faTrashAlt, faCopy, faCheck, faSearch, faArrowRight, faArrowLeft, faEllipsisV, faArrowCircleDown, faArrowCircleUp} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {ComboBoxPlus, FeedbackCtrl, DataGrid, Modal, ToggleButtons } from '../libs/components/Components';
 import {$glVars} from '../common/common';
@@ -23,7 +23,7 @@ export class AssignmentsView extends Component{
         this.getDataResult = this.getDataResult.bind(this);
         this.onCopy = this.onCopy.bind(this);
 
-        this.state = {dataProvider: [], templateId: -1, completionState: '0,2', pagination: {current_page: 1, count: 0, item_per_page: 25}};
+        this.state = {dataProvider: [], templateId: -1, detail: -1, completionState: '0,2', pagination: {current_page: 1, count: 0, item_per_page: 25}};
     }
 
     componentDidMount(){
@@ -57,7 +57,7 @@ export class AssignmentsView extends Component{
     }
 
     render(){
-        let dataProvider = this.state.dataProvider;
+        let dataProvider = this.state.dataProvider.filter((item) => item.template.state == 0);
         
         let main = 
             <div>
@@ -81,7 +81,7 @@ export class AssignmentsView extends Component{
                             }
 
                             let card = 
-                                <Card key={index} className='rounded'>
+                                <Card key={index} className='rounded' style={{width:'525px'}}>
                                     <div style={{backgroundColor: '#0f6fc5', width: `${progress}%`, height: '5px', maxWidth: "100%"}}>
                                          
                                     </div>
@@ -91,6 +91,7 @@ export class AssignmentsView extends Component{
                                             <DropdownButton variant='outline-primary' title={<span><FontAwesomeIcon icon={faEllipsisV}  />{" "}</span>} id={`optionsWorkPlan${workPlan.template.id}`}>
                                                 <Dropdown.Item onClick={() => this.onCopy(workPlan.template.id)}><FontAwesomeIcon icon={faCopy}  />{" Copier"}</Dropdown.Item>
                                                 <Dropdown.Item onClick={() => this.onDelete(workPlan.template.id)}><FontAwesomeIcon icon={faTrashAlt}  />{" Supprimer"}</Dropdown.Item>
+                                                <Dropdown.Item onClick={() => this.onArchive(workPlan.template)}><FontAwesomeIcon icon={faTrashAlt}  />{" Archiver"}</Dropdown.Item>
                                             </DropdownButton>
                                         </div>
                                         <div className="m-2 p-2">
@@ -107,6 +108,51 @@ export class AssignmentsView extends Component{
                                                 <span className='mr-5'>{"Achèvement"}</span><FontAwesomeIcon icon={faCheck}/><span className='ml-2'>{`${workPlan.stats.workPlanCompletion}/${workPlan.stats.nbStudents}`}</span>  
                                             </div>
                                         }
+                                        <div className="p-2 text-muted" style={{textAlign: 'right'}}>
+                                            <a href="#" onClick={() => this.onDetail(this.state.detail == workPlan.template.id ? -1 : workPlan.template.id)}><FontAwesomeIcon icon={this.state.detail == workPlan.template.id ? faArrowCircleUp : faArrowCircleDown}/></a>
+                                        </div>
+                                        {this.state.detail == workPlan.template.id && 
+                                            <div style={{width:'fit-content'}}>
+                                                {workPlan.template.activities.map((item, index) => {
+                                                        let progressValue = 0;
+                                                        let progressText  = `0/${workPlan.stats.nbStudents}`;
+                                                        if(workPlan.stats.activitycompleted[`cmid${item.cmId}`]){
+                                                            progressValue = workPlan.stats.activitycompleted[`cmid${item.cmId}`]/workPlan.stats.nbStudents * 100;
+                                                            progressText = `${workPlan.stats.activitycompleted[`cmid${item.cmId}`]}/${workPlan.stats.nbStudents}`;
+                                                        }
+
+                                                        progressValue = (isNaN(progressValue) ? 0 : progressValue);
+                                                        
+                                                        let card = 
+                                                            <Card key={index} className='rounded mt-2 mb-2'>
+                                                                <div style={{backgroundColor: '#0f6fc5', width: `${progressValue}%`, height: '5px'}}>
+                                                                    
+                                                                </div>
+                                                                <Card.Body style={{backgroundColor: "#f0f0f0", display: "grid", gridGap: '1rem', gridTemplateColumns: 'auto auto auto', alignItems: 'center'}}>
+                                                                    <div>
+                                                                        <div className='h4'><strong>{item.cmName}</strong></div>
+                                                                        <div className='h6 text-muted pl-3'>{`${item.categoryName}/${item.courseName}`}</div>
+                                                                        <div className='h6 text-muted pl-3'>{`${item.nbHoursCompletion} heures`}</div>
+                                                                    </div>
+                                                                    <div className="m-3 p-2">
+                                                                        {workPlan.template.followUps.map((followUps, index2) => {
+                                                                            return <Button key={index2} variant={followUps.variant}>{followUps.desc}</Button>;
+                                                                        })}
+                                                                    </div>
+                                                                    <div className="p-2 text-muted" style={{alignItems: 'center', display: 'flex'}}>
+                                                                        <span className='mr-3'>{"Achèvement"}</span>
+                                                                        <FontAwesomeIcon icon={faCheck}/><span className='ml-2 mr-3'>{progressText}</span>  
+                                                                        <DropdownButton variant='outline-primary' title={<span><FontAwesomeIcon icon={faEllipsisV}  />{" "}</span>} id={`optionsActivity${item.id}`}>
+                                                                            <Dropdown.Item onClick={() => this.onShowActivities(true)}><FontAwesomeIcon icon={faPencilAlt}  />{" Modifier"}</Dropdown.Item>
+                                                                            <Dropdown.Item onClick={() => this.onDeleteActivity(item.id)}><FontAwesomeIcon icon={faTrashAlt}  />{" Supprimer"}</Dropdown.Item>
+                                                                        </DropdownButton>
+                                                                    </div>
+                                                                </Card.Body>
+                                                            </Card>
+                                                        return (card);                                     
+                                                    }
+                                                )}
+                                            </div>}
                                     </Card.Body>
                                 </Card>
                             return (card);                                     
@@ -121,6 +167,10 @@ export class AssignmentsView extends Component{
 
 
         return (this.state.templateId >= 0 ? form : main);
+    }
+    
+    onDetail(id){
+        this.setState({detail:id});
     }
 
     onAdd(){
@@ -149,6 +199,23 @@ export class AssignmentsView extends Component{
 
         if(window.confirm($glVars.i18n.tags.msgConfirmDeletion)){
             $glVars.webApi.deleteWorkPlan(templateId, callback);
+        }
+    }
+
+    onArchive(template){
+        let that = this;
+        let callback = function(result){
+            if(!result.success){
+                $glVars.feedback.showError($glVars.i18n.tags.appName, result.msg);
+                return;
+            }
+
+           that.getData();
+        }
+
+        if(window.confirm($glVars.i18n.tags.msgConfirmDeletion)){
+            template.state = 1;
+            $glVars.webApi.saveTemplate(template, callback);
         }
     }
 
@@ -389,7 +456,9 @@ class WorkPlanForm extends Component{
                 that.setState({data: data});
             }
         }
-
+        if (typeof this.state.data.template.state === 'undefined'){
+            this.state.data.template.state = 0;
+        }
         $glVars.webApi.saveTemplate(this.state.data.template, callback);
     }
 
