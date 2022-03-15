@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { Card, Tabs, Tab, Button, Form, DropdownButton, Dropdown, InputGroup, FormControl, Col, Row, Table, Badge, Collapse} from 'react-bootstrap';
-import { faPencilAlt,  faPlus, faTrashAlt, faCopy, faCheck, faSearch, faArrowRight, faArrowLeft, faEllipsisV, faArrowCircleDown, faArrowCircleUp, faMinus} from '@fortawesome/free-solid-svg-icons';
+import { faPencilAlt,  faPlus, faTrashAlt, faCopy, faCheck, faSearch, faArrowRight, faArrowLeft, faEllipsisV, faArrowCircleDown, faArrowCircleUp, faMinus, faCheckSquare, faSquare} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {ComboBoxPlus, FeedbackCtrl, DataGrid, Modal, ToggleButtons } from '../libs/components/Components';
 import {$glVars} from '../common/common';
@@ -23,7 +23,7 @@ export class AssignmentsView extends Component{
         this.getDataResult = this.getDataResult.bind(this);
         this.onCopy = this.onCopy.bind(this);
 
-        this.state = {dataProvider: [], templateId: -1, detail: -1, completionState: '0,2', pagination: {current_page: 1, count: 0, item_per_page: 25}};
+        this.state = {dataProvider: [], templateId: -1, completionState: '0,2', pagination: {current_page: 1, count: 0, item_per_page: 25}};
     }
 
     componentDidMount(){
@@ -101,58 +101,13 @@ export class AssignmentsView extends Component{
                                             <Button variant='outline-primary' className='rounded-circle' title='Attribuer un plan de travail.' onClick={() => this.onEdit(workPlan.template.id)}><FontAwesomeIcon icon={faPlus}/></Button>
                                         </div>
                                         <div className="m-3 p-2">
-                                            {workPlan.stats && workPlan.stats.nbLateStudents && <Button variant={"danger"}>{`${workPlan.stats.nbLateStudents} apprenants en retard`}</Button>}
+                                            {workPlan.stats && workPlan.stats.nbLateStudents > 0 && <Button variant={"danger"}>{`${workPlan.stats.nbLateStudents} apprenants en retard`}</Button>}
                                         </div>  
                                         {workPlan.stats && workPlan.stats.nbStudents > 0 && 
                                             <div className="p-2 text-muted">
                                                 <span className='mr-5'>{"Achèvement"}</span><FontAwesomeIcon icon={faCheck}/><span className='ml-2'>{`${workPlan.stats.workPlanCompletion}/${workPlan.stats.nbStudents}`}</span>  
                                             </div>
                                         }
-                                        <div className="p-2 text-muted" style={{textAlign: 'right'}}>
-                                            <a href="#" onClick={() => this.onDetail(this.state.detail == workPlan.template.id ? -1 : workPlan.template.id)}><FontAwesomeIcon icon={this.state.detail == workPlan.template.id ? faArrowCircleUp : faArrowCircleDown}/></a>
-                                        </div>
-                                        {this.state.detail == workPlan.template.id && 
-                                            <div style={{width:'fit-content'}}>
-                                                {workPlan.template.activities.map((item, index) => {
-                                                        let progressValue = 0;
-                                                        let progressText  = `0/${workPlan.stats.nbStudents}`;
-                                                        if(workPlan.stats.activitycompleted[`cmid${item.cmId}`]){
-                                                            progressValue = workPlan.stats.activitycompleted[`cmid${item.cmId}`]/workPlan.stats.nbStudents * 100;
-                                                            progressText = `${workPlan.stats.activitycompleted[`cmid${item.cmId}`]}/${workPlan.stats.nbStudents}`;
-                                                        }
-
-                                                        progressValue = (isNaN(progressValue) ? 0 : progressValue);
-                                                        
-                                                        let card = 
-                                                            <Card key={index} className='rounded mt-2 mb-2'>
-                                                                <div style={{backgroundColor: '#0f6fc5', width: `${progressValue}%`, height: '5px'}}>
-                                                                    
-                                                                </div>
-                                                                <Card.Body style={{backgroundColor: "#f0f0f0", display: "grid", gridGap: '1rem', gridTemplateColumns: 'auto auto auto', alignItems: 'center'}}>
-                                                                    <div>
-                                                                        <div className='h4'><strong>{item.cmName}</strong></div>
-                                                                        <div className='h6 text-muted pl-3'>{`${item.categoryName}/${item.courseName}`}</div>
-                                                                        <div className='h6 text-muted pl-3'>{`${item.nbHoursCompletion} heures`}</div>
-                                                                    </div>
-                                                                    <div className="m-3 p-2">
-                                                                        {workPlan.template.followUps.map((followUps, index2) => {
-                                                                            return <Button key={index2} variant={followUps.variant}>{followUps.desc}</Button>;
-                                                                        })}
-                                                                    </div>
-                                                                    <div className="p-2 text-muted" style={{alignItems: 'center', display: 'flex'}}>
-                                                                        <span className='mr-3'>{"Achèvement"}</span>
-                                                                        <FontAwesomeIcon icon={faCheck}/><span className='ml-2 mr-3'>{progressText}</span>  
-                                                                        <DropdownButton variant='outline-primary' title={<span><FontAwesomeIcon icon={faEllipsisV}  />{" "}</span>} id={`optionsActivity${item.id}`}>
-                                                                            <Dropdown.Item onClick={() => this.onShowActivities(true)}><FontAwesomeIcon icon={faPencilAlt}  />{" Modifier"}</Dropdown.Item>
-                                                                            <Dropdown.Item onClick={() => this.onDeleteActivity(item.id)}><FontAwesomeIcon icon={faTrashAlt}  />{" Supprimer"}</Dropdown.Item>
-                                                                        </DropdownButton>
-                                                                    </div>
-                                                                </Card.Body>
-                                                            </Card>
-                                                        return (card);                                     
-                                                    }
-                                                )}
-                                            </div>}
                                     </Card.Body>
                                 </Card>
                             return (card);                                     
@@ -167,10 +122,6 @@ export class AssignmentsView extends Component{
 
 
         return (this.state.templateId >= 0 ? form : main);
-    }
-    
-    onDetail(id){
-        this.setState({detail:id});
     }
 
     onAdd(){
@@ -257,7 +208,7 @@ class WorkPlanForm extends Component{
         this.onDeleteAssignment = this.onDeleteAssignment.bind(this);
         this.onSearch = this.onSearch.bind(this);
 
-        this.state = {tab: 'activities', data: null, queryStr: "", showActivities: false, showAssignments: false};
+        this.state = {tab: 'activities', data: null, queryStr: "", detail: -1, showActivities: false, showAssignments: false};
     }
 
     componentDidMount(){
@@ -393,26 +344,57 @@ class WorkPlanForm extends Component{
                                             <div style={{backgroundColor: '#0f6fc5', width: `${progressValue}%`, height: '5px'}}>
                                                 
                                             </div>
-                                            <Card.Body style={{backgroundColor: "#f0f0f0", display: "grid", gridGap: '1rem', gridTemplateColumns: '50px auto 240px', alignItems: 'center'}}>
-                                                <div>
-                                                    <span dangerouslySetInnerHTML={{__html: item.user.avatar}}></span>
+                                            <Card.Body style={{backgroundColor: "#f0f0f0"}}>
+                                                <div style={{display: "grid", gridGap: '1rem', gridTemplateColumns: '50px auto auto auto', alignItems: 'center'}}>
+                                                    <div>
+                                                        <span dangerouslySetInnerHTML={{__html: item.user.avatar}}></span>
+                                                    </div>
+                                                    <div>
+                                                        <strong>{item.user.firstName}</strong><span  className='ml-3 text-muted'>Groupe:</span><span className='text-muted'>{` ${item.user.groupList}`}</span>
+                                                        <div className='text-muted'>Dernière connexion: {item.user.lastAccess}</div>
+                                                        <div className='text-muted'>{`Début: ${UtilsDateTime.getDate(item.startDate)} (${item.nbHoursPerWeek} h/semaine)`}</div>
+                                                    </div>
+                                                    <div>
+                                                        {item.completionState > 0 && <Button variant={"danger"}>{`Apprenants en retard`}</Button>}
+                                                    </div>
+                                                    <div className="p-2 text-muted" style={{alignItems: 'center', display: 'flex'}}>
+                                                        <span className='mr-3'>{"Achèvement"}</span>
+                                                        <FontAwesomeIcon icon={faCheck}/><span className='ml-2 mr-3'>{progressText}</span>  
+                                                        <DropdownButton variant='outline-primary' title={<span><FontAwesomeIcon icon={faEllipsisV}  />{" "}</span>} id={`optionsAssignments${item.id}`}>
+                                                            <Dropdown.Item onClick={() => this.onShowAssignments(true)}><FontAwesomeIcon icon={faPencilAlt}  />{" Modifier"}</Dropdown.Item>
+                                                            <Dropdown.Item onClick={() => this.onDeleteAssignment(item.id)}><FontAwesomeIcon icon={faTrashAlt}  />{" Supprimer"}</Dropdown.Item>
+                                                        </DropdownButton>
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <strong>{item.user.firstName}</strong><span  className='ml-3 text-muted'>Groupe:</span><span className='text-muted'>{` ${item.user.groupList}`}</span>
-                                                    <div className='text-muted'>Dernière connexion: {item.user.lastAccess}</div>
-                                                    <div className='text-muted'>{`Début: ${UtilsDateTime.getDate(item.startDate)} (${item.nbHoursPerWeek} h/semaine)`}</div>
-                                                </div>
-                                                <div>
-                                                    {item.completionState && <Button variant={"danger"}>{`Apprenants en retard`}</Button>}
-                                                </div>
-                                                <div className="p-2 text-muted" style={{alignItems: 'center', display: 'flex'}}>
-                                                    <span className='mr-3'>{"Achèvement"}</span>
-                                                    <FontAwesomeIcon icon={faCheck}/><span className='ml-2 mr-3'>{progressText}</span>  
-                                                    <DropdownButton variant='outline-primary' title={<span><FontAwesomeIcon icon={faEllipsisV}  />{" "}</span>} id={`optionsAssignments${item.id}`}>
-                                                        <Dropdown.Item onClick={() => this.onShowAssignments(true)}><FontAwesomeIcon icon={faPencilAlt}  />{" Modifier"}</Dropdown.Item>
-                                                        <Dropdown.Item onClick={() => this.onDeleteAssignment(item.id)}><FontAwesomeIcon icon={faTrashAlt}  />{" Supprimer"}</Dropdown.Item>
-                                                    </DropdownButton>
-                                                </div>
+                                        <div className="p-2 text-muted" style={{textAlign: 'right'}}>
+                                            <a href="#" onClick={() => this.onDetail(this.state.detail == item.id ? -1 : item.id)}><FontAwesomeIcon icon={this.state.detail == item.id ? faArrowCircleUp : faArrowCircleDown}/></a>
+                                        </div>
+                                        {this.state.detail == item.id && 
+                                            <div style={{width:'100%'}}>
+                                                {this.state.data.template.activities.map((item, index) => {
+                                                        
+                                                        let card2 = 
+                                                            <Card key={index} className='rounded mt-2 mb-2'>
+                                                                <Card.Body style={{backgroundColor: "#ffffff", display: "grid", gridGap: '1rem', gridTemplateColumns: '50% auto auto', alignItems: 'center'}}>
+                                                                    <div>
+                                                                        <div className='h4'><strong>{item.cmName}</strong></div>
+                                                                        <div className='h6 text-muted pl-3'>{`${item.categoryName}/${item.courseName}`}</div>
+                                                                        <div className='h6 text-muted pl-3'>{`${item.nbHoursCompletion} heures`}</div>
+                                                                    </div>
+                                                                    <div className="m-3 p-2">
+                                                                        {this.state.data.template.followUps.map((followUps, index2) => {
+                                                                            return <Button key={index2} variant={followUps.variant}>{followUps.desc}</Button>;
+                                                                        })}
+                                                                    </div>
+                                                                    <div className="p-2 text-muted" style={{alignItems: 'center', display: 'flex'}}>
+                                                                        {item.completionState > 0 && <Button variant='success'>Complété</Button>}
+                                                                    </div>
+                                                                </Card.Body>
+                                                            </Card>
+                                                        return (card2);                                     
+                                                    }
+                                                )}
+                                            </div>}
                                             </Card.Body>
                                         </Card>
                                     return (card);                                     
@@ -428,6 +410,10 @@ class WorkPlanForm extends Component{
         let main = body;
 
         return (main);
+    }
+    
+    onDetail(id){
+        this.setState({detail:id});
     }
 
     onTabChange(k){

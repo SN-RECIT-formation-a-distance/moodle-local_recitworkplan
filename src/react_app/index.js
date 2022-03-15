@@ -68555,7 +68555,6 @@ var AssignmentsView = /*#__PURE__*/function (_Component) {
     _this.state = {
       dataProvider: [],
       templateId: -1,
-      detail: -1,
       completionState: '0,2',
       pagination: {
         current_page: 1,
@@ -68737,7 +68736,7 @@ var AssignmentsView = /*#__PURE__*/function (_Component) {
           icon: _freeSolidSvgIcons.faPlus
         }))), /*#__PURE__*/_react.default.createElement("div", {
           className: "m-3 p-2"
-        }, workPlan.stats && workPlan.stats.nbLateStudents && /*#__PURE__*/_react.default.createElement(_reactBootstrap.Button, {
+        }, workPlan.stats && workPlan.stats.nbLateStudents > 0 && /*#__PURE__*/_react.default.createElement(_reactBootstrap.Button, {
           variant: "danger"
         }, "".concat(workPlan.stats.nbLateStudents, " apprenants en retard"))), workPlan.stats && workPlan.stats.nbStudents > 0 && /*#__PURE__*/_react.default.createElement("div", {
           className: "p-2 text-muted"
@@ -68747,97 +68746,7 @@ var AssignmentsView = /*#__PURE__*/function (_Component) {
           icon: _freeSolidSvgIcons.faCheck
         }), /*#__PURE__*/_react.default.createElement("span", {
           className: "ml-2"
-        }, "".concat(workPlan.stats.workPlanCompletion, "/").concat(workPlan.stats.nbStudents))), /*#__PURE__*/_react.default.createElement("div", {
-          className: "p-2 text-muted",
-          style: {
-            textAlign: 'right'
-          }
-        }, /*#__PURE__*/_react.default.createElement("a", {
-          href: "#",
-          onClick: function onClick() {
-            return _this2.onDetail(_this2.state.detail == workPlan.template.id ? -1 : workPlan.template.id);
-          }
-        }, /*#__PURE__*/_react.default.createElement(_reactFontawesome.FontAwesomeIcon, {
-          icon: _this2.state.detail == workPlan.template.id ? _freeSolidSvgIcons.faArrowCircleUp : _freeSolidSvgIcons.faArrowCircleDown
-        }))), _this2.state.detail == workPlan.template.id && /*#__PURE__*/_react.default.createElement("div", {
-          style: {
-            width: 'fit-content'
-          }
-        }, workPlan.template.activities.map(function (item, index) {
-          var progressValue = 0;
-          var progressText = "0/".concat(workPlan.stats.nbStudents);
-
-          if (workPlan.stats.activitycompleted["cmid".concat(item.cmId)]) {
-            progressValue = workPlan.stats.activitycompleted["cmid".concat(item.cmId)] / workPlan.stats.nbStudents * 100;
-            progressText = "".concat(workPlan.stats.activitycompleted["cmid".concat(item.cmId)], "/").concat(workPlan.stats.nbStudents);
-          }
-
-          progressValue = isNaN(progressValue) ? 0 : progressValue;
-
-          var card = /*#__PURE__*/_react.default.createElement(_reactBootstrap.Card, {
-            key: index,
-            className: "rounded mt-2 mb-2"
-          }, /*#__PURE__*/_react.default.createElement("div", {
-            style: {
-              backgroundColor: '#0f6fc5',
-              width: "".concat(progressValue, "%"),
-              height: '5px'
-            }
-          }), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Card.Body, {
-            style: {
-              backgroundColor: "#f0f0f0",
-              display: "grid",
-              gridGap: '1rem',
-              gridTemplateColumns: 'auto auto auto',
-              alignItems: 'center'
-            }
-          }, /*#__PURE__*/_react.default.createElement("div", null, /*#__PURE__*/_react.default.createElement("div", {
-            className: "h4"
-          }, /*#__PURE__*/_react.default.createElement("strong", null, item.cmName)), /*#__PURE__*/_react.default.createElement("div", {
-            className: "h6 text-muted pl-3"
-          }, "".concat(item.categoryName, "/").concat(item.courseName)), /*#__PURE__*/_react.default.createElement("div", {
-            className: "h6 text-muted pl-3"
-          }, "".concat(item.nbHoursCompletion, " heures"))), /*#__PURE__*/_react.default.createElement("div", {
-            className: "m-3 p-2"
-          }, workPlan.template.followUps.map(function (followUps, index2) {
-            return /*#__PURE__*/_react.default.createElement(_reactBootstrap.Button, {
-              key: index2,
-              variant: followUps.variant
-            }, followUps.desc);
-          })), /*#__PURE__*/_react.default.createElement("div", {
-            className: "p-2 text-muted",
-            style: {
-              alignItems: 'center',
-              display: 'flex'
-            }
-          }, /*#__PURE__*/_react.default.createElement("span", {
-            className: "mr-3"
-          }, "Achèvement"), /*#__PURE__*/_react.default.createElement(_reactFontawesome.FontAwesomeIcon, {
-            icon: _freeSolidSvgIcons.faCheck
-          }), /*#__PURE__*/_react.default.createElement("span", {
-            className: "ml-2 mr-3"
-          }, progressText), /*#__PURE__*/_react.default.createElement(_reactBootstrap.DropdownButton, {
-            variant: "outline-primary",
-            title: /*#__PURE__*/_react.default.createElement("span", null, /*#__PURE__*/_react.default.createElement(_reactFontawesome.FontAwesomeIcon, {
-              icon: _freeSolidSvgIcons.faEllipsisV
-            }), " "),
-            id: "optionsActivity".concat(item.id)
-          }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Dropdown.Item, {
-            onClick: function onClick() {
-              return _this2.onShowActivities(true);
-            }
-          }, /*#__PURE__*/_react.default.createElement(_reactFontawesome.FontAwesomeIcon, {
-            icon: _freeSolidSvgIcons.faPencilAlt
-          }), " Modifier"), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Dropdown.Item, {
-            onClick: function onClick() {
-              return _this2.onDeleteActivity(item.id);
-            }
-          }, /*#__PURE__*/_react.default.createElement(_reactFontawesome.FontAwesomeIcon, {
-            icon: _freeSolidSvgIcons.faTrashAlt
-          }), " Supprimer")))));
-
-          return card;
-        }))));
+        }, "".concat(workPlan.stats.workPlanCompletion, "/").concat(workPlan.stats.nbStudents)))));
 
         return card;
       })), /*#__PURE__*/_react.default.createElement(_Pagination.Pagination, {
@@ -68853,13 +68762,6 @@ var AssignmentsView = /*#__PURE__*/function (_Component) {
       });
 
       return this.state.templateId >= 0 ? form : main;
-    }
-  }, {
-    key: "onDetail",
-    value: function onDetail(id) {
-      this.setState({
-        detail: id
-      });
     }
   }, {
     key: "onAdd",
@@ -68976,6 +68878,7 @@ var WorkPlanForm = /*#__PURE__*/function (_Component2) {
       tab: 'activities',
       data: null,
       queryStr: "",
+      detail: -1,
       showActivities: false,
       showAssignments: false
     };
@@ -69240,10 +69143,13 @@ var WorkPlanForm = /*#__PURE__*/function (_Component2) {
           }
         }), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Card.Body, {
           style: {
-            backgroundColor: "#f0f0f0",
+            backgroundColor: "#f0f0f0"
+          }
+        }, /*#__PURE__*/_react.default.createElement("div", {
+          style: {
             display: "grid",
             gridGap: '1rem',
-            gridTemplateColumns: '50px auto 240px',
+            gridTemplateColumns: '50px auto auto auto',
             alignItems: 'center'
           }
         }, /*#__PURE__*/_react.default.createElement("div", null, /*#__PURE__*/_react.default.createElement("span", {
@@ -69258,7 +69164,7 @@ var WorkPlanForm = /*#__PURE__*/function (_Component2) {
           className: "text-muted"
         }, "Derni\xE8re connexion: ", item.user.lastAccess), /*#__PURE__*/_react.default.createElement("div", {
           className: "text-muted"
-        }, "D\xE9but: ".concat(_Utils.UtilsDateTime.getDate(item.startDate), " (").concat(item.nbHoursPerWeek, " h/semaine)"))), /*#__PURE__*/_react.default.createElement("div", null, item.completionState && /*#__PURE__*/_react.default.createElement(_reactBootstrap.Button, {
+        }, "D\xE9but: ".concat(_Utils.UtilsDateTime.getDate(item.startDate), " (").concat(item.nbHoursPerWeek, " h/semaine)"))), /*#__PURE__*/_react.default.createElement("div", null, item.completionState > 0 && /*#__PURE__*/_react.default.createElement(_reactBootstrap.Button, {
           variant: "danger"
         }, "Apprenants en retard")), /*#__PURE__*/_react.default.createElement("div", {
           className: "p-2 text-muted",
@@ -69290,7 +69196,59 @@ var WorkPlanForm = /*#__PURE__*/function (_Component2) {
           }
         }, /*#__PURE__*/_react.default.createElement(_reactFontawesome.FontAwesomeIcon, {
           icon: _freeSolidSvgIcons.faTrashAlt
-        }), " Supprimer")))));
+        }), " Supprimer")))), /*#__PURE__*/_react.default.createElement("div", {
+          className: "p-2 text-muted",
+          style: {
+            textAlign: 'right'
+          }
+        }, /*#__PURE__*/_react.default.createElement("a", {
+          href: "#",
+          onClick: function onClick() {
+            return _this4.onDetail(_this4.state.detail == item.id ? -1 : item.id);
+          }
+        }, /*#__PURE__*/_react.default.createElement(_reactFontawesome.FontAwesomeIcon, {
+          icon: _this4.state.detail == item.id ? _freeSolidSvgIcons.faArrowCircleUp : _freeSolidSvgIcons.faArrowCircleDown
+        }))), _this4.state.detail == item.id && /*#__PURE__*/_react.default.createElement("div", {
+          style: {
+            width: '100%'
+          }
+        }, _this4.state.data.template.activities.map(function (item, index) {
+          var card2 = /*#__PURE__*/_react.default.createElement(_reactBootstrap.Card, {
+            key: index,
+            className: "rounded mt-2 mb-2"
+          }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Card.Body, {
+            style: {
+              backgroundColor: "#ffffff",
+              display: "grid",
+              gridGap: '1rem',
+              gridTemplateColumns: '50% auto auto',
+              alignItems: 'center'
+            }
+          }, /*#__PURE__*/_react.default.createElement("div", null, /*#__PURE__*/_react.default.createElement("div", {
+            className: "h4"
+          }, /*#__PURE__*/_react.default.createElement("strong", null, item.cmName)), /*#__PURE__*/_react.default.createElement("div", {
+            className: "h6 text-muted pl-3"
+          }, "".concat(item.categoryName, "/").concat(item.courseName)), /*#__PURE__*/_react.default.createElement("div", {
+            className: "h6 text-muted pl-3"
+          }, "".concat(item.nbHoursCompletion, " heures"))), /*#__PURE__*/_react.default.createElement("div", {
+            className: "m-3 p-2"
+          }, _this4.state.data.template.followUps.map(function (followUps, index2) {
+            return /*#__PURE__*/_react.default.createElement(_reactBootstrap.Button, {
+              key: index2,
+              variant: followUps.variant
+            }, followUps.desc);
+          })), /*#__PURE__*/_react.default.createElement("div", {
+            className: "p-2 text-muted",
+            style: {
+              alignItems: 'center',
+              display: 'flex'
+            }
+          }, item.completionState > 0 && /*#__PURE__*/_react.default.createElement(_reactBootstrap.Button, {
+            variant: "success"
+          }, "Compl\xE9t\xE9"))));
+
+          return card2;
+        }))));
 
         return card;
       })))), this.state.showActivities && /*#__PURE__*/_react.default.createElement(_TemplateView.ActivityPicker, {
@@ -69307,6 +69265,13 @@ var WorkPlanForm = /*#__PURE__*/function (_Component2) {
 
       var main = body;
       return main;
+    }
+  }, {
+    key: "onDetail",
+    value: function onDetail(id) {
+      this.setState({
+        detail: id
+      });
     }
   }, {
     key: "onTabChange",
