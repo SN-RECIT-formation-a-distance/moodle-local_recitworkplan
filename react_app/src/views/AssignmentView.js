@@ -164,7 +164,7 @@ export class AssignmentsView extends Component{
            that.getData();
         }
 
-        if(window.confirm($glVars.i18n.tags.msgConfirmDeletion)){
+        if(window.confirm($glVars.i18n.tags.msgConfirmArchive)){
             let assignments = [];
             for (let a of template.assignments){
                 a.completionState = 1;

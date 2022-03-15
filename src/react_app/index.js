@@ -67742,7 +67742,8 @@ var i18n = _common.$glVars.i18n;
 i18n.setLang("fr");
 i18n.addTag("appName", "RÉCIT Work Plan", "Plan de travail RÉCIT");
 i18n.addTag("search", "Search", "Rechercher");
-i18n.addTag("msgConfirmDeletion", "Do you confirm the deletion?", "Confirmez-vous la suppression?");
+i18n.addTag("msgConfirmArchive", "Do you confirm the archive?", "Confirmez-vous l'archivage?");
+i18n.addTag("msgConfirmDeletion", "Do you confirm the deletion?", "Confirmez-vous la suppression? Cette opération est irréversible.");
 i18n.addTag("msgConfirm", "Are you sure you want to proceed?", "Êtes-vous sur de vouloir continuer?");
 i18n.addTag("msgConfirmClone", "Are you sure you want to clone this?", "Êtes-vous sur de vouloir dupliquer ce gabarit?");
 i18n.addTag("msgSuccess", "The action has been completed successfully.", "L'action a été complétée avec succès.");
@@ -68826,7 +68827,7 @@ var AssignmentsView = /*#__PURE__*/function (_Component) {
         that.getData();
       };
 
-      if (window.confirm(_common.$glVars.i18n.tags.msgConfirmDeletion)) {
+      if (window.confirm(_common.$glVars.i18n.tags.msgConfirmArchive)) {
         var assignments = [];
 
         var _iterator = _createForOfIteratorHelper(template.assignments),
