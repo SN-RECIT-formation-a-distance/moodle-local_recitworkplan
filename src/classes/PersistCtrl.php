@@ -504,6 +504,11 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
             $fields = array("templateid", "userid", "assignorid", "nb_hours_per_week", "startdate", "lastupdate");
             $values = array($data->template->id, $data->user->id, $USER->id, $data->nbHoursPerWeek, $startDate->getTimestamp(), time());
 
+            if (isset($data->completionState)){
+                $fields[] = "completionstate";
+                $values[] = $data->completionState;
+            }
+
             if($data->id == 0){
                 $query = $this->mysqlConn->prepareStmt("insert", "{$this->prefix}recit_wk_tpl_assign", $fields, $values);
                 $this->mysqlConn->execSQL($query);
@@ -725,7 +730,7 @@ class Assignment{
     public $endDate = null;
     public $nbHoursPerWeek = 0;
     /**
-     * 0 = ongoing, 1 = finished, 2 = late
+     * 0 = ongoing, 1 = archived, 2 = late
      */
     public $completionState = 0;
 

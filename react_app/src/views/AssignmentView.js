@@ -68,7 +68,7 @@ export class AssignmentsView extends Component{
                     </div>
                     <div>
                         <ToggleButtons name="completionState" onChange={this.onCompletionStateChange} type="radio"  defaultValue={this.state.completionState} options={
-                            [{value: "0,2", text: "En Cours"}, {value: "1", text: "Complétés"}, , {value: "-1", text: "Gabarits"}]}/> 
+                            [{value: "0,2", text: "En Cours"}, {value: "1", text: "Archivés"}, , {value: "-1", text: "Gabarits"}]}/> 
                     </div>
                 </div> 
 
@@ -91,7 +91,7 @@ export class AssignmentsView extends Component{
                                             <DropdownButton variant='outline-primary' title={<span><FontAwesomeIcon icon={faEllipsisV}  />{" "}</span>} id={`optionsWorkPlan${workPlan.template.id}`}>
                                                 <Dropdown.Item onClick={() => this.onCopy(workPlan.template.id)}><FontAwesomeIcon icon={faCopy}  />{" Copier"}</Dropdown.Item>
                                                 <Dropdown.Item onClick={() => this.onDelete(workPlan.template.id)}><FontAwesomeIcon icon={faTrashAlt}  />{" Supprimer"}</Dropdown.Item>
-                                                <Dropdown.Item onClick={() => this.onArchive(workPlan.template)}><FontAwesomeIcon icon={faTrashAlt}  />{" Archiver"}</Dropdown.Item>
+                                                <Dropdown.Item onClick={() => this.onArchive(workPlan)}><FontAwesomeIcon icon={faTrashAlt}  />{" Archiver"}</Dropdown.Item>
                                             </DropdownButton>
                                         </div>
                                         <div className="m-2 p-2">
@@ -165,8 +165,12 @@ export class AssignmentsView extends Component{
         }
 
         if(window.confirm($glVars.i18n.tags.msgConfirmDeletion)){
-            template.state = 1;
-            $glVars.webApi.saveTemplate(template, callback);
+            let assignments = [];
+            for (let a of template.assignments){
+                a.completionState = 1;
+                assignments.push(a);
+            }
+            $glVars.webApi.saveAssignment(assignments, callback);
         }
     }
 
