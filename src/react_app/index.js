@@ -68560,7 +68560,8 @@ var AssignmentsView = /*#__PURE__*/function (_Component) {
         current_page: 1,
         count: 0,
         item_per_page: 25
-      }
+      },
+      editTab: 'activities'
     };
     return _this;
   }
@@ -68687,7 +68688,11 @@ var AssignmentsView = /*#__PURE__*/function (_Component) {
           style: {
             justifyContent: 'space-between'
           }
-        }, /*#__PURE__*/_react.default.createElement("span", {
+        }, /*#__PURE__*/_react.default.createElement("a", {
+          href: "#",
+          onClick: function onClick() {
+            return _this2.onEdit(workPlan.template.id, 'activities');
+          },
           className: "h3"
         }, workPlan.template.name), /*#__PURE__*/_react.default.createElement(_reactBootstrap.DropdownButton, {
           variant: "outline-primary",
@@ -68730,7 +68735,7 @@ var AssignmentsView = /*#__PURE__*/function (_Component) {
           className: "rounded-circle",
           title: "Attribuer un plan de travail.",
           onClick: function onClick() {
-            return _this2.onEdit(workPlan.template.id);
+            return _this2.onEdit(workPlan.template.id, 'assignments');
           }
         }, /*#__PURE__*/_react.default.createElement(_reactFontawesome.FontAwesomeIcon, {
           icon: _freeSolidSvgIcons.faPlus
@@ -68758,6 +68763,7 @@ var AssignmentsView = /*#__PURE__*/function (_Component) {
 
       var form = /*#__PURE__*/_react.default.createElement(WorkPlanForm, {
         templateId: this.state.templateId,
+        activeTab: this.state.editTab,
         onClose: this.onClose
       });
 
@@ -68772,9 +68778,10 @@ var AssignmentsView = /*#__PURE__*/function (_Component) {
     }
   }, {
     key: "onEdit",
-    value: function onEdit(templateId) {
+    value: function onEdit(templateId, tab) {
       this.setState({
-        templateId: templateId
+        templateId: templateId,
+        editTab: tab
       });
     }
   }, {
@@ -68874,13 +68881,17 @@ var WorkPlanForm = /*#__PURE__*/function (_Component2) {
     _this3.onDeleteActivity = _this3.onDeleteActivity.bind(_assertThisInitialized(_this3));
     _this3.onDeleteAssignment = _this3.onDeleteAssignment.bind(_assertThisInitialized(_this3));
     _this3.onSearch = _this3.onSearch.bind(_assertThisInitialized(_this3));
+    _this3.onFilterChange = _this3.onFilterChange.bind(_assertThisInitialized(_this3));
     _this3.state = {
-      tab: 'activities',
+      tab: _this3.props.activeTab,
       data: null,
       queryStr: "",
       detail: -1,
       showActivities: false,
-      showAssignments: false
+      showAssignments: false,
+      filter: {
+        late: false
+      }
     };
     return _this3;
   }
@@ -68889,6 +68900,15 @@ var WorkPlanForm = /*#__PURE__*/function (_Component2) {
     key: "componentDidMount",
     value: function componentDidMount() {
       this.getData();
+    }
+  }, {
+    key: "componentDidUpdate",
+    value: function componentDidUpdate(prevProps) {
+      if (prevProps.activeTab !== this.props.activeTab) {
+        this.setState({
+          tab: this.props.activeTab
+        });
+      }
     }
   }, {
     key: "getData",
@@ -68926,10 +68946,17 @@ var WorkPlanForm = /*#__PURE__*/function (_Component2) {
         activityList = activityList.filter(function (item) {
           return item.cmName.search(regexp) >= 0 || item.categoryName.search(regexp) >= 0 || item.courseName.search(regexp) >= 0;
         });
-        assignments = assignments.filter(function (item) {
-          return item.user.firstName.search(regexp) >= 0 || item.user.lastName.search(regexp) >= 0 || item.user.groupList.search(regexp) >= 0;
-        });
       }
+
+      assignments = assignments.filter(function (item) {
+        if (_this4.state.filter.late && item.completionState != 2) return false;
+
+        if (_this4.state.queryStr.length > 0) {
+          return item.user.firstName.search(regexp) >= 0 || item.user.lastName.search(regexp) >= 0 || item.user.groupList.search(regexp) >= 0;
+        }
+
+        return true;
+      });
 
       var body = /*#__PURE__*/_react.default.createElement("div", null, /*#__PURE__*/_react.default.createElement("div", {
         className: "d-flex mb-4",
@@ -69115,7 +69142,13 @@ var WorkPlanForm = /*#__PURE__*/function (_Component2) {
         }
       }, /*#__PURE__*/_react.default.createElement(_reactFontawesome.FontAwesomeIcon, {
         icon: _freeSolidSvgIcons.faPlus
-      }))), /*#__PURE__*/_react.default.createElement("div", null, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Control, {
+      }))), /*#__PURE__*/_react.default.createElement("div", null, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Check, {
+        type: "checkbox",
+        onChange: this.onFilterChange,
+        value: this.state.filter.late,
+        name: "late",
+        label: "Afficher seulement \xE9l\xE8ve en retard"
+      }), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Control, {
         onChange: this.onSearch,
         type: "search",
         value: this.state.queryStr,
@@ -69281,6 +69314,21 @@ var WorkPlanForm = /*#__PURE__*/function (_Component2) {
       });
     }
   }, {
+    key: "onFilterChange",
+    value: function onFilterChange(e) {
+      var filter = this.state.filter;
+
+      if (typeof e.target.checked != 'undefined') {
+        filter[e.target.name] = e.target.checked;
+      } else {
+        filter[e.target.name] = e.target.value;
+      }
+
+      this.setState({
+        filter: filter
+      });
+    }
+  }, {
     key: "onDataChange",
     value: function onDataChange(event) {
       var data = this.state.data;
@@ -69402,6 +69450,7 @@ var WorkPlanForm = /*#__PURE__*/function (_Component2) {
 
 _defineProperty(WorkPlanForm, "defaultProps", {
   templateId: 0,
+  activeTab: 'activities',
   onClose: null
 });
 

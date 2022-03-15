@@ -23,7 +23,7 @@ export class AssignmentsView extends Component{
         this.getDataResult = this.getDataResult.bind(this);
         this.onCopy = this.onCopy.bind(this);
 
-        this.state = {dataProvider: [], templateId: -1, completionState: '0,2', pagination: {current_page: 1, count: 0, item_per_page: 25}};
+        this.state = {dataProvider: [], templateId: -1, completionState: '0,2', pagination: {current_page: 1, count: 0, item_per_page: 25}, editTab: 'activities'};
     }
 
     componentDidMount(){
@@ -87,7 +87,7 @@ export class AssignmentsView extends Component{
                                     </div>
                                     <Card.Body style={{backgroundColor: "#f0f0f0"}}>
                                         <div className='d-flex' style={{justifyContent: 'space-between'}}>
-                                            <span className='h3'>{workPlan.template.name}</span>
+                                            <a href='#' onClick={() => this.onEdit(workPlan.template.id, 'activities')} className='h3'>{workPlan.template.name}</a>
                                             <DropdownButton variant='outline-primary' title={<span><FontAwesomeIcon icon={faEllipsisV}  />{" "}</span>} id={`optionsWorkPlan${workPlan.template.id}`}>
                                                 <Dropdown.Item onClick={() => this.onCopy(workPlan.template.id)}><FontAwesomeIcon icon={faCopy}  />{" Copier"}</Dropdown.Item>
                                                 <Dropdown.Item onClick={() => this.onDelete(workPlan.template.id)}><FontAwesomeIcon icon={faTrashAlt}  />{" Supprimer"}</Dropdown.Item>
@@ -98,7 +98,7 @@ export class AssignmentsView extends Component{
                                             {workPlan.assignments.map((assignment, index2) => {
                                                 return <span key={index2} style={{marginLeft: '-15px'}} dangerouslySetInnerHTML={{__html: assignment.user.avatar}}></span>;
                                             })}
-                                            <Button variant='outline-primary' className='rounded-circle' title='Attribuer un plan de travail.' onClick={() => this.onEdit(workPlan.template.id)}><FontAwesomeIcon icon={faPlus}/></Button>
+                                            <Button variant='outline-primary' className='rounded-circle' title='Attribuer un plan de travail.' onClick={() => this.onEdit(workPlan.template.id, 'assignments')}><FontAwesomeIcon icon={faPlus}/></Button>
                                         </div>
                                         <div className="m-3 p-2">
                                             {workPlan.stats && workPlan.stats.nbLateStudents > 0 && <Button variant={"danger"}>{`${workPlan.stats.nbLateStudents} apprenants en retard`}</Button>}
@@ -118,7 +118,7 @@ export class AssignmentsView extends Component{
                 <Pagination pagination={this.state.pagination} onChangePage={(p) => this.changePage(p)}/>                
             </div>;
 
-        let form = <WorkPlanForm templateId={this.state.templateId} onClose={this.onClose}/>;
+        let form = <WorkPlanForm templateId={this.state.templateId} activeTab={this.state.editTab} onClose={this.onClose}/>;
 
 
         return (this.state.templateId >= 0 ? form : main);
@@ -128,8 +128,8 @@ export class AssignmentsView extends Component{
         this.setState({templateId: 0});
     }
 
-    onEdit(templateId){
-        this.setState({templateId: templateId});
+    onEdit(templateId, tab){
+        this.setState({templateId: templateId, editTab: tab});
     }
 
     onClose(){
@@ -191,6 +191,7 @@ export class AssignmentsView extends Component{
 class WorkPlanForm extends Component{
     static defaultProps = {        
         templateId: 0,
+        activeTab: 'activities',
         onClose: null
     };
 
@@ -207,12 +208,19 @@ class WorkPlanForm extends Component{
         this.onDeleteActivity = this.onDeleteActivity.bind(this);
         this.onDeleteAssignment = this.onDeleteAssignment.bind(this);
         this.onSearch = this.onSearch.bind(this);
+        this.onFilterChange = this.onFilterChange.bind(this);
 
-        this.state = {tab: 'activities', data: null, queryStr: "", detail: -1, showActivities: false, showAssignments: false};
+        this.state = {tab: this.props.activeTab, data: null, queryStr: "", detail: -1, showActivities: false, showAssignments: false, filter: {late:false}};
     }
 
     componentDidMount(){
         this.getData();
+    }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.activeTab !== this.props.activeTab) {
+          this.setState({tab:this.props.activeTab});
+        }
     }
 
     getData(){
@@ -235,14 +243,17 @@ class WorkPlanForm extends Component{
         let regexp = UtilsString.getRegExp(this.state.queryStr);
 
         if(this.state.queryStr.length > 0){
-            activityList = activityList.filter(function(item){
+            activityList = activityList.filter((item) => {
                 return ((item.cmName.search(regexp) >= 0) || (item.categoryName.search(regexp) >= 0) || (item.courseName.search(regexp) >= 0));
             })
-
-            assignments = assignments.filter(function(item){
-                return ((item.user.firstName.search(regexp) >= 0) || (item.user.lastName.search(regexp) >= 0) || (item.user.groupList.search(regexp) >= 0));
-            })
         }
+        assignments = assignments.filter((item) =>{
+            if (this.state.filter.late && item.completionState != 2) return false;
+            if(this.state.queryStr.length > 0){
+                return ((item.user.firstName.search(regexp) >= 0) || (item.user.lastName.search(regexp) >= 0) || (item.user.groupList.search(regexp) >= 0));
+            }
+            return true;
+        })
 
         let body =  
             <div>                
@@ -325,6 +336,7 @@ class WorkPlanForm extends Component{
                                 <Button variant='outline-primary' className='rounded-circle' title='Attribuer un plan de travail.' onClick={() => this.onShowAssignments(true)} ><FontAwesomeIcon icon={faPlus}/></Button>
                             </div>
                             <div>
+                                <Form.Check type="checkbox" onChange={this.onFilterChange} value={this.state.filter.late} name="late" label="Afficher seulement élève en retard"/>
                                 <Form.Control onChange={this.onSearch} type="search" value={this.state.queryStr} name='queryStr' placeholder="Nom, groupe..."/> 
                             </div>
                         </div>
@@ -418,6 +430,16 @@ class WorkPlanForm extends Component{
 
     onTabChange(k){
         this.setState({tab: k});
+    }
+
+    onFilterChange(e){
+        let filter = this.state.filter;
+        if (typeof e.target.checked != 'undefined'){
+            filter[e.target.name] = e.target.checked;
+        }else{
+            filter[e.target.name] = e.target.value;
+        }
+        this.setState({filter:filter});
     }
 
     onDataChange(event){
