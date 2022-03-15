@@ -310,10 +310,12 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
             return $result;
         }
 
-        $query = "select t1.id, t1.firstname, t1.lastname, t1.picture
+        $query = "select t1.id, t1.firstname, t1.lastname, t1.picture, group_concat(t10.name) as grouplist
         from {user} as t1
         inner join {user_enrolments} as t2 on t1.id = t2.userid
         inner join {enrol} as t3 on t2.enrolid = t3.id
+        left join (select g.name,gm.userid,g.courseid from {groups_members} as gm
+        inner join {groups} as g on gm.groupid = g.id) as t10 on t10.courseid = t3.courseid and t10.userid = t2.userid
         left join (select st3.instanceid as courseId, 
         group_concat(distinct st1.shortname) as roles, st2.userid
         from {role} as st1 
@@ -323,6 +325,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         where t3.courseid in (select st2.course from {recit_wp_tpl_act} as st1 
                              inner join {course_modules} as st2 on st1.cmid = st2.id 
                              where st1.templateid = $templateId) and tblRoles.roles = 'student'
+        group by t1.id
         order by firstname, lastname asc";
 
         $rst = $DB->get_records_sql($query);
@@ -333,6 +336,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
             $obj->avatar = $OUTPUT->user_picture($item, array('size'=>30));
             $obj->userUrl = (new \moodle_url('/user/profile.php', array('id' => $item->id)))->out();
             $obj->userId = $item->id;
+            $obj->groupList = explode(',',$item->grouplist);
             $obj->firstName = $item->firstname;
             $obj->lastName = $item->lastname;
             $result[] = $obj;

@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
-import { Card, Tabs, Tab, Button, Form, DropdownButton, Dropdown, InputGroup, FormControl, Col, Row, Table, Badge} from 'react-bootstrap';
-import { faPencilAlt,  faPlus, faTrashAlt, faCopy, faCheck, faSearch, faArrowRight, faArrowLeft, faEllipsisV, faArrowCircleDown, faArrowCircleUp} from '@fortawesome/free-solid-svg-icons';
+import { Card, Tabs, Tab, Button, Form, DropdownButton, Dropdown, InputGroup, FormControl, Col, Row, Table, Badge, Collapse} from 'react-bootstrap';
+import { faPencilAlt,  faPlus, faTrashAlt, faCopy, faCheck, faSearch, faArrowRight, faArrowLeft, faEllipsisV, faArrowCircleDown, faArrowCircleUp, faMinus} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {ComboBoxPlus, FeedbackCtrl, DataGrid, Modal, ToggleButtons } from '../libs/components/Components';
 import {$glVars} from '../common/common';
@@ -533,7 +533,7 @@ class ModalAssignmentPicker extends Component{
         this.onDelete = this.onDelete.bind(this);
         this.onAdd = this.onAdd.bind(this);
 
-        this.state = {data: props.data, dropdownLists: {studentList: []}, flags: {dataChanged: false}};
+        this.state = {data: props.data, dropdownLists: {studentList: [], groupList: [], group: null, name: ''}, flags: {dataChanged: false}, collapse: false};
     }
 
     componentDidMount(){
@@ -550,31 +550,72 @@ class ModalAssignmentPicker extends Component{
             return;
         }
 
+        let lists = this.state.dropdownLists;
+        lists.studentList = result.data;
+
+        lists.groupList = [];
+        for (let user of result.data){
+            for (let g of user.groupList){
+                if (!lists.groupList.includes(g)){
+                    lists.groupList.push(g);
+                }
+            }
+        }
+        for (let k in lists.groupList){
+            lists.groupList[k] = {label: lists.groupList[k], value: lists.groupList[k]};
+        }
+        lists.groupList.unshift({label: '', value: null});
+
         this.setState({
-            dropdownLists: {studentList: result.data}}
-        );
+            dropdownLists: lists
+        });
     }
 
-    render(){
-        if(this.state.data === null){ return null; }
-
-        let that = this;
-        let studentList = this.state.dropdownLists.studentList.filter((item) => {
+    getFilteredStudentList(){
+        return this.state.dropdownLists.studentList.filter((item) => {
             let found = false;
-            for(let assignment of that.state.data.assignments){
+            for(let assignment of this.state.data.assignments){
                 if(parseInt(assignment.user.id, 10) === parseInt(item.userId, 10)){
                     found = true;
                     break;
                 }
             }
-            return (found ? false : true);
+            let show = true;
+            if (found) show = false;
+            if (this.state.dropdownLists.group && !item.groupList.includes(this.state.dropdownLists.group)) show = false;
+            let fullname = `${item.firstName} ${item.lastName}`;
+            if (this.state.dropdownLists.name.length > 1 && !fullname.toLowerCase().includes(this.state.dropdownLists.name.toLowerCase())) show = false;
+            return show;
         });
+    }
+
+    render(){
+        if(this.state.data === null){ return null; }
+
+        let studentList = this.getFilteredStudentList();
 
         let body = 
             <div>
+            <div className='w-100 d-flex align-items-center mb-3'>
+                <span className='h4'>Filtrez par groupe</span>
+                <Button variant="link" size="sm" onClick={() => {this.setState({collapse: !this.state.collapse})}}>
+                    {this.state.collapse ? <FontAwesomeIcon icon={faMinus}/> : <FontAwesomeIcon icon={faPlus}/>}
+                </Button>
+            </div>
+            <Collapse in={this.state.collapse} className="mb-3">
+                <div>
+                    <div style={{display: 'grid', gridGap: "1rem", gridTemplateColumns: "37% 37% 37%"}}>
+                        <Form.Group as={Col} >
+                            <Form.Label>{"Groupe"}</Form.Label>
+                            <ComboBoxPlus placeholder={"Sélectionnez votre option"} name="group" value={this.state.dropdownLists.group} options={this.state.dropdownLists.groupList} onChange={(e) => this.onFilterChange(e.target.name, e.target.value)} />
+                        </Form.Group>
+                    </div>
+                </div>
+            </Collapse>
                 <div className='row'>
                     <div className='col-md-4'>
                         <h6>Liste d'élèves</h6>
+                        <input type='text' placeholder='Rechercher...' name='name' style={{width:'100%'}} value={this.state.dropdownLists.name} onChange={(e) => this.onFilterChange(e.target.name, e.target.value)} />
                         <div style={{maxHeight: 500, overflowY: 'scroll'}}>
                             <Table striped bordered hover>                                
                                 <tbody>
@@ -590,9 +631,11 @@ class ModalAssignmentPicker extends Component{
                                             return row;
                                         }
                                     )}
+                                    {studentList.length == 0 && <tr><td>Pas de données</td></tr>}
                                 </tbody>
                             </Table>
                         </div>
+                        <a href='#' onClick={() => this.onAddSelected()}>Ajouter tous les élèves de la liste</a>
                     </div>
                     <div className='col-md-8'>
                         <div>
@@ -614,10 +657,10 @@ class ModalAssignmentPicker extends Component{
                                                                     <div className='d-flex align-items-center mb-2'>
                                                                         <div className="col-6">
                                                                             <Form.Label>Début</Form.Label>
-                                                                            <Form.Control style={{width: '115px', display: 'inline'}} className="ml-3" type="text" placeholder="Début" value={item.startDate} name="startDate" onBlur={() => this.onSave(item)} onChange={(event) => this.onDataChange(event, index)} />
+                                                                            <Form.Control style={{width: '115px', display: 'inline'}} className="ml-3" type="text" placeholder="Début" value={item.startDate} name="startDate" onBlur={() => this.onSave([item])} onChange={(event) => this.onDataChange(event, index)} />
                                                                         </div>
                                                                         <div className="col-6 'd-flex align-items-center">
-                                                                            <Form.Control style={{width: '50px', display: 'inline'}} className="mr-3" type="text" placeholder="h/semaine" value={item.nbHoursPerWeek} name="nbHoursPerWeek" onBlur={() => this.onSave(item)} onChange={(event) => this.onDataChange(event, index)} />
+                                                                            <Form.Control style={{width: '50px', display: 'inline'}} className="mr-3" type="text" placeholder="h/semaine" value={item.nbHoursPerWeek} name="nbHoursPerWeek" onBlur={() => this.onSave([item])} onChange={(event) => this.onDataChange(event, index)} />
                                                                             <span>h/semaine</span>
                                                                         </div>
                                                                     </div>
@@ -643,17 +686,39 @@ class ModalAssignmentPicker extends Component{
         let main = <Modal title={'Attribuer un plan de travail'} body={body} width="800px" onClose={this.onClose} />;
 
         return (main);
-    }   
+    }
+
+    onFilterChange(k, v){
+        let list = this.state.dropdownLists;
+        list[k] = v;
+        this.setState({dropdownLists:list});
+    }
 
     onAdd(item){
-        let newItem = {
+        let newItems = [{
             id: 0,
-            template:{ id: this.state.data.template.id},
+            template:{id: this.state.data.template.id},
             user: {id: item.userId, firstName: item.firstName, lastName: item.lastName, avatar: item.avatar},
             nbHoursPerWeek: 0,
             startDate: new Date()
+        }]
+        this.setState({flags: {dataChanged: true}}, () => this.onSave(newItems))
+    }
+
+    onAddSelected(){
+        let newItems = []
+        let studentList = this.getFilteredStudentList();
+        for (let item of studentList){
+            newItems.push({
+                id: 0,
+                template:{id: this.state.data.template.id},
+                user: {id: item.userId, firstName: item.firstName, lastName: item.lastName, avatar: item.avatar},
+                nbHoursPerWeek: 0,
+                startDate: new Date()
+            });
         }
-        this.setState({flags: {dataChanged: true}}, () => this.onSave(newItem))
+        this.setState({flags: {dataChanged: true}}, () => this.onSave(newItems))
+
     }
 
     onDelete(assignmentId){
@@ -690,11 +755,15 @@ class ModalAssignmentPicker extends Component{
                 return;
             }
 
-            if(parseInt(data.id,10) === 0){
-                data.id = result.data;
-                let tmp = that.state.data;
-                tmp.assignments.push(data);
-                that.setState({data: tmp});
+            let index = 0;
+            for (let item of data){
+                if(parseInt(item.id,10) === 0){
+                    item.id = result.data[index];
+                    let tmp = that.state.data;
+                    tmp.assignments.push(item);
+                    that.setState({data: tmp});
+                }
+                index++;
             }
         }
 
