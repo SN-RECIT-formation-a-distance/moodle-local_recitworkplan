@@ -68,17 +68,17 @@ class WebApi extends recitcommon\MoodleApi
     
     public function getWorkPlanList($request){
         try{
-            $completionState = explode(",", $request['completionState']);
+            $state = $request['state'];
             $limit = intval($request['limit']);
             $offset = intval($request['offset']);
 
             $this->canUserAccess('a');
 
-            if(in_array(-1, $completionState)){
+            if($state == 'template'){
                 $result = $this->ctrl->getTemplateList($this->signedUser->id, $limit, $offset);
             }
             else{
-                $result = $this->ctrl->getWorkPlanList($this->signedUser->id, $limit, $offset, $completionState);
+                $result = $this->ctrl->getWorkPlanList($this->signedUser->id, $limit, $offset, $state);
             }
             
             $this->prepareJson($result);
@@ -228,8 +228,9 @@ class WebApi extends recitcommon\MoodleApi
         try{
             $this->canUserAccess('a');
             $templateId = intval($request['templateId']);
-            $this->ctrl->cloneTemplate($templateId);
-            return new WebApiResult(true);
+            $state = isset($request['state']) ? $request['state'] : null;
+            $result = $this->ctrl->cloneTemplate($templateId, $state);
+            return new WebApiResult(true, array('id' => $result));
         }
         catch(Exception $ex){
             return new WebApiResult(false, false, $ex->GetMessage());

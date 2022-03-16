@@ -28,8 +28,8 @@ export class AppWebApi extends WebApi
         }
     }
     
-    getWorkPlanList(limit, offset, completionState, onSuccess){
-        let data = {limit: limit, offset: offset, completionState: completionState, service: "getWorkPlanList"};
+    getWorkPlanList(limit, offset, state, onSuccess){
+        let data = {limit: limit, offset: offset, state: state, service: "getWorkPlanList"};
         this.post(this.gateway, data, onSuccess);
     }
 
@@ -112,8 +112,8 @@ export class AppWebApi extends WebApi
         this.post(this.gateway, data, onSuccess);
     }*/
 
-    cloneTemplate(templateId, onSuccess){
-        let data = {templateId: templateId, service: "cloneTemplate"};
+    cloneTemplate(templateId, state, onSuccess){
+        let data = {templateId: templateId, state: state, service: "cloneTemplate"};
         this.post(this.gateway, data, onSuccess);
     }
 

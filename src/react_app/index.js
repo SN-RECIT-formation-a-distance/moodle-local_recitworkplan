@@ -67532,11 +67532,11 @@ var AppWebApi = /*#__PURE__*/function (_WebApi) {
     }
   }, {
     key: "getWorkPlanList",
-    value: function getWorkPlanList(limit, offset, completionState, onSuccess) {
+    value: function getWorkPlanList(limit, offset, state, onSuccess) {
       var data = {
         limit: limit,
         offset: offset,
-        completionState: completionState,
+        state: state,
         service: "getWorkPlanList"
       };
       this.post(this.gateway, data, onSuccess);
@@ -67659,9 +67659,10 @@ var AppWebApi = /*#__PURE__*/function (_WebApi) {
 
   }, {
     key: "cloneTemplate",
-    value: function cloneTemplate(templateId, onSuccess) {
+    value: function cloneTemplate(templateId, state, onSuccess) {
       var data = {
         templateId: templateId,
+        state: state,
         service: "cloneTemplate"
       };
       this.post(this.gateway, data, onSuccess);
@@ -68556,7 +68557,7 @@ var AssignmentsView = /*#__PURE__*/function (_Component) {
     _this.state = {
       dataProvider: [],
       templateId: -1,
-      completionState: '0,2',
+      activeTab: 'ongoing',
       pagination: {
         current_page: 1,
         count: 0,
@@ -68575,7 +68576,7 @@ var AssignmentsView = /*#__PURE__*/function (_Component) {
   }, {
     key: "getData",
     value: function getData() {
-      _common.$glVars.webApi.getWorkPlanList(this.state.pagination.item_per_page, this.state.pagination.current_page - 1, this.state.completionState, this.getDataResult);
+      _common.$glVars.webApi.getWorkPlanList(this.state.pagination.item_per_page, this.state.pagination.current_page - 1, this.state.activeTab, this.getDataResult);
     }
   }, {
     key: "getDataResult",
@@ -68608,7 +68609,7 @@ var AssignmentsView = /*#__PURE__*/function (_Component) {
     key: "onCompletionStateChange",
     value: function onCompletionStateChange(event) {
       this.setState({
-        completionState: event.target.value
+        activeTab: event.target.value
       }, this.getData);
     }
   }, {
@@ -68616,9 +68617,7 @@ var AssignmentsView = /*#__PURE__*/function (_Component) {
     value: function render() {
       var _this2 = this;
 
-      var dataProvider = this.state.dataProvider.filter(function (item) {
-        return item.template.state == 0;
-      });
+      var dataProvider = this.state.dataProvider;
 
       var main = /*#__PURE__*/_react.default.createElement("div", null, /*#__PURE__*/_react.default.createElement("div", {
         className: "d-flex",
@@ -68643,15 +68642,15 @@ var AssignmentsView = /*#__PURE__*/function (_Component) {
         name: "completionState",
         onChange: this.onCompletionStateChange,
         type: "radio",
-        defaultValue: this.state.completionState,
+        defaultValue: this.state.activeTab,
         options: [{
-          value: "0,2",
+          value: "ongoing",
           text: "En Cours"
         }, {
-          value: "1",
+          value: "archive",
           text: "Archivés"
-        },, {
-          value: "-1",
+        }, {
+          value: "template",
           text: "Gabarits"
         }]
       }))), /*#__PURE__*/_react.default.createElement("div", {
@@ -68707,7 +68706,13 @@ var AssignmentsView = /*#__PURE__*/function (_Component) {
           }
         }, /*#__PURE__*/_react.default.createElement(_reactFontawesome.FontAwesomeIcon, {
           icon: _freeSolidSvgIcons.faCopy
-        }), " Copier"), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Dropdown.Item, {
+        }), " Copier"), workPlan.template.state == 1 && /*#__PURE__*/_react.default.createElement(_reactBootstrap.Dropdown.Item, {
+          onClick: function onClick() {
+            return _this2.onCopy(workPlan.template.id, 0);
+          }
+        }, /*#__PURE__*/_react.default.createElement(_reactFontawesome.FontAwesomeIcon, {
+          icon: _freeSolidSvgIcons.faUser
+        }), " Utiliser"), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Dropdown.Item, {
           onClick: function onClick() {
             return _this2.onDelete(workPlan.template.id);
           }
@@ -68718,7 +68723,7 @@ var AssignmentsView = /*#__PURE__*/function (_Component) {
             return _this2.onArchive(workPlan);
           }
         }, /*#__PURE__*/_react.default.createElement(_reactFontawesome.FontAwesomeIcon, {
-          icon: _freeSolidSvgIcons.faTrashAlt
+          icon: _freeSolidSvgIcons.faArchive
         }), " Archiver"))), /*#__PURE__*/_react.default.createElement("div", {
           className: "m-2 p-2"
         }, workPlan.assignments.map(function (assignment, index2) {
@@ -68731,7 +68736,7 @@ var AssignmentsView = /*#__PURE__*/function (_Component) {
               __html: assignment.user.avatar
             }
           });
-        }), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Button, {
+        }), workPlan.template.state != 1 && /*#__PURE__*/_react.default.createElement(_reactBootstrap.Button, {
           variant: "outline-primary",
           className: "rounded-circle",
           title: "Attribuer un plan de travail.",
@@ -68850,21 +68855,24 @@ var AssignmentsView = /*#__PURE__*/function (_Component) {
     }
   }, {
     key: "onCopy",
-    value: function onCopy(templateId) {
+    value: function onCopy(templateId, state) {
       var that = this;
 
       var callback = function callback(result) {
         if (!result.success) {
           _Components.FeedbackCtrl.instance.showError(_common.$glVars.i18n.tags.appName, result.msg);
         } else {
-          _Components.FeedbackCtrl.instance.showInfo(_common.$glVars.i18n.tags.appName, _common.$glVars.i18n.tags.msgSuccess, 3);
+          _Components.FeedbackCtrl.instance.showInfo(_common.$glVars.i18n.tags.appName, _common.$glVars.i18n.tags.msgSuccess, 3); //that.getData();
 
-          that.getData();
+
+          that.setState({
+            templateId: result.data.id
+          });
         }
       };
 
       if (window.confirm(_common.$glVars.i18n.tags.msgConfirmClone)) {
-        _common.$glVars.webApi.cloneTemplate(templateId, callback);
+        _common.$glVars.webApi.cloneTemplate(templateId, state, callback);
       }
     }
   }]);
@@ -69021,6 +69029,22 @@ var WorkPlanForm = /*#__PURE__*/function (_Component2) {
         },
         name: "description",
         onChange: this.onDataChange
+      }))), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Group, {
+        as: _reactBootstrap.Row
+      }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Label, {
+        column: true,
+        sm: "2"
+      }, ""), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Col, {
+        sm: "10"
+      }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Check, {
+        type: "checkbox",
+        label: "Enregistrer en tant que gabarit",
+        rows: 4,
+        className: "w-100",
+        disabled: this.state.data.assignments.length > 1,
+        checked: this.state.data.template.state == 1,
+        name: "state",
+        onChange: this.onDataChange
       })))), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Tabs, {
         id: "workPlanTabs",
         className: "mt-3",
@@ -69135,7 +69159,8 @@ var WorkPlanForm = /*#__PURE__*/function (_Component2) {
         return card;
       }))), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Tab, {
         eventKey: "assignments",
-        title: "Affectations"
+        title: "Affectations",
+        disabled: this.state.data.template.state == 1
       }, /*#__PURE__*/_react.default.createElement("div", {
         className: "d-flex",
         style: {
@@ -69354,6 +69379,15 @@ var WorkPlanForm = /*#__PURE__*/function (_Component2) {
         this.setState({
           data: data
         });
+      } //Exception for state/checkbox
+
+
+      if (event.target.name == 'state') {
+        data.template[event.target.name] = event.target.checked ? 1 : 0;
+        this.setState({
+          data: data
+        });
+        this.onSaveTemplate(data);
       }
     }
   }, {

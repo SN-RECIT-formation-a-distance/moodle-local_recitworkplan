@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { Card, Tabs, Tab, Button, Form, DropdownButton, Dropdown, InputGroup, FormControl, Col, Row, Table, Badge, Collapse} from 'react-bootstrap';
-import { faPencilAlt,  faPlus, faTrashAlt, faCopy, faCheck, faSearch, faArrowRight, faArrowLeft, faEllipsisV, faArrowCircleDown, faArrowCircleUp, faMinus, faCheckSquare, faSquare} from '@fortawesome/free-solid-svg-icons';
+import { faPencilAlt,  faPlus, faTrashAlt, faCopy, faCheck, faSearch, faArrowRight, faArrowLeft, faEllipsisV, faArrowCircleDown, faArrowCircleUp, faMinus, faCheckSquare, faSquare, faArchive, faUser} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {ComboBoxPlus, FeedbackCtrl, DataGrid, Modal, ToggleButtons } from '../libs/components/Components';
 import {$glVars} from '../common/common';
@@ -23,7 +23,7 @@ export class AssignmentsView extends Component{
         this.getDataResult = this.getDataResult.bind(this);
         this.onCopy = this.onCopy.bind(this);
 
-        this.state = {dataProvider: [], templateId: -1, completionState: '0,2', pagination: {current_page: 1, count: 0, item_per_page: 25}, editTab: 'activities'};
+        this.state = {dataProvider: [], templateId: -1, activeTab: 'ongoing', pagination: {current_page: 1, count: 0, item_per_page: 25}, editTab: 'activities'};
     }
 
     componentDidMount(){
@@ -31,7 +31,7 @@ export class AssignmentsView extends Component{
     }
 
     getData(){
-        $glVars.webApi.getWorkPlanList(this.state.pagination.item_per_page, this.state.pagination.current_page - 1, this.state.completionState, this.getDataResult);
+        $glVars.webApi.getWorkPlanList(this.state.pagination.item_per_page, this.state.pagination.current_page - 1, this.state.activeTab, this.getDataResult);
     }
 
     getDataResult(result){
@@ -53,11 +53,11 @@ export class AssignmentsView extends Component{
     }
 
     onCompletionStateChange(event){
-        this.setState({completionState: event.target.value}, this.getData); 
+        this.setState({activeTab: event.target.value}, this.getData); 
     }
 
     render(){
-        let dataProvider = this.state.dataProvider.filter((item) => item.template.state == 0);
+        let dataProvider = this.state.dataProvider;
         
         let main = 
             <div>
@@ -67,8 +67,8 @@ export class AssignmentsView extends Component{
                         <Button variant='outline-primary' className='rounded-circle' title='Créer un plan de travail.' onClick={this.onAdd}><FontAwesomeIcon icon={faPlus}/></Button>
                     </div>
                     <div>
-                        <ToggleButtons name="completionState" onChange={this.onCompletionStateChange} type="radio"  defaultValue={this.state.completionState} options={
-                            [{value: "0,2", text: "En Cours"}, {value: "1", text: "Archivés"}, , {value: "-1", text: "Gabarits"}]}/> 
+                        <ToggleButtons name="completionState" onChange={this.onCompletionStateChange} type="radio"  defaultValue={this.state.activeTab} options={
+                            [{value: "ongoing", text: "En Cours"}, {value: "archive", text: "Archivés"}, {value: "template", text: "Gabarits"}]}/>
                     </div>
                 </div> 
 
@@ -90,15 +90,16 @@ export class AssignmentsView extends Component{
                                             <a href='#' onClick={() => this.onEdit(workPlan.template.id, 'activities')} className='h3'>{workPlan.template.name}</a>
                                             <DropdownButton variant='outline-primary' title={<span><FontAwesomeIcon icon={faEllipsisV}  />{" "}</span>} id={`optionsWorkPlan${workPlan.template.id}`}>
                                                 <Dropdown.Item onClick={() => this.onCopy(workPlan.template.id)}><FontAwesomeIcon icon={faCopy}  />{" Copier"}</Dropdown.Item>
+                                                {workPlan.template.state == 1 && <Dropdown.Item onClick={() => this.onCopy(workPlan.template.id, 0)}><FontAwesomeIcon icon={faUser}  />{" Utiliser"}</Dropdown.Item>}
                                                 <Dropdown.Item onClick={() => this.onDelete(workPlan.template.id)}><FontAwesomeIcon icon={faTrashAlt}  />{" Supprimer"}</Dropdown.Item>
-                                                <Dropdown.Item onClick={() => this.onArchive(workPlan)}><FontAwesomeIcon icon={faTrashAlt}  />{" Archiver"}</Dropdown.Item>
+                                                <Dropdown.Item onClick={() => this.onArchive(workPlan)}><FontAwesomeIcon icon={faArchive}  />{" Archiver"}</Dropdown.Item>
                                             </DropdownButton>
                                         </div>
                                         <div className="m-2 p-2">
                                             {workPlan.assignments.map((assignment, index2) => {
                                                 return <span key={index2} style={{marginLeft: '-15px'}} dangerouslySetInnerHTML={{__html: assignment.user.avatar}}></span>;
                                             })}
-                                            <Button variant='outline-primary' className='rounded-circle' title='Attribuer un plan de travail.' onClick={() => this.onEdit(workPlan.template.id, 'assignments')}><FontAwesomeIcon icon={faPlus}/></Button>
+                                            {workPlan.template.state != 1 && <Button variant='outline-primary' className='rounded-circle' title='Attribuer un plan de travail.' onClick={() => this.onEdit(workPlan.template.id, 'assignments')}><FontAwesomeIcon icon={faPlus}/></Button>}
                                         </div>
                                         <div className="m-3 p-2">
                                             {workPlan.stats && workPlan.stats.nbLateStudents > 0 && <Button variant={"danger"}>{`${workPlan.stats.nbLateStudents} apprenants en retard`}</Button>}
@@ -174,7 +175,7 @@ export class AssignmentsView extends Component{
         }
     }
 
-    onCopy(templateId){
+    onCopy(templateId, state){
         let that = this;
         let callback = function(result){
             if(!result.success){
@@ -182,12 +183,13 @@ export class AssignmentsView extends Component{
             }
             else{
                 FeedbackCtrl.instance.showInfo($glVars.i18n.tags.appName, $glVars.i18n.tags.msgSuccess, 3);
-                that.getData();
+                //that.getData();
+                that.setState({templateId: result.data.id});
             }
         };
 
         if(window.confirm($glVars.i18n.tags.msgConfirmClone)){
-            $glVars.webApi.cloneTemplate(templateId, callback);
+            $glVars.webApi.cloneTemplate(templateId, state, callback);
         }
     }
 }
@@ -279,6 +281,12 @@ class WorkPlanForm extends Component{
                             <Form.Control as="textarea" rows={4} className='w-100' value={this.state.data.template.description} onBlur={() => this.onSaveTemplate(this.state.data)}  name="description" onChange={this.onDataChange} />
                         </Col>
                     </Form.Group>
+                    <Form.Group as={Row}>
+                        <Form.Label column sm="2">{""}</Form.Label>
+                        <Col sm="10">
+                            <Form.Check type="checkbox" label="Enregistrer en tant que gabarit" rows={4} className='w-100' disabled={this.state.data.assignments.length > 1} checked={this.state.data.template.state == 1} name="state" onChange={this.onDataChange} />
+                        </Col>
+                    </Form.Group>
                 </Form>   
                 <Tabs id="workPlanTabs" className="mt-3" variant="pills" fill  activeKey={this.state.tab} onSelect={this.onTabChange}>
                     <Tab eventKey="activities" title="Activités">
@@ -333,7 +341,7 @@ class WorkPlanForm extends Component{
                             )}
                         </div>
                     </Tab>
-                    <Tab eventKey="assignments" title="Affectations">
+                    <Tab eventKey="assignments" title="Affectations" disabled={this.state.data.template.state == 1}>
                         <div className='d-flex' style={{justifyContent: "space-between", alignItems: "center"}}>
                             <div className='d-flex' style={{alignItems: "center"}}>
                                 <span className='h2 mr-3'>Affectations</span>
@@ -451,6 +459,13 @@ class WorkPlanForm extends Component{
         if(data.template[event.target.name] !== event.target.value){
             data.template[event.target.name] = event.target.value
             this.setState({data:data});
+        }
+
+        //Exception for state/checkbox
+        if (event.target.name == 'state'){
+            data.template[event.target.name] = event.target.checked ? 1 : 0;
+            this.setState({data:data});
+            this.onSaveTemplate(data)
         }
     }
 

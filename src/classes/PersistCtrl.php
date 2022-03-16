@@ -115,7 +115,8 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         left join {$this->prefix}course as t7 on t7.id = t5.course
         left join {$this->prefix}course_categories as t8 on t7.category = t8.id
         left join (".$this->getAdminRolesStmt($userId).") as tblRoles on t5.course = tblRoles.courseId
-        left join (".$this->getCatAdminRolesStmt($userId).") as tblCatRoles on t7.category = tblCatRoles.categoryId";
+        left join (".$this->getCatAdminRolesStmt($userId).") as tblCatRoles on t7.category = tblCatRoles.categoryId
+        where t2.state = 1";
 
         if ($limit > 0){
             $offsetsql = $offset * $limit;
@@ -222,7 +223,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
             $query = "delete t1, t2, t3
                      from {$this->prefix}recit_wp_tpl as t1
                     left join {$this->prefix}recit_wp_tpl_act as t2 on t1.id = t2.templateid 
-                    left join {$this->prefix}recit_wk_tpl_assign as t3 on t1.id = t3.templateid
+                    left join {$this->prefix}recit_wp_tpl_assign as t3 on t1.id = t3.templateid
                     where t1.id = $templateId";
 
             $this->mysqlConn->execSQL($query);
@@ -233,11 +234,15 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         }  
     }*/
 
-    public function cloneTemplate($templateId){
+    public function cloneTemplate($templateId, $state = null){
         try{
             $this->mysqlConn->beginTransaction();
 
-            $query = "insert into {$this->prefix}recit_wp_tpl (creatorid, name, description, lastupdate) select creatorid, concat(name, ' (copie)'), description, now() from {$this->prefix}recit_wp_tpl where id = $templateId";
+            if (!is_numeric($state)){
+                $query = "insert into {$this->prefix}recit_wp_tpl (creatorid, name, description, lastupdate, state) select creatorid, concat(name, ' (copie)'), description, now(), state from {$this->prefix}recit_wp_tpl where id = $templateId";
+            }else{
+                $query = "insert into {$this->prefix}recit_wp_tpl (creatorid, name, description, lastupdate, state) select creatorid, concat(name, ' (copie)'), description, now(), $state from {$this->prefix}recit_wp_tpl where id = $templateId";
+            }
             $this->mysqlConn->execSQL($query);
             $newTemplateId = $this->mysqlConn->getLastInsertId("{$this->prefix}recit_wp_tpl", "id");
 
@@ -245,7 +250,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
             $this->mysqlConn->execSQL($query);
 
             $this->mysqlConn->commitTransaction();
-            return true;
+            return $newTemplateId;
         }
         catch(\Exception $ex){
             $this->mysqlConn->rollbackTransaction();
@@ -375,7 +380,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         t6.completionstate as activitycompletionstate, tblRoles.roles, tblCatRoles.categoryroles, t1.assignorid, t8.name as categoryname, t3.id as tpl_act_id, 
         users.userid, users.firstname, users.lastname, users.lastaccess, users.grouplist
         from {$this->prefix}recit_wp_tpl as t2
-        left join {$this->prefix}recit_wk_tpl_assign as t1 on t1.templateid = t2.id
+        left join {$this->prefix}recit_wp_tpl_assign as t1 on t1.templateid = t2.id
         left join {$this->prefix}recit_wp_tpl_act as t3 on t3.templateid = t2.id
         left join {$this->prefix}course_modules as t5 on t3.cmid = t5.id
         left join {$this->prefix}course as t7 on t7.id = t5.course
@@ -424,21 +429,29 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         return $result; 
     }
 
-    public function getWorkPlanList($userId, $limit = 0, $offset = 0, $completionState = array(0,2)){
+    public function getWorkPlanList($userId, $limit = 0, $offset = 0, $state = 'ongoing'){
+        $where = "";
+        if ($state == 'ongoing'){
+            $where = "(t1.completionstate in (0,2) and t2.state = 0) or (t1.completionstate is null and t2.state = 0)";
+        }
+        if ($state == 'archive'){
+            $where = "(t1.completionstate = 1 and t2.state = 0)";
+        }
+
         $query = "select t1.id, t1.nb_hours_per_week as nbhoursperweek, from_unixtime(t1.startdate) as startdate, t1.completionstate as wpcompletionstate, t2.id as templateid, t2.creatorid, t2.name as templatename, t7.fullname as coursename, t7.id as courseid,
         t2.description as templatedesc, from_unixtime(t2.lastupdate) as lastupdate, t3.cmid, t3.nb_hours_completion as nb_hours_completion, t4.id as userid, t4.firstname, t4.lastname, count(*) OVER() AS total_count,
         t6.completionstate as activitycompletionstate, tblRoles.roles, tblCatRoles.categoryroles, t1.assignorid, t8.name as categoryname, t3.id as tpl_act_id, t2.state as templatestate
-        from {$this->prefix}recit_wk_tpl_assign as t1
-        inner join {$this->prefix}recit_wp_tpl as t2 on t1.templateid = t2.id
-        inner join {$this->prefix}recit_wp_tpl_act as t3 on t3.templateid = t2.id
-        inner join {$this->prefix}user as t4 on t1.userid = t4.id
-        inner join {$this->prefix}course_modules as t5 on t3.cmid = t5.id
-        inner join {$this->prefix}course as t7 on t7.id = t5.course
-        inner join {$this->prefix}course_categories as t8 on t7.category = t8.id
+        from {$this->prefix}recit_wp_tpl as t2
+        left join {$this->prefix}recit_wp_tpl_assign as t1 on t1.templateid = t2.id
+        left join {$this->prefix}recit_wp_tpl_act as t3 on t3.templateid = t2.id
+        left join {$this->prefix}user as t4 on t1.userid = t4.id
+        left join {$this->prefix}course_modules as t5 on t3.cmid = t5.id
+        left join {$this->prefix}course as t7 on t7.id = t5.course
+        left join {$this->prefix}course_categories as t8 on t7.category = t8.id
         left join {$this->prefix}course_modules_completion as t6 on t5.id = t6.coursemoduleid and t6.userid = t4.id
         left join (".$this->getAdminRolesStmt($userId).") as tblRoles on t5.course = tblRoles.courseId
         left join (".$this->getCatAdminRolesStmt($userId).") as tblCatRoles on t7.category = tblCatRoles.categoryId 
-        where t1.completionstate in (". implode(",", $completionState) .")";
+        where $where";
 
         if ($limit > 0){
             $offsetsql = $offset * $limit;
@@ -480,7 +493,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         try{
             $this->mysqlConn->beginTransaction();
             
-            $this->mysqlConn->execSQL("delete from {$this->prefix}recit_wk_tpl_assign where templateid = $templateId");
+            $this->mysqlConn->execSQL("delete from {$this->prefix}recit_wp_tpl_assign where templateid = $templateId");
 
             $this->mysqlConn->execSQL("delete from {$this->prefix}recit_wp_tpl_act where templateid = $templateId");
 
@@ -510,13 +523,13 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
             }
 
             if($data->id == 0){
-                $query = $this->mysqlConn->prepareStmt("insert", "{$this->prefix}recit_wk_tpl_assign", $fields, $values);
+                $query = $this->mysqlConn->prepareStmt("insert", "{$this->prefix}recit_wp_tpl_assign", $fields, $values);
                 $this->mysqlConn->execSQL($query);
-                $data->id = $this->mysqlConn->getLastInsertId("{$this->prefix}recit_wk_tpl_assign", "id");
+                $data->id = $this->mysqlConn->getLastInsertId("{$this->prefix}recit_wp_tpl_assign", "id");
                 $this->addCalendarEvent($data->template->id, $data->user->id);
             }
             else{
-                $query = $this->mysqlConn->prepareStmt("update", "{$this->prefix}recit_wk_tpl_assign", $fields, $values, array("id"), array($data->id));
+                $query = $this->mysqlConn->prepareStmt("update", "{$this->prefix}recit_wp_tpl_assign", $fields, $values, array("id"), array($data->id));
                 $this->mysqlConn->execSQL($query);
                 $this->deleteCalendarEvent($data->id, $data->user->id);
                 $this->addCalendarEvent($data->template->id, $data->user->id);
@@ -531,7 +544,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
 
     public function deleteAssignment($assignmentId){
         try{
-            $this->mysqlConn->execSQL("delete from {$this->prefix}recit_wk_tpl_assign where id = $assignmentId");
+            $this->mysqlConn->execSQL("delete from {$this->prefix}recit_wp_tpl_assign where id = $assignmentId");
             return true;
         }
         catch(\Exception $ex){
@@ -544,7 +557,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
             $query = "select assignmentId, templateid,  (case when nbIncompleteAct = 0 then 1 when now() > enddate and nbIncompleteAct > 0 then 2 else 0 end) as completionstate, nbIncompleteAct, startdate, enddate, cmids FROM
             (select t1.id as assignmentId, t1.templateid, from_unixtime(any_value(t1.startdate)) as startdate, date_add(from_unixtime(any_value(t1.startdate)), interval (sum(t2.nb_hours_completion) / any_value(t1.nb_hours_per_week)) week) as enddate, sum(if(coalesce(t3.completionstate,0) = 0, 1, 0)) as nbIncompleteAct,
              group_concat(DISTINCT t2.cmid) as cmids
-            from mdl_recit_wk_tpl_assign as t1 
+            from mdl_recit_wp_tpl_assign as t1 
             inner join mdl_recit_wp_tpl_act as t2 on t1.templateid = t2.templateid 
             left join mdl_course_modules_completion as t3 on t2.cmid = t3.coursemoduleid and t1.userid = t3.userid
             where t1.userid = $userId
@@ -554,7 +567,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
             $obj = $this->mysqlConn->execSQLAndGetObject($query);
 
             if(!empty($obj)){
-                $query = $this->mysqlConn->prepareStmt("update", "{$this->prefix}recit_wk_tpl_assign", array('completionstate'), array($obj->completionstate), array("id"), array($obj->assignmentId));
+                $query = $this->mysqlConn->prepareStmt("update", "{$this->prefix}recit_wp_tpl_assign", array('completionstate'), array($obj->completionstate), array("id"), array($obj->assignmentId));
                 $this->mysqlConn->execSQL($query);
             }
 
@@ -610,7 +623,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
     public function recalculateCalendarEvents($tplId, $assignments = false){
         global $DB;
         if (!$assignments){
-            $assignments = $DB->get_records('recit_wk_tpl_assign', array('templateid' => $tplId));
+            $assignments = $DB->get_records('recit_wp_tpl_assign', array('templateid' => $tplId));
         }
         foreach($assignments as $assignment){
             //$this->deleteCalendarEvent($assignment->id);
