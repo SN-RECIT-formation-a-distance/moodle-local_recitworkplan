@@ -377,7 +377,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
     public function getWorkPlan($userId, $templateId){
         $query = "select  t1.id, t1.nb_hours_per_week as nbhoursperweek, from_unixtime(t1.startdate) as startdate, t1.completionstate as wpcompletionstate, t2.id as templateid, t2.creatorid, t2.name as templatename, t2.state as templatestate, t7.fullname as coursename, t7.id as courseid,
         t2.description as templatedesc, from_unixtime(t2.lastupdate) as lastupdate, t3.cmid, t3.nb_hours_completion as nb_hours_completion, count(*) OVER() AS total_count,
-        t6.completionstate as activitycompletionstate, tblRoles.roles, tblCatRoles.categoryroles, t1.assignorid, t8.name as categoryname, t3.id as tpl_act_id, 
+        t6.completionstate as activitycompletionstate, tblRoles.roles, tblCatRoles.categoryroles, t1.assignorid, t8.name as categoryname, t3.id as tpl_act_id, t1.comment as comment,
         users.userid, users.firstname, users.lastname, users.lastaccess, users.grouplist
         from {$this->prefix}recit_wp_tpl as t2
         left join {$this->prefix}recit_wp_tpl_assign as t1 on t1.templateid = t2.id
@@ -440,7 +440,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
 
         $query = "select t1.id, t1.nb_hours_per_week as nbhoursperweek, from_unixtime(t1.startdate) as startdate, t1.completionstate as wpcompletionstate, t2.id as templateid, t2.creatorid, t2.name as templatename, t7.fullname as coursename, t7.id as courseid,
         t2.description as templatedesc, from_unixtime(t2.lastupdate) as lastupdate, t3.cmid, t3.nb_hours_completion as nb_hours_completion, t4.id as userid, t4.firstname, t4.lastname, count(*) OVER() AS total_count,
-        t6.completionstate as activitycompletionstate, tblRoles.roles, tblCatRoles.categoryroles, t1.assignorid, t8.name as categoryname, t3.id as tpl_act_id, t2.state as templatestate
+        t6.completionstate as activitycompletionstate, tblRoles.roles, tblCatRoles.categoryroles, t1.assignorid, t8.name as categoryname, t3.id as tpl_act_id, t2.state as templatestate, t1.comment as comment
         from {$this->prefix}recit_wp_tpl as t2
         left join {$this->prefix}recit_wp_tpl_assign as t1 on t1.templateid = t2.id
         left join {$this->prefix}recit_wp_tpl_act as t3 on t3.templateid = t2.id
@@ -514,8 +514,8 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
             $startDate = $data->startDate;
             if (is_string($data->startDate)) $startDate = new DateTime($data->startDate);
 
-            $fields = array("templateid", "userid", "assignorid", "nb_hours_per_week", "startdate", "lastupdate");
-            $values = array($data->template->id, $data->user->id, $USER->id, $data->nbHoursPerWeek, $startDate->getTimestamp(), time());
+            $fields = array("templateid", "userid", "assignorid", "nb_hours_per_week", "startdate", "lastupdate", "comment");
+            $values = array($data->template->id, $data->user->id, $USER->id, $data->nbHoursPerWeek, $startDate->getTimestamp(), time(), $data->comment);
 
             if (isset($data->completionState)){
                 $fields[] = "completionstate";
@@ -742,6 +742,7 @@ class Assignment{
     public $startDate = null;
     public $endDate = null;
     public $nbHoursPerWeek = 0;
+    public $comment = "";
     /**
      * 0 = ongoing, 1 = archived, 2 = late
      */
@@ -793,6 +794,7 @@ class Assignment{
         }
 
         $result->nbHoursPerWeek = $dbData->nbhoursperweek;
+        $result->comment = $dbData->comment;
         $result->completionState = $dbData->wpcompletionstate;
 
         return $result;

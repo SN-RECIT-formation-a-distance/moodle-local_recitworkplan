@@ -216,11 +216,14 @@ class WorkPlanForm extends Component{
         this.onSearch = this.onSearch.bind(this);
         this.onFilterChange = this.onFilterChange.bind(this);
 
-        this.state = {tab: this.props.activeTab, data: null, queryStr: "", detail: -1, showActivities: false, showAssignments: false, filter: {late:false}};
+        this.state = {tab: this.props.activeTab, data: null, queryStr: "", detail: -1, showActivities: false, showAssignments: false, filter: {late:false}, editModal: false, editAssignment: -1};
     }
 
     componentDidMount(){
         this.getData();
+        if (this.props.templateId == 0){
+            this.setState({editModal:true})
+        }
     }
 
     componentDidUpdate(prevProps) {
@@ -259,7 +262,42 @@ class WorkPlanForm extends Component{
                 return ((item.user.firstName.search(regexp) >= 0) || (item.user.lastName.search(regexp) >= 0) || (item.user.groupList.search(regexp) >= 0));
             }
             return true;
-        })
+        });
+
+        let nbHoursCompletionTotal = 0;
+        let categories = [];
+        for (let act of activityList){
+            if (!categories.includes(act.categoryName)){
+                categories.push(act.categoryName);
+            }
+            nbHoursCompletionTotal = nbHoursCompletionTotal + parseInt(act.nbHoursCompletion);
+        }
+
+        let modalBody = <div>
+        <Form>
+            <div className='h3 mb-4'>Description</div>
+            <Form.Group as={Row} >
+                <Form.Label column sm="2">{"Nom"}</Form.Label>
+                <Col sm="10">
+                    <Form.Control type="text" value={this.state.data.template.name} name="name" onChange={this.onDataChange} />
+                </Col>
+            </Form.Group>
+            <Form.Group as={Row}>
+                <Form.Label column sm="2">{"Description"}</Form.Label>
+                <Col sm="10">
+                    <Form.Control as="textarea" rows={4} className='w-100' value={this.state.data.template.description} name="description" onChange={this.onDataChange} />
+                </Col>
+            </Form.Group>
+            <Form.Group as={Row}>
+                <Form.Label column sm="2">{""}</Form.Label>
+                <Col sm="10">
+                    <Form.Check type="checkbox" label="Enregistrer en tant que gabarit" rows={4} className='w-100' disabled={this.state.data.assignments.length > 1} checked={this.state.data.template.state == 1} name="state" onChange={this.onDataChange} />
+                </Col>
+            </Form.Group>
+        </Form>
+        <Button variant='primary' className='ml-2' onClick={() => {this.onSaveTemplate(this.state.data); this.setState({editModal:false});}}>Sauvegarder</Button>
+        <Button variant='secondary' onClick={() => this.setState({editModal:false})}>Annuler</Button>
+        </div>
 
         let body =  
             <div>                
@@ -267,27 +305,26 @@ class WorkPlanForm extends Component{
                     <Button onClick={this.props.onClose} className='rounded-circle' variant='outline-primary'><FontAwesomeIcon icon={faArrowLeft}/></Button>
                     <span className="h1 ml-3">Plan de travail</span>
                 </div>
-                <Form>
-                    <div className='h3 mb-4'>Description</div>
-                    <Form.Group as={Row} >
-                        <Form.Label column sm="2">{"Nom"}</Form.Label>
-                        <Col sm="10">
-                            <Form.Control type="text"  value={this.state.data.template.name} onBlur={() => this.onSaveTemplate(this.state.data)} name="name" onChange={this.onDataChange} />
-                        </Col>
-                    </Form.Group>
-                    <Form.Group as={Row}>
-                        <Form.Label column sm="2">{"Description"}</Form.Label>
-                        <Col sm="10">
-                            <Form.Control as="textarea" rows={4} className='w-100' value={this.state.data.template.description} onBlur={() => this.onSaveTemplate(this.state.data)}  name="description" onChange={this.onDataChange} />
-                        </Col>
-                    </Form.Group>
-                    <Form.Group as={Row}>
-                        <Form.Label column sm="2">{""}</Form.Label>
-                        <Col sm="10">
-                            <Form.Check type="checkbox" label="Enregistrer en tant que gabarit" rows={4} className='w-100' disabled={this.state.data.assignments.length > 1} checked={this.state.data.template.state == 1} name="state" onChange={this.onDataChange} />
-                        </Col>
-                    </Form.Group>
-                </Form>   
+                    <div className='h3 mb-4'>Description <a href='#' onClick={() => this.setState({editModal:true})}><FontAwesomeIcon icon={faPencilAlt}/></a></div>
+                    <div>
+                        <span className='bold'>Nom:</span> {this.state.data.template.name}
+                    </div>
+                    <div>
+                        <span className='bold'>Description:</span> {this.state.data.template.description}
+                    </div>
+                    <div>
+                        <span className='bold'>Gabarit:</span> {this.state.data.template.state == 1 ? 'Oui' : 'Non'}
+                    </div>
+                    <div>
+                    <span className='bold'>{"Nombre d'heure requis pour compléter ce plan: "}</span>
+                            {nbHoursCompletionTotal} heures
+                    </div>
+                    <div>
+                    <span className='bold'>{"Catégories de cours: "}</span>
+                            {categories.map((item, index) => {
+                                return item + ', '.substring(0,-2);
+                            })}
+                    </div> 
                 <Tabs id="workPlanTabs" className="mt-3" variant="pills" fill  activeKey={this.state.tab} onSelect={this.onTabChange}>
                     <Tab eventKey="activities" title="Activités">
                         <div className='d-flex' style={{justifyContent: "space-between", alignItems: "center"}}>
@@ -379,13 +416,13 @@ class WorkPlanForm extends Component{
                                                         <div className='text-muted'>{`Début: ${UtilsDateTime.getDate(item.startDate)} (${item.nbHoursPerWeek} h/semaine)`}</div>
                                                     </div>
                                                     <div>
-                                                        {item.completionState > 0 && <Button variant={"danger"}>{`Apprenants en retard`}</Button>}
+                                                        {item.completionState > 0 && <Button variant={"danger"}>{`Apprenant en retard`}</Button>}
                                                     </div>
                                                     <div className="p-2 text-muted" style={{alignItems: 'center', display: 'flex'}}>
                                                         <span className='mr-3'>{"Achèvement"}</span>
                                                         <FontAwesomeIcon icon={faCheck}/><span className='ml-2 mr-3'>{progressText}</span>  
                                                         <DropdownButton variant='outline-primary' title={<span><FontAwesomeIcon icon={faEllipsisV}  />{" "}</span>} id={`optionsAssignments${item.id}`}>
-                                                            <Dropdown.Item onClick={() => this.onShowAssignments(true)}><FontAwesomeIcon icon={faPencilAlt}  />{" Modifier"}</Dropdown.Item>
+                                                            <Dropdown.Item onClick={() => this.setState({editAssignment:item.id})}><FontAwesomeIcon icon={faPencilAlt}  />{" Modifier"}</Dropdown.Item>
                                                             <Dropdown.Item onClick={() => this.onDeleteAssignment(item.id)}><FontAwesomeIcon icon={faTrashAlt}  />{" Supprimer"}</Dropdown.Item>
                                                         </DropdownButton>
                                                     </div>
@@ -427,8 +464,10 @@ class WorkPlanForm extends Component{
                         </div>
                     </Tab>
                 </Tabs>  
-                {this.state.showActivities  && <ActivityPicker templateId={this.props.templateId} onClose={(refresh) => this.onShowActivities(false, refresh)}/>}
-                {this.state.showAssignments  && <ModalAssignmentPicker data={this.state.data} onClose={(refresh) => this.onShowAssignments(false, refresh)}/>}
+                {this.state.showActivities && <ActivityPicker templateId={this.props.templateId} onClose={(refresh) => this.onShowActivities(false, refresh)}/>}
+                {this.state.showAssignments && <ModalAssignmentPicker data={this.state.data} onClose={(refresh) => this.onShowAssignments(false, refresh)}/>}
+                {this.state.editAssignment > 1 && <ModalAssignmentEditor assignment={this.state.editAssignment} data={this.state.data} onClose={(refresh) => this.onShowAssignments(false, refresh)}/>}
+                {this.state.editModal && <Modal title="Modifier gabarit" body={modalBody} onClose={() => this.setState({editModal:false})}/>}
             </div>
             
         let main = body;
@@ -498,7 +537,7 @@ class WorkPlanForm extends Component{
     onShowAssignments(value, refresh){
         refresh = (typeof refresh === 'undefined' ? false : refresh);
         let callback = (refresh ? this.getData : null);
-        this.setState({showAssignments: value}, callback);
+        this.setState({showAssignments: value, editAssignment: -1}, callback);
     }
 
     onDeleteActivity(tplActId){
@@ -681,16 +720,6 @@ class ModalAssignmentPicker extends Component{
                                                                         <strong>{`${item.user.firstName} ${item.user.lastName}`}</strong>
                                                                     </div>
                                                                     
-                                                                    <div className='d-flex align-items-center mb-2'>
-                                                                        <div className="col-6">
-                                                                            <Form.Label>Début</Form.Label>
-                                                                            <Form.Control style={{width: '115px', display: 'inline'}} className="ml-3" type="text" placeholder="Début" value={item.startDate} name="startDate" onBlur={() => this.onSave([item])} onChange={(event) => this.onDataChange(event, index)} />
-                                                                        </div>
-                                                                        <div className="col-6 'd-flex align-items-center">
-                                                                            <Form.Control style={{width: '50px', display: 'inline'}} className="mr-3" type="text" placeholder="h/semaine" value={item.nbHoursPerWeek} name="nbHoursPerWeek" onBlur={() => this.onSave([item])} onChange={(event) => this.onDataChange(event, index)} />
-                                                                            <span>h/semaine</span>
-                                                                        </div>
-                                                                    </div>
                                                                 </div>
                                                                 <div>
                                                                     <Button variant="link" title="Supprimer" onClick={() => this.onDelete(item.id)}><FontAwesomeIcon icon={faTrashAlt}/></Button>
@@ -764,6 +793,103 @@ class ModalAssignmentPicker extends Component{
         if(window.confirm($glVars.i18n.tags.msgConfirmDeletion)){
             $glVars.webApi.deleteAssignment(assignmentId, callback);
         }
+    }
+
+    onDataChange(event, index){
+        let tmp = this.state.data;
+        let flags = this.state.flags;
+        flags.dataChanged = (tmp.assignments[index][event.target.name] !== event.target.value);
+        tmp.assignments[index][event.target.name] = event.target.value;
+        this.setState({data: tmp, flags: flags});
+    }
+
+    onSave(data){
+        let that = this;
+        let callback = function(result){
+            if(!result.success){
+                $glVars.feedback.showError($glVars.i18n.tags.appName, result.msg);
+                return;
+            }
+
+            let index = 0;
+            for (let item of data){
+                if(parseInt(item.id,10) === 0){
+                    item.id = result.data[index];
+                    let tmp = that.state.data;
+                    tmp.assignments.push(item);
+                    that.setState({data: tmp});
+                }
+                index++;
+            }
+        }
+
+        if(this.state.flags.dataChanged){
+            $glVars.webApi.saveAssignment(data, callback);
+        }
+    }
+
+    onClose(){
+        this.props.onClose(this.state.flags.dataChanged);
+    }
+}
+
+class ModalAssignmentEditor extends Component{
+    static defaultProps = {        
+        data: null,
+        onClose: null,
+        assignment: null,
+    };
+
+    constructor(props){
+        super(props);
+
+        let assignment = 0;
+        let index = 0;
+        for (let i in props.data.assignments){
+            if (props.data.assignments[i].id == props.assignment){
+                assignment = props.data.assignments[i];
+                index = i;
+                break
+            }
+        }
+        if (!assignment.comment) assignment.comment = '';
+        this.state = {data: props.data, flags: {dataChanged: false}, assignment:assignment, index:index};
+    }
+
+
+    render(){
+        if(this.state.data === null){ return null; }
+
+        let item = this.state.assignment;
+        let body = <div>
+        <Form>
+            <Form.Group as={Row} >
+                <Form.Label column sm="2">{"Début"}</Form.Label>
+                <Col sm="10">
+                    <Form.Control type="text"  value={item.startDate} name="startDate" onChange={(event) => this.onDataChange(event, this.state.index)} />
+                </Col>
+            </Form.Group>
+            <Form.Group as={Row}>
+                <Form.Label column sm="2">{"Commentaire"}</Form.Label>
+                <Col sm="10">
+                    <Form.Control as="textarea" rows={4} className='w-100' name="comment" value={item.comment} onChange={(event) => this.onDataChange(event, this.state.index)}/>
+                </Col>
+            </Form.Group>
+            <Form.Group as={Row}>
+                <Form.Label column sm="2">{"h/semaine"}</Form.Label>
+                <Col sm="10">
+                    <Form.Control style={{width: '50px', display: 'inline'}} className="mr-3" type="text" value={item.nbHoursPerWeek} name="nbHoursPerWeek" onChange={(event) => this.onDataChange(event, this.state.index)} />
+                </Col>
+            </Form.Group>
+        </Form>
+        <Button variant='primary' className='ml-2' onClick={() => {this.onSave([item]); this.onClose();}}>Sauvegarder</Button>
+        <Button variant='secondary' onClick={() => this.onClose()}>Annuler</Button>
+        </div>
+
+
+        let main = <Modal title={'Modifier élève'} body={body} width="800px" onClose={() => this.onClose()} />;
+
+        return (main);
     }
 
     onDataChange(event, index){

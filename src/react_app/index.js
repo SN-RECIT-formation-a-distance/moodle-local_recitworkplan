@@ -68915,7 +68915,9 @@ var WorkPlanForm = /*#__PURE__*/function (_Component2) {
       showAssignments: false,
       filter: {
         late: false
-      }
+      },
+      editModal: false,
+      editAssignment: -1
     };
     return _this3;
   }
@@ -68924,6 +68926,12 @@ var WorkPlanForm = /*#__PURE__*/function (_Component2) {
     key: "componentDidMount",
     value: function componentDidMount() {
       this.getData();
+
+      if (this.props.templateId == 0) {
+        this.setState({
+          editModal: true
+        });
+      }
     }
   }, {
     key: "componentDidUpdate",
@@ -68981,21 +68989,29 @@ var WorkPlanForm = /*#__PURE__*/function (_Component2) {
 
         return true;
       });
+      var nbHoursCompletionTotal = 0;
+      var categories = [];
 
-      var body = /*#__PURE__*/_react.default.createElement("div", null, /*#__PURE__*/_react.default.createElement("div", {
-        className: "d-flex mb-4",
-        style: {
-          alignItems: "center"
+      var _iterator2 = _createForOfIteratorHelper(activityList),
+          _step2;
+
+      try {
+        for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+          var act = _step2.value;
+
+          if (!categories.includes(act.categoryName)) {
+            categories.push(act.categoryName);
+          }
+
+          nbHoursCompletionTotal = nbHoursCompletionTotal + parseInt(act.nbHoursCompletion);
         }
-      }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Button, {
-        onClick: this.props.onClose,
-        className: "rounded-circle",
-        variant: "outline-primary"
-      }, /*#__PURE__*/_react.default.createElement(_reactFontawesome.FontAwesomeIcon, {
-        icon: _freeSolidSvgIcons.faArrowLeft
-      })), /*#__PURE__*/_react.default.createElement("span", {
-        className: "h1 ml-3"
-      }, "Plan de travail")), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form, null, /*#__PURE__*/_react.default.createElement("div", {
+      } catch (err) {
+        _iterator2.e(err);
+      } finally {
+        _iterator2.f();
+      }
+
+      var modalBody = /*#__PURE__*/_react.default.createElement("div", null, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form, null, /*#__PURE__*/_react.default.createElement("div", {
         className: "h3 mb-4"
       }, "Description"), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Group, {
         as: _reactBootstrap.Row
@@ -69007,9 +69023,6 @@ var WorkPlanForm = /*#__PURE__*/function (_Component2) {
       }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Control, {
         type: "text",
         value: this.state.data.template.name,
-        onBlur: function onBlur() {
-          return _this4.onSaveTemplate(_this4.state.data);
-        },
         name: "name",
         onChange: this.onDataChange
       }))), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Group, {
@@ -69024,9 +69037,6 @@ var WorkPlanForm = /*#__PURE__*/function (_Component2) {
         rows: 4,
         className: "w-100",
         value: this.state.data.template.description,
-        onBlur: function onBlur() {
-          return _this4.onSaveTemplate(_this4.state.data);
-        },
         name: "description",
         onChange: this.onDataChange
       }))), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Group, {
@@ -69045,7 +69055,62 @@ var WorkPlanForm = /*#__PURE__*/function (_Component2) {
         checked: this.state.data.template.state == 1,
         name: "state",
         onChange: this.onDataChange
-      })))), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Tabs, {
+      })))), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Button, {
+        variant: "primary",
+        className: "ml-2",
+        onClick: function onClick() {
+          _this4.onSaveTemplate(_this4.state.data);
+
+          _this4.setState({
+            editModal: false
+          });
+        }
+      }, "Sauvegarder"), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Button, {
+        variant: "secondary",
+        onClick: function onClick() {
+          return _this4.setState({
+            editModal: false
+          });
+        }
+      }, "Annuler"));
+
+      var body = /*#__PURE__*/_react.default.createElement("div", null, /*#__PURE__*/_react.default.createElement("div", {
+        className: "d-flex mb-4",
+        style: {
+          alignItems: "center"
+        }
+      }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Button, {
+        onClick: this.props.onClose,
+        className: "rounded-circle",
+        variant: "outline-primary"
+      }, /*#__PURE__*/_react.default.createElement(_reactFontawesome.FontAwesomeIcon, {
+        icon: _freeSolidSvgIcons.faArrowLeft
+      })), /*#__PURE__*/_react.default.createElement("span", {
+        className: "h1 ml-3"
+      }, "Plan de travail")), /*#__PURE__*/_react.default.createElement("div", {
+        className: "h3 mb-4"
+      }, "Description ", /*#__PURE__*/_react.default.createElement("a", {
+        href: "#",
+        onClick: function onClick() {
+          return _this4.setState({
+            editModal: true
+          });
+        }
+      }, /*#__PURE__*/_react.default.createElement(_reactFontawesome.FontAwesomeIcon, {
+        icon: _freeSolidSvgIcons.faPencilAlt
+      }))), /*#__PURE__*/_react.default.createElement("div", null, /*#__PURE__*/_react.default.createElement("span", {
+        className: "bold"
+      }, "Nom:"), " ", this.state.data.template.name), /*#__PURE__*/_react.default.createElement("div", null, /*#__PURE__*/_react.default.createElement("span", {
+        className: "bold"
+      }, "Description:"), " ", this.state.data.template.description), /*#__PURE__*/_react.default.createElement("div", null, /*#__PURE__*/_react.default.createElement("span", {
+        className: "bold"
+      }, "Gabarit:"), " ", this.state.data.template.state == 1 ? 'Oui' : 'Non'), /*#__PURE__*/_react.default.createElement("div", null, /*#__PURE__*/_react.default.createElement("span", {
+        className: "bold"
+      }, "Nombre d'heure requis pour compléter ce plan: "), nbHoursCompletionTotal, " heures"), /*#__PURE__*/_react.default.createElement("div", null, /*#__PURE__*/_react.default.createElement("span", {
+        className: "bold"
+      }, "Catégories de cours: "), categories.map(function (item, index) {
+        return item + ', '.substring(0, -2);
+      })), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Tabs, {
         id: "workPlanTabs",
         className: "mt-3",
         variant: "pills",
@@ -69240,7 +69305,7 @@ var WorkPlanForm = /*#__PURE__*/function (_Component2) {
           className: "text-muted"
         }, "D\xE9but: ".concat(_Utils.UtilsDateTime.getDate(item.startDate), " (").concat(item.nbHoursPerWeek, " h/semaine)"))), /*#__PURE__*/_react.default.createElement("div", null, item.completionState > 0 && /*#__PURE__*/_react.default.createElement(_reactBootstrap.Button, {
           variant: "danger"
-        }, "Apprenants en retard")), /*#__PURE__*/_react.default.createElement("div", {
+        }, "Apprenant en retard")), /*#__PURE__*/_react.default.createElement("div", {
           className: "p-2 text-muted",
           style: {
             alignItems: 'center',
@@ -69260,7 +69325,9 @@ var WorkPlanForm = /*#__PURE__*/function (_Component2) {
           id: "optionsAssignments".concat(item.id)
         }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Dropdown.Item, {
           onClick: function onClick() {
-            return _this4.onShowAssignments(true);
+            return _this4.setState({
+              editAssignment: item.id
+            });
           }
         }, /*#__PURE__*/_react.default.createElement(_reactFontawesome.FontAwesomeIcon, {
           icon: _freeSolidSvgIcons.faPencilAlt
@@ -69334,6 +69401,20 @@ var WorkPlanForm = /*#__PURE__*/function (_Component2) {
         data: this.state.data,
         onClose: function onClose(refresh) {
           return _this4.onShowAssignments(false, refresh);
+        }
+      }), this.state.editAssignment > 1 && /*#__PURE__*/_react.default.createElement(ModalAssignmentEditor, {
+        assignment: this.state.editAssignment,
+        data: this.state.data,
+        onClose: function onClose(refresh) {
+          return _this4.onShowAssignments(false, refresh);
+        }
+      }), this.state.editModal && /*#__PURE__*/_react.default.createElement(_Components.Modal, {
+        title: "Modifier gabarit",
+        body: modalBody,
+        onClose: function onClose() {
+          return _this4.setState({
+            editModal: false
+          });
         }
       }));
 
@@ -69433,7 +69514,8 @@ var WorkPlanForm = /*#__PURE__*/function (_Component2) {
       refresh = typeof refresh === 'undefined' ? false : refresh;
       var callback = refresh ? this.getData : null;
       this.setState({
-        showAssignments: value
+        showAssignments: value,
+        editAssignment: -1
       }, callback);
     }
   }, {
@@ -69561,34 +69643,34 @@ var ModalAssignmentPicker = /*#__PURE__*/function (_Component3) {
       lists.studentList = result.data;
       lists.groupList = [];
 
-      var _iterator2 = _createForOfIteratorHelper(result.data),
-          _step2;
+      var _iterator3 = _createForOfIteratorHelper(result.data),
+          _step3;
 
       try {
-        for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
-          var user = _step2.value;
+        for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
+          var user = _step3.value;
 
-          var _iterator3 = _createForOfIteratorHelper(user.groupList),
-              _step3;
+          var _iterator4 = _createForOfIteratorHelper(user.groupList),
+              _step4;
 
           try {
-            for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
-              var g = _step3.value;
+            for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
+              var g = _step4.value;
 
               if (!lists.groupList.includes(g)) {
                 lists.groupList.push(g);
               }
             }
           } catch (err) {
-            _iterator3.e(err);
+            _iterator4.e(err);
           } finally {
-            _iterator3.f();
+            _iterator4.f();
           }
         }
       } catch (err) {
-        _iterator2.e(err);
+        _iterator3.e(err);
       } finally {
-        _iterator2.f();
+        _iterator3.f();
       }
 
       for (var k in lists.groupList) {
@@ -69614,12 +69696,12 @@ var ModalAssignmentPicker = /*#__PURE__*/function (_Component3) {
       return this.state.dropdownLists.studentList.filter(function (item) {
         var found = false;
 
-        var _iterator4 = _createForOfIteratorHelper(_this6.state.data.assignments),
-            _step4;
+        var _iterator5 = _createForOfIteratorHelper(_this6.state.data.assignments),
+            _step5;
 
         try {
-          for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
-            var assignment = _step4.value;
+          for (_iterator5.s(); !(_step5 = _iterator5.n()).done;) {
+            var assignment = _step5.value;
 
             if (parseInt(assignment.user.id, 10) === parseInt(item.userId, 10)) {
               found = true;
@@ -69627,9 +69709,9 @@ var ModalAssignmentPicker = /*#__PURE__*/function (_Component3) {
             }
           }
         } catch (err) {
-          _iterator4.e(err);
+          _iterator5.e(err);
         } finally {
-          _iterator4.f();
+          _iterator5.f();
         }
 
         var show = true;
@@ -69770,45 +69852,7 @@ var ModalAssignmentPicker = /*#__PURE__*/function (_Component3) {
           dangerouslySetInnerHTML: {
             __html: item.user.avatar
           }
-        }), /*#__PURE__*/_react.default.createElement("strong", null, "".concat(item.user.firstName, " ").concat(item.user.lastName))), /*#__PURE__*/_react.default.createElement("div", {
-          className: "d-flex align-items-center mb-2"
-        }, /*#__PURE__*/_react.default.createElement("div", {
-          className: "col-6"
-        }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Label, null, "D\xE9but"), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Control, {
-          style: {
-            width: '115px',
-            display: 'inline'
-          },
-          className: "ml-3",
-          type: "text",
-          placeholder: "D\xE9but",
-          value: item.startDate,
-          name: "startDate",
-          onBlur: function onBlur() {
-            return _this7.onSave([item]);
-          },
-          onChange: function onChange(event) {
-            return _this7.onDataChange(event, index);
-          }
-        })), /*#__PURE__*/_react.default.createElement("div", {
-          className: "col-6 'd-flex align-items-center"
-        }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Control, {
-          style: {
-            width: '50px',
-            display: 'inline'
-          },
-          className: "mr-3",
-          type: "text",
-          placeholder: "h/semaine",
-          value: item.nbHoursPerWeek,
-          name: "nbHoursPerWeek",
-          onBlur: function onBlur() {
-            return _this7.onSave([item]);
-          },
-          onChange: function onChange(event) {
-            return _this7.onDataChange(event, index);
-          }
-        }), /*#__PURE__*/_react.default.createElement("span", null, "h/semaine")))), /*#__PURE__*/_react.default.createElement("div", null, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Button, {
+        }), /*#__PURE__*/_react.default.createElement("strong", null, "".concat(item.user.firstName, " ").concat(item.user.lastName)))), /*#__PURE__*/_react.default.createElement("div", null, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Button, {
           variant: "link",
           title: "Supprimer",
           onClick: function onClick() {
@@ -69874,12 +69918,12 @@ var ModalAssignmentPicker = /*#__PURE__*/function (_Component3) {
       var newItems = [];
       var studentList = this.getFilteredStudentList();
 
-      var _iterator5 = _createForOfIteratorHelper(studentList),
-          _step5;
+      var _iterator6 = _createForOfIteratorHelper(studentList),
+          _step6;
 
       try {
-        for (_iterator5.s(); !(_step5 = _iterator5.n()).done;) {
-          var item = _step5.value;
+        for (_iterator6.s(); !(_step6 = _iterator6.n()).done;) {
+          var item = _step6.value;
           newItems.push({
             id: 0,
             template: {
@@ -69896,9 +69940,9 @@ var ModalAssignmentPicker = /*#__PURE__*/function (_Component3) {
           });
         }
       } catch (err) {
-        _iterator5.e(err);
+        _iterator6.e(err);
       } finally {
-        _iterator5.f();
+        _iterator6.f();
       }
 
       this.setState({
@@ -69963,12 +70007,12 @@ var ModalAssignmentPicker = /*#__PURE__*/function (_Component3) {
 
         var index = 0;
 
-        var _iterator6 = _createForOfIteratorHelper(data),
-            _step6;
+        var _iterator7 = _createForOfIteratorHelper(data),
+            _step7;
 
         try {
-          for (_iterator6.s(); !(_step6 = _iterator6.n()).done;) {
-            var item = _step6.value;
+          for (_iterator7.s(); !(_step7 = _iterator7.n()).done;) {
+            var item = _step7.value;
 
             if (parseInt(item.id, 10) === 0) {
               item.id = result.data[index];
@@ -69982,9 +70026,9 @@ var ModalAssignmentPicker = /*#__PURE__*/function (_Component3) {
             index++;
           }
         } catch (err) {
-          _iterator6.e(err);
+          _iterator7.e(err);
         } finally {
-          _iterator6.f();
+          _iterator7.f();
         }
       };
 
@@ -70005,6 +70049,197 @@ var ModalAssignmentPicker = /*#__PURE__*/function (_Component3) {
 _defineProperty(ModalAssignmentPicker, "defaultProps", {
   data: null,
   onClose: null
+});
+
+var ModalAssignmentEditor = /*#__PURE__*/function (_Component4) {
+  _inherits(ModalAssignmentEditor, _Component4);
+
+  var _super4 = _createSuper(ModalAssignmentEditor);
+
+  function ModalAssignmentEditor(props) {
+    var _this10;
+
+    _classCallCheck(this, ModalAssignmentEditor);
+
+    _this10 = _super4.call(this, props);
+    var assignment = 0;
+    var index = 0;
+
+    for (var i in props.data.assignments) {
+      if (props.data.assignments[i].id == props.assignment) {
+        assignment = props.data.assignments[i];
+        index = i;
+        break;
+      }
+    }
+
+    if (!assignment.comment) assignment.comment = '';
+    _this10.state = {
+      data: props.data,
+      flags: {
+        dataChanged: false
+      },
+      assignment: assignment,
+      index: index
+    };
+    return _this10;
+  }
+
+  _createClass(ModalAssignmentEditor, [{
+    key: "render",
+    value: function render() {
+      var _this11 = this;
+
+      if (this.state.data === null) {
+        return null;
+      }
+
+      var item = this.state.assignment;
+
+      var body = /*#__PURE__*/_react.default.createElement("div", null, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form, null, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Group, {
+        as: _reactBootstrap.Row
+      }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Label, {
+        column: true,
+        sm: "2"
+      }, "Début"), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Col, {
+        sm: "10"
+      }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Control, {
+        type: "text",
+        value: item.startDate,
+        name: "startDate",
+        onChange: function onChange(event) {
+          return _this11.onDataChange(event, _this11.state.index);
+        }
+      }))), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Group, {
+        as: _reactBootstrap.Row
+      }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Label, {
+        column: true,
+        sm: "2"
+      }, "Commentaire"), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Col, {
+        sm: "10"
+      }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Control, {
+        as: "textarea",
+        rows: 4,
+        className: "w-100",
+        name: "comment",
+        value: item.comment,
+        onChange: function onChange(event) {
+          return _this11.onDataChange(event, _this11.state.index);
+        }
+      }))), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Group, {
+        as: _reactBootstrap.Row
+      }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Label, {
+        column: true,
+        sm: "2"
+      }, "h/semaine"), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Col, {
+        sm: "10"
+      }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Control, {
+        style: {
+          width: '50px',
+          display: 'inline'
+        },
+        className: "mr-3",
+        type: "text",
+        value: item.nbHoursPerWeek,
+        name: "nbHoursPerWeek",
+        onChange: function onChange(event) {
+          return _this11.onDataChange(event, _this11.state.index);
+        }
+      })))), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Button, {
+        variant: "primary",
+        className: "ml-2",
+        onClick: function onClick() {
+          _this11.onSave([item]);
+
+          _this11.onClose();
+        }
+      }, "Sauvegarder"), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Button, {
+        variant: "secondary",
+        onClick: function onClick() {
+          return _this11.onClose();
+        }
+      }, "Annuler"));
+
+      var main = /*#__PURE__*/_react.default.createElement(_Components.Modal, {
+        title: 'Modifier élève',
+        body: body,
+        width: "800px",
+        onClose: function onClose() {
+          return _this11.onClose();
+        }
+      });
+
+      return main;
+    }
+  }, {
+    key: "onDataChange",
+    value: function onDataChange(event, index) {
+      var tmp = this.state.data;
+      var flags = this.state.flags;
+      flags.dataChanged = tmp.assignments[index][event.target.name] !== event.target.value;
+      tmp.assignments[index][event.target.name] = event.target.value;
+      this.setState({
+        data: tmp,
+        flags: flags
+      });
+    }
+  }, {
+    key: "onSave",
+    value: function onSave(data) {
+      var that = this;
+
+      var callback = function callback(result) {
+        if (!result.success) {
+          _common.$glVars.feedback.showError(_common.$glVars.i18n.tags.appName, result.msg);
+
+          return;
+        }
+
+        var index = 0;
+
+        var _iterator8 = _createForOfIteratorHelper(data),
+            _step8;
+
+        try {
+          for (_iterator8.s(); !(_step8 = _iterator8.n()).done;) {
+            var item = _step8.value;
+
+            if (parseInt(item.id, 10) === 0) {
+              item.id = result.data[index];
+              var tmp = that.state.data;
+              tmp.assignments.push(item);
+              that.setState({
+                data: tmp
+              });
+            }
+
+            index++;
+          }
+        } catch (err) {
+          _iterator8.e(err);
+        } finally {
+          _iterator8.f();
+        }
+      };
+
+      if (this.state.flags.dataChanged) {
+        _common.$glVars.webApi.saveAssignment(data, callback);
+      }
+    }
+  }, {
+    key: "onClose",
+    value: function onClose() {
+      this.props.onClose(this.state.flags.dataChanged);
+    }
+  }]);
+
+  return ModalAssignmentEditor;
+}(_react.Component);
+
+_defineProperty(ModalAssignmentEditor, "defaultProps", {
+  data: null,
+  onClose: null,
+  assignment: null
 });
 },{"react":"../node_modules/react/index.js","react-bootstrap":"../node_modules/react-bootstrap/esm/index.js","@fortawesome/free-solid-svg-icons":"../node_modules/@fortawesome/free-solid-svg-icons/index.es.js","@fortawesome/react-fontawesome":"../node_modules/@fortawesome/react-fontawesome/index.es.js","../libs/components/Components":"libs/components/Components.js","../common/common":"common/common.js","../libs/utils/Utils":"libs/utils/Utils.js","../libs/components/Pagination":"libs/components/Pagination.js","./TemplateView":"views/TemplateView.js"}],"views/ReportView.js":[function(require,module,exports) {
 "use strict";
