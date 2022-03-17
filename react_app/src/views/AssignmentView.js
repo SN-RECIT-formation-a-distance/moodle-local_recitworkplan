@@ -216,7 +216,7 @@ class WorkPlanForm extends Component{
         this.onSearch = this.onSearch.bind(this);
         this.onFilterChange = this.onFilterChange.bind(this);
 
-        this.state = {tab: this.props.activeTab, data: null, queryStr: "", detail: -1, showActivities: false, showAssignments: false, filter: {late:false}, editModal: false, editAssignment: -1};
+        this.state = {tab: this.props.activeTab, data: null, queryStr: "", detail: -1, showActivities: false, showAssignments: false, filter: {late:false}, editModal: false, editAssignment: -1, sortAssignment: 0};
     }
 
     componentDidMount(){
@@ -262,6 +262,32 @@ class WorkPlanForm extends Component{
                 return ((item.user.firstName.search(regexp) >= 0) || (item.user.lastName.search(regexp) >= 0) || (item.user.groupList.search(regexp) >= 0));
             }
             return true;
+        });
+        
+        assignments = assignments.sort((a,b) =>{
+            if (this.state.sortAssignment == 'firstname'){
+                return a.user.firstName.localeCompare(b.user.firstName);
+            }
+            if (this.state.sortAssignment == 'lastname'){
+                return a.user.lastName.localeCompare(b.user.lastName);
+            }
+            if (this.state.sortAssignment == 'progress'){
+                let progressValueA = 0;
+                if(this.state.data.stats.assignmentcompleted[`userid${a.user.id}`]){
+                    progressValueA = this.state.data.stats.assignmentcompleted[`userid${a.user.id}`]/this.state.data.stats.nbActivities * 100;
+                }
+                let progressValueB = 0;
+                if(this.state.data.stats.assignmentcompleted[`userid${b.user.id}`]){
+                    progressValueB = this.state.data.stats.assignmentcompleted[`userid${b.user.id}`]/this.state.data.stats.nbActivities * 100;
+                }
+                if (progressValueA > progressValueB){
+                    return -1;
+                }
+                else if (progressValueA < progressValueB){
+                    return 1;
+                }
+            }
+            return 0;
         });
 
         let nbHoursCompletionTotal = 0;
@@ -384,9 +410,14 @@ class WorkPlanForm extends Component{
                                 <span className='h2 mr-3'>Affectations</span>
                                 <Button variant='outline-primary' className='rounded-circle' title='Attribuer un plan de travail.' onClick={() => this.onShowAssignments(true)} ><FontAwesomeIcon icon={faPlus}/></Button>
                             </div>
-                            <div>
-                                <Form.Check type="checkbox" onChange={this.onFilterChange} value={this.state.filter.late} name="late" label="Afficher seulement élève en retard"/>
-                                <Form.Control onChange={this.onSearch} type="search" value={this.state.queryStr} name='queryStr' placeholder="Nom, groupe..."/> 
+                            <div style={{display:'inline'}}>
+                                <Form.Check style={{display:'inline',marginRight:'10px'}} type="checkbox" onChange={this.onFilterChange} value={this.state.filter.late} name="late" label="Afficher seulement élève en retard"/>
+                                <Form.Control style={{display:'inline',width:'150px',marginRight:'10px'}} onChange={this.onSearch} type="search" value={this.state.queryStr} name='queryStr' placeholder="Nom, groupe..."/>
+                                Trier par <select type="select" onChange={(e) => this.setState({sortAssignment:e.target.value})}>
+                                    <option value="lastname">Nom</option>
+                                    <option value="firstname">Prénom</option>
+                                    <option value="progress">Progrès</option>
+                                </select>
                             </div>
                         </div>
 

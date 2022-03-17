@@ -68917,7 +68917,8 @@ var WorkPlanForm = /*#__PURE__*/function (_Component2) {
         late: false
       },
       editModal: false,
-      editAssignment: -1
+      editAssignment: -1,
+      sortAssignment: 0
     };
     return _this3;
   }
@@ -68988,6 +68989,37 @@ var WorkPlanForm = /*#__PURE__*/function (_Component2) {
         }
 
         return true;
+      });
+      assignments = assignments.sort(function (a, b) {
+        if (_this4.state.sortAssignment == 'firstname') {
+          return a.user.firstName.localeCompare(b.user.firstName);
+        }
+
+        if (_this4.state.sortAssignment == 'lastname') {
+          return a.user.lastName.localeCompare(b.user.lastName);
+        }
+
+        if (_this4.state.sortAssignment == 'progress') {
+          var progressValueA = 0;
+
+          if (_this4.state.data.stats.assignmentcompleted["userid".concat(a.user.id)]) {
+            progressValueA = _this4.state.data.stats.assignmentcompleted["userid".concat(a.user.id)] / _this4.state.data.stats.nbActivities * 100;
+          }
+
+          var progressValueB = 0;
+
+          if (_this4.state.data.stats.assignmentcompleted["userid".concat(b.user.id)]) {
+            progressValueB = _this4.state.data.stats.assignmentcompleted["userid".concat(b.user.id)] / _this4.state.data.stats.nbActivities * 100;
+          }
+
+          if (progressValueA > progressValueB) {
+            return -1;
+          } else if (progressValueA < progressValueB) {
+            return 1;
+          }
+        }
+
+        return 0;
       });
       var nbHoursCompletionTotal = 0;
       var categories = [];
@@ -69248,19 +69280,45 @@ var WorkPlanForm = /*#__PURE__*/function (_Component2) {
         }
       }, /*#__PURE__*/_react.default.createElement(_reactFontawesome.FontAwesomeIcon, {
         icon: _freeSolidSvgIcons.faPlus
-      }))), /*#__PURE__*/_react.default.createElement("div", null, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Check, {
+      }))), /*#__PURE__*/_react.default.createElement("div", {
+        style: {
+          display: 'inline'
+        }
+      }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Check, {
+        style: {
+          display: 'inline',
+          marginRight: '10px'
+        },
         type: "checkbox",
         onChange: this.onFilterChange,
         value: this.state.filter.late,
         name: "late",
         label: "Afficher seulement \xE9l\xE8ve en retard"
       }), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Control, {
+        style: {
+          display: 'inline',
+          width: '150px',
+          marginRight: '10px'
+        },
         onChange: this.onSearch,
         type: "search",
         value: this.state.queryStr,
         name: "queryStr",
         placeholder: "Nom, groupe..."
-      }))), /*#__PURE__*/_react.default.createElement("div", null, assignments.map(function (item, index) {
+      }), "Trier par ", /*#__PURE__*/_react.default.createElement("select", {
+        type: "select",
+        onChange: function onChange(e) {
+          return _this4.setState({
+            sortAssignment: e.target.value
+          });
+        }
+      }, /*#__PURE__*/_react.default.createElement("option", {
+        value: "lastname"
+      }, "Nom"), /*#__PURE__*/_react.default.createElement("option", {
+        value: "firstname"
+      }, "Pr\xE9nom"), /*#__PURE__*/_react.default.createElement("option", {
+        value: "progress"
+      }, "Progr\xE8s")))), /*#__PURE__*/_react.default.createElement("div", null, assignments.map(function (item, index) {
         var progressValue = 0;
         var progressText = "0/".concat(_this4.state.data.stats.nbActivities);
 
