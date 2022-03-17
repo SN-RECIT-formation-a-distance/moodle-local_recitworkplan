@@ -721,13 +721,11 @@ class TemplateActivity{
 
         $result->completionState = (isset($dbData->activitycompletionstate) ? $dbData->activitycompletionstate : $result->completionState);
 
-        //Get cm name
-        /*if ($result->cmId > 0 && empty($result->cmName)){
+        //Get cm url
+        if ($result->cmId > 0){
             list ($course, $cm) = get_course_and_cm_from_cmId($result->cmId);
-            $result->cmName = $cm->name;
             $result->cmUrl = $cm->__get('url')->out();
-            $result->courseUrl = (new \moodle_url('/course/view.php?id='.$course->id))->out();
-        }*/
+        }
 
         return $result;
     }

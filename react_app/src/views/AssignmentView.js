@@ -7,6 +7,7 @@ import {$glVars} from '../common/common';
 import { JsNx, UtilsString, UtilsDateTime, WorkPlanUtils } from '../libs/utils/Utils';
 import { Pagination } from '../libs/components/Pagination';
 import {ActivityPicker} from './TemplateView';
+import { DateTime } from '../libs/components/DateTime';
 
 export class AssignmentsView extends Component{
     static defaultProps = {        
@@ -380,7 +381,7 @@ class WorkPlanForm extends Component{
                                             </div>
                                             <Card.Body style={{backgroundColor: "#f0f0f0", display: "grid", gridGap: '1rem', gridTemplateColumns: 'auto auto 240px', alignItems: 'center'}}>
                                                 <div>
-                                                    <div className='h4'><strong>{item.cmName}</strong></div>
+                                                    <div className='h4'><strong><a href={item.cmUrl} target="_blank">{item.cmName}</a></strong></div>
                                                     <div className='h6 text-muted pl-3'>{`${item.categoryName}/${item.courseName}`}</div>
                                                     <div className='h6 text-muted pl-3'>{`${item.nbHoursCompletion} heures`}</div>
                                                 </div>
@@ -469,7 +470,7 @@ class WorkPlanForm extends Component{
                                                             <Card key={index} className='rounded mt-2 mb-2'>
                                                                 <Card.Body style={{backgroundColor: "#ffffff", display: "grid", gridGap: '1rem', gridTemplateColumns: '50% auto auto', alignItems: 'center'}}>
                                                                     <div>
-                                                                        <div className='h4'><strong>{item.cmName}</strong></div>
+                                                                        <div className='h4'><strong><a href={item.cmUrl} target="_blank">{item.cmName}</a></strong></div>
                                                                         <div className='h6 text-muted pl-3'>{`${item.categoryName}/${item.courseName}`}</div>
                                                                         <div className='h6 text-muted pl-3'>{`${item.nbHoursCompletion} heures`}</div>
                                                                     </div>
@@ -897,7 +898,7 @@ class ModalAssignmentEditor extends Component{
             <Form.Group as={Row} >
                 <Form.Label column sm="2">{"Début"}</Form.Label>
                 <Col sm="10">
-                    <Form.Control type="text"  value={item.startDate} name="startDate" onChange={(event) => this.onDataChange(event, this.state.index)} />
+                    <DateTime value={item.startDate} name="startDate" onChange={(event) => this.onDataChange(event, this.state.index)} />
                 </Col>
             </Form.Group>
             <Form.Group as={Row}>
