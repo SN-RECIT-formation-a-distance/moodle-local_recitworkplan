@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
-import {ButtonToolbar, Tabs, Tab, ButtonGroup, Button, Card} from 'react-bootstrap';
+import {ButtonToolbar, Tabs, Tab, ButtonGroup, Button, Card, ToggleButton} from 'react-bootstrap';
 import {faTachometerAlt, faTasks, faHome, faFileAlt, faSync, faFile, faCross, faCheck, faTimes, faBackward, faArrowCircleUp, faArrowCircleDown} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {FeedbackCtrl, DataGrid} from '../libs/components/Components';
+import {FeedbackCtrl, ToggleButtons} from '../libs/components/Components';
 import { TemplatesView } from './TemplateView';
 import { AssignmentsView } from './AssignmentView';
 import {$glVars} from '../common/common';
@@ -15,13 +15,22 @@ export class StudentView extends Component {
         super(props);
 
 
-        this.state = {activeReport: null, dataProvider: null};
+        this.state = {activeReport: null, dataProvider: null, activeTab: 'ongoing'};
     }
  
     render() {
         if (!this.state.dataProvider) return null;
         let main = <div>
-            <h2>Plans</h2>
+        <div className='d-flex' style={{justifyContent: "space-between"}}>
+            <div className='d-flex' style={{alignItems: "center"}}>
+                <span className='h1 mr-3'>Plans de travail</span>
+            </div>
+            <div>
+                <ToggleButtons name="completionState" onChange={(e) => this.onCompletionStateChange(e)} type="radio"  defaultValue={this.state.activeTab} options={
+                    [{value: "ongoing", text: "En Cours"}, {value: "archive", text: "Archivés"}]}/>
+            </div>
+        </div> 
+
             <div style={{display: "grid", gridGap: "1rem", gridTemplateColumns: "auto"}}>
             {this.state.dataProvider.map((item, index) => {
                     let row = <StudentTemplateTile key={index} reportData={item}/>
@@ -34,13 +43,16 @@ export class StudentView extends Component {
         return (main);
     }
     
+    onCompletionStateChange(event){
+        this.setState({activeTab: event.target.value}, this.getData); 
+    }
 
     componentDidMount(){ 
          this.getData();
     }
  
      getData(){
-         $glVars.webApi.getWorkPlanList(30, 0, 'ongoing', true, this.getDataResult.bind(this));
+         $glVars.webApi.getWorkPlanList(30, 0, this.state.activeTab, true, this.getDataResult.bind(this));
      }
  
      getDataResult(result){
@@ -62,7 +74,6 @@ export class StudentTemplateTile extends Component {
     constructor(props) {
         super(props);
         this.state = {detail:false, assignment:this.props.reportData.assignments[0]};
-        console.log(this.state.assignment)
     }
  
     render() {
