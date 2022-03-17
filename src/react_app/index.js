@@ -67532,10 +67532,11 @@ var AppWebApi = /*#__PURE__*/function (_WebApi) {
     }
   }, {
     key: "getWorkPlanList",
-    value: function getWorkPlanList(limit, offset, state, onSuccess) {
+    value: function getWorkPlanList(limit, offset, state, forStudent, onSuccess) {
       var data = {
         limit: limit,
         offset: offset,
+        forStudent: forStudent,
         state: state,
         service: "getWorkPlanList"
       };
@@ -68684,7 +68685,7 @@ var AssignmentsView = /*#__PURE__*/function (_Component) {
   }, {
     key: "getData",
     value: function getData() {
-      _common.$glVars.webApi.getWorkPlanList(this.state.pagination.item_per_page, this.state.pagination.current_page - 1, this.state.activeTab, this.getDataResult);
+      _common.$glVars.webApi.getWorkPlanList(this.state.pagination.item_per_page, this.state.pagination.current_page - 1, this.state.activeTab, false, this.getDataResult);
     }
   }, {
     key: "getDataResult",
@@ -70072,6 +70073,7 @@ var ModalAssignmentPicker = /*#__PURE__*/function (_Component3) {
           avatar: item.avatar
         },
         nbHoursPerWeek: 0,
+        comment: '',
         startDate: new Date()
       }];
       this.setState({
@@ -70632,7 +70634,7 @@ module.hot.accept(reloadCSS);
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.StudentView = void 0;
+exports.StudentTemplateTile = exports.StudentView = void 0;
 
 var _react = _interopRequireWildcard(require("react"));
 
@@ -70661,6 +70663,14 @@ function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "functio
 function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 
 function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+function _createForOfIteratorHelper(o, allowArrayLike) { var it = typeof Symbol !== "undefined" && o[Symbol.iterator] || o["@@iterator"]; if (!it) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = it.call(o); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -70703,36 +70713,22 @@ var StudentView = /*#__PURE__*/function (_Component) {
   _createClass(StudentView, [{
     key: "render",
     value: function render() {
-      var _this2 = this;
-
       if (!this.state.dataProvider) return null;
 
       var main = /*#__PURE__*/_react.default.createElement("div", null, /*#__PURE__*/_react.default.createElement("h2", null, "Plans"), /*#__PURE__*/_react.default.createElement("div", {
-        className: "tiles"
+        style: {
+          display: "grid",
+          gridGap: "1rem",
+          gridTemplateColumns: "auto"
+        }
       }, this.state.dataProvider.map(function (item, index) {
         var row = /*#__PURE__*/_react.default.createElement(StudentTemplateTile, {
           key: index,
-          reportData: item,
-          onClick: function onClick() {
-            return _this2.setState({
-              activeReport: item
-            });
-          }
+          reportData: item
         });
 
         return row;
       })));
-
-      if (this.state.activeReport) {
-        main = /*#__PURE__*/_react.default.createElement(StudentReportView, {
-          reportData: this.state.activeReport,
-          onBack: function onBack() {
-            return _this2.setState({
-              activeReport: null
-            });
-          }
-        });
-      }
 
       return main;
     }
@@ -70744,7 +70740,7 @@ var StudentView = /*#__PURE__*/function (_Component) {
   }, {
     key: "getData",
     value: function getData() {
-      _common.$glVars.webApi.getAssignmentList(false, 30, 0, true, this.getDataResult.bind(this));
+      _common.$glVars.webApi.getWorkPlanList(30, 0, 'ongoing', true, this.getDataResult.bind(this));
     }
   }, {
     key: "getDataResult",
@@ -70756,156 +70752,277 @@ var StudentView = /*#__PURE__*/function (_Component) {
       }
 
       this.setState({
-        dataProvider: result.data.items.detailed
+        dataProvider: result.data.items
       });
     }
   }]);
 
   return StudentView;
 }(_react.Component);
-/*
-export class StudentTemplateTile extends Component {
-    static defaultProps = {        
-        reportData: null,
-        onClick: null,
-    };
-
-    constructor(props) {
-        super(props);
-
-    }
- 
-    render() {
-        if (!this.props.reportData) return null;
-        let completionPercentage = StudentReportView.getActivityCompletionPercentage(this.props.reportData.template.activities);
-
-        let main = <div className='templatetile' onClick={() => this.props.onClick()}>
-            <div className="progress" style={{height:'4px'}}>
-                <div className="progress-bar" role="progressbar" style={{width:completionPercentage+'%'}} aria-valuenow={completionPercentage} aria-valuemin="0" aria-valuemax="100"></div>
-            </div>
-            <p className='title'>{this.props.reportData.template.name}</p>
-            Début : {UtilsDateTime.getDate(this.props.reportData.startDate)}<br/>
-            Fin : {UtilsDateTime.getDate(this.props.reportData.endDate)}<br/>
-            État : {WorkPlanUtils.getCompletionState(this.props.reportData)}<br/>
-            Rythme (h/semaine) : {this.props.reportData.nbHoursPerWeek}<br/>
-        </div>
-        return main;
-    }
-}
-
-export class StudentReportView extends Component {
-    static defaultProps = {        
-        reportData: null,
-        onBack: null,
-    };
-
-    constructor(props) {
-        super(props);
-
-    }
- 
-    render() {
-        if (!this.props.reportData) return null;
-        
-        let completionPercentage = StudentReportView.getActivityCompletionPercentage(this.props.reportData.template.activities);
-        let rythmePercentage = this.getExpectedRhythmPercentage(this.props.reportData.template.activities);
-        let rythmeColor = this.getProgressBarRythmColor();
-        
-        let activities = this.props.reportData.template.activities.sort((item, item2) => { return item.slot - item2.slot });
-
-        let main = <div>
-            <a href='#' onClick={() => this.props.onBack()}><FontAwesomeIcon icon={faBackward}/> Retour</a>
-            <div className='row'>
-                <div className='col-md-6'>
-                    <span style={{fontWeight:'bold'}}>Nom du plan de travail :</span> {this.props.reportData.template.name}<br/>
-                    <span style={{fontWeight:'bold'}}>Progrès :</span> 
-                    <div className="progress" style={{height:'20px'}}>
-                        <div className="progress-bar" role="progressbar" style={{width:completionPercentage+'%'}} aria-valuenow={completionPercentage} aria-valuemin="0" aria-valuemax="100">{completionPercentage+'%'}</div>
-                    </div><br/>
-                    <span style={{fontWeight:'bold'}}>Rythme attendu :</span> 
-                    <div className="progress" style={{height:'20px'}}>
-                        <div className={"progress-bar "+rythmeColor} role="progressbar" style={{width:rythmePercentage+'%'}} aria-valuenow={rythmePercentage} aria-valuemin="0" aria-valuemax="100">{rythmePercentage+'%'}</div>
-                    </div>
-                </div>
-                <div className='col-md-6'>
-                    <span style={{fontWeight:'bold'}}>Début :</span> {UtilsDateTime.getDate(this.props.reportData.startDate)}<br/>
-                    <span style={{fontWeight:'bold'}}>Fin :</span> {UtilsDateTime.getDate(this.props.reportData.endDate)}<br/>
-                    <span style={{fontWeight:'bold'}}>État :</span> {WorkPlanUtils.getCompletionState(this.props.reportData)}<br/>
-                    <span style={{fontWeight:'bold'}}>Rythme (h/semaine) :</span> {this.props.reportData.nbHoursPerWeek}<br/>
-                    <span style={{fontWeight:'bold'}}>Professeur :</span> <a href={this.props.reportData.assignorUrl} target="_blank"><span dangerouslySetInnerHTML={{__html: this.props.reportData.assignorPix}}></span>{`${this.props.reportData.assignorFirstName} ${this.props.reportData.assignorLastName}`}</a>
-                </div>
-            </div>
-        <hr/>
-
-        <DataGrid orderBy={true}>
-            <DataGrid.Header>
-                <DataGrid.Header.Row>
-                    <DataGrid.Header.Cell style={{width: 80}}>{"#"}</DataGrid.Header.Cell>
-                    <DataGrid.Header.Cell >{"Cours"}</DataGrid.Header.Cell>
-                    <DataGrid.Header.Cell >{"Activité"}</DataGrid.Header.Cell>
-                    <DataGrid.Header.Cell >{"Durée estimée"}</DataGrid.Header.Cell>
-                    <DataGrid.Header.Cell >{"État"}</DataGrid.Header.Cell>
-                </DataGrid.Header.Row>
-            </DataGrid.Header>
-            <DataGrid.Body>
-                {activities.map((item, index) => {
-                        let row = 
-                            <DataGrid.Body.Row key={index}>
-                                <DataGrid.Body.Cell>{index + 1}</DataGrid.Body.Cell>
-                                <DataGrid.Body.Cell><a href={item.courseUrl}>{item.courseName}</a></DataGrid.Body.Cell>
-                                <DataGrid.Body.Cell><a href={item.cmUrl}>{item.cmName}</a></DataGrid.Body.Cell>
-                                <DataGrid.Body.Cell>{item.nbHoursCompletion+' h'}</DataGrid.Body.Cell>
-                                <DataGrid.Body.Cell><input type="checkbox" readOnly checked={item.completionState == 1}/></DataGrid.Body.Cell>
-                            </DataGrid.Body.Row>
-                        return (row);                                    
-                    }
-                )}
-            </DataGrid.Body>
-        </DataGrid>
-        </div>;
-
-        return (main);
-    }
-    
-    
-    static getActivityCompletionPercentage(activities){
-        let count = 0;
-        for(let item of activities){
-            if(item.completionState >= 1){
-                count++;
-            }
-        }
-
-        return Math.ceil(count / activities.length * 100).toString();
-    }
-
-    getExpectedRhythmPercentage(activities){
-        let weeksElapsed = Math.floor(((Date.now() / 1000) - UtilsDateTime.toTimestamp(this.props.reportData.startDate)) / 604800); //604800 seconds in a week
-        let hoursExpected = this.props.reportData.nbHoursPerWeek * weeksElapsed;
-        let hoursWorked = 0;
-        for(let item of activities){
-            if(item.completionState >= 1){
-                hoursWorked = hoursWorked + item.nbHoursCompletion;
-            }
-        }
-        let percentage = Math.ceil(hoursWorked / hoursExpected);
-        if (percentage > 100){
-            percentage = 100;
-        }
-        if (isNaN(percentage)) percentage = 0;
-        return percentage;
-    }
-
-    getProgressBarRythmColor(){
-        if (this.props.reportData.completionState == 2) return 'bg-danger';
-        let percentage = this.getExpectedRhythmPercentage(this.props.reportData.template.activities);
-        if (percentage == 100) return 'bg-success';
-        return 'bg-warning';
-    }
-}*/
-
 
 exports.StudentView = StudentView;
+
+var StudentTemplateTile = /*#__PURE__*/function (_Component2) {
+  _inherits(StudentTemplateTile, _Component2);
+
+  var _super2 = _createSuper(StudentTemplateTile);
+
+  function StudentTemplateTile(props) {
+    var _this2;
+
+    _classCallCheck(this, StudentTemplateTile);
+
+    _this2 = _super2.call(this, props);
+    _this2.state = {
+      detail: false,
+      assignment: _this2.props.reportData.assignments[0]
+    };
+    console.log(_this2.state.assignment);
+    return _this2;
+  }
+
+  _createClass(StudentTemplateTile, [{
+    key: "render",
+    value: function render() {
+      var _this3 = this;
+
+      if (!this.props.reportData) return null;
+      var progressValue = 0;
+      var progressText = "0/".concat(this.props.reportData.stats.nbActivities);
+
+      if (this.props.reportData.stats.assignmentcompleted["userid".concat(this.state.assignment.user.id)]) {
+        progressValue = this.props.reportData.stats.assignmentcompleted["userid".concat(this.state.assignment.user.id)] / this.props.reportData.stats.nbActivities * 100;
+        progressText = "".concat(this.props.reportData.stats.assignmentcompleted["userid".concat(this.state.assignment.user.id)], "/").concat(this.props.reportData.stats.nbActivities);
+      }
+
+      progressValue = isNaN(progressValue) ? 0 : progressValue;
+      var rythmePercentage = this.getExpectedRhythmPercentage(this.props.reportData.template.activities);
+      var rythmeColor = this.getProgressBarRythmColor();
+
+      var main = /*#__PURE__*/_react.default.createElement(_reactBootstrap.Card, {
+        className: "rounded",
+        style: {
+          width: '100%'
+        }
+      }, /*#__PURE__*/_react.default.createElement("div", {
+        className: rythmeColor,
+        style: {
+          width: "".concat(progressValue, "%"),
+          height: '5px',
+          maxWidth: "100%"
+        }
+      }), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Card.Body, {
+        style: {
+          backgroundColor: "#f0f0f0"
+        }
+      }, /*#__PURE__*/_react.default.createElement("div", {
+        className: "d-flex",
+        style: {
+          justifyContent: 'space-between'
+        }
+      }, /*#__PURE__*/_react.default.createElement("a", {
+        href: "#",
+        onClick: function onClick() {
+          return _this3.setState({
+            detail: _this3.props.reportData.id
+          });
+        },
+        className: "h3"
+      }, this.props.reportData.template.name)), /*#__PURE__*/_react.default.createElement("div", {
+        className: "row"
+      }, /*#__PURE__*/_react.default.createElement("div", {
+        className: "col-md-4"
+      }, /*#__PURE__*/_react.default.createElement("span", {
+        style: {
+          fontWeight: 'bold'
+        }
+      }, "D\xE9but :"), " ", _Utils.UtilsDateTime.getDate(this.state.assignment.startDate), /*#__PURE__*/_react.default.createElement("br", null), /*#__PURE__*/_react.default.createElement("span", {
+        style: {
+          fontWeight: 'bold'
+        }
+      }, "Fin :"), " ", _Utils.UtilsDateTime.getDate(this.state.assignment.endDate), /*#__PURE__*/_react.default.createElement("br", null), /*#__PURE__*/_react.default.createElement("span", {
+        style: {
+          fontWeight: 'bold'
+        }
+      }, "\xC9tat :"), " ", _Utils.WorkPlanUtils.getCompletionState(this.state.assignment), /*#__PURE__*/_react.default.createElement("br", null), /*#__PURE__*/_react.default.createElement("span", {
+        style: {
+          fontWeight: 'bold'
+        }
+      }, "Rythme (h/semaine) :"), " ", this.state.assignment.nbHoursPerWeek, /*#__PURE__*/_react.default.createElement("br", null), /*#__PURE__*/_react.default.createElement("span", {
+        style: {
+          fontWeight: 'bold'
+        }
+      }, "Professeur :"), " ", /*#__PURE__*/_react.default.createElement("a", {
+        href: this.state.assignment.assignor.url,
+        target: "_blank"
+      }, /*#__PURE__*/_react.default.createElement("span", {
+        dangerouslySetInnerHTML: {
+          __html: this.state.assignment.assignor.avatar
+        }
+      }), "".concat(this.state.assignment.assignor.firstName, " ").concat(this.state.assignment.assignor.lastName))), /*#__PURE__*/_react.default.createElement("div", {
+        className: "col-md-3"
+      }, this.state.assignment.completionState > 0 && /*#__PURE__*/_react.default.createElement(_reactBootstrap.Button, {
+        variant: "danger"
+      }, "En retard")), /*#__PURE__*/_react.default.createElement("div", {
+        className: "col-md-4"
+      }, /*#__PURE__*/_react.default.createElement("span", {
+        style: {
+          fontWeight: 'bold'
+        }
+      }, "Achèvement "), /*#__PURE__*/_react.default.createElement(_reactFontawesome.FontAwesomeIcon, {
+        icon: _freeSolidSvgIcons.faCheck
+      }), /*#__PURE__*/_react.default.createElement("span", {
+        className: "ml-2"
+      }, progressText)), /*#__PURE__*/_react.default.createElement("div", {
+        className: "col-md-1",
+        style: {
+          textAlign: 'right'
+        }
+      }, /*#__PURE__*/_react.default.createElement("a", {
+        href: "#",
+        onClick: function onClick() {
+          return _this3.setState({
+            detail: _this3.state.detail == _this3.props.reportData.id ? -1 : _this3.props.reportData.id
+          });
+        }
+      }, /*#__PURE__*/_react.default.createElement(_reactFontawesome.FontAwesomeIcon, {
+        icon: this.state.detail == this.props.reportData.id ? _freeSolidSvgIcons.faArrowCircleUp : _freeSolidSvgIcons.faArrowCircleDown
+      })))), this.state.detail == this.props.reportData.id && /*#__PURE__*/_react.default.createElement("div", {
+        style: {
+          width: '100%'
+        }
+      }, this.props.reportData.template.activities.map(function (item, index) {
+        var card2 = /*#__PURE__*/_react.default.createElement(_reactBootstrap.Card, {
+          key: index,
+          className: "rounded mt-2 mb-2"
+        }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Card.Body, {
+          style: {
+            backgroundColor: "#ffffff",
+            display: "grid",
+            gridGap: '1rem',
+            gridTemplateColumns: '50% auto auto',
+            alignItems: 'center'
+          }
+        }, /*#__PURE__*/_react.default.createElement("div", null, /*#__PURE__*/_react.default.createElement("div", {
+          className: "h4"
+        }, /*#__PURE__*/_react.default.createElement("strong", null, /*#__PURE__*/_react.default.createElement("a", {
+          href: item.cmUrl,
+          target: "_blank"
+        }, item.cmName))), /*#__PURE__*/_react.default.createElement("div", {
+          className: "h6 text-muted pl-3"
+        }, "".concat(item.categoryName, "/").concat(item.courseName)), /*#__PURE__*/_react.default.createElement("div", {
+          className: "h6 text-muted pl-3"
+        }, "".concat(item.nbHoursCompletion, " heures"))), /*#__PURE__*/_react.default.createElement("div", {
+          className: "m-3 p-2"
+        }, _this3.props.reportData.template.followUps.map(function (followUps, index2) {
+          return /*#__PURE__*/_react.default.createElement(_reactBootstrap.Button, {
+            key: index2,
+            variant: followUps.variant
+          }, followUps.desc);
+        })), /*#__PURE__*/_react.default.createElement("div", {
+          className: "p-2 text-muted",
+          style: {
+            alignItems: 'center',
+            display: 'flex'
+          }
+        }, item.completionState > 0 && /*#__PURE__*/_react.default.createElement(_reactBootstrap.Button, {
+          variant: "success"
+        }, "Compl\xE9t\xE9"))));
+
+        return card2;
+      }))));
+
+      return main;
+    }
+  }, {
+    key: "getExpectedRhythmPercentage",
+    value: function getExpectedRhythmPercentage(activities) {
+      var weeksElapsed = Math.floor((Date.now() / 1000 - _Utils.UtilsDateTime.toTimestamp(this.state.assignment.startDate)) / 604800); //604800 seconds in a week
+
+      var hoursExpected = this.state.assignment.nbHoursPerWeek * weeksElapsed;
+      var hoursWorked = 0;
+
+      var _iterator = _createForOfIteratorHelper(activities),
+          _step;
+
+      try {
+        for (_iterator.s(); !(_step = _iterator.n()).done;) {
+          var item = _step.value;
+
+          if (item.completionState >= 1) {
+            hoursWorked = hoursWorked + item.nbHoursCompletion;
+          }
+        }
+        /*
+                    <div className="col-md-4">
+                        <span style={{fontWeight:'bold'}}>Rythme attendu :</span> 
+                        <div className="progress" style={{height:'20px'}}>
+                            <div className={"progress-bar "+rythmeColor} role="progressbar" style={{width:rythmePercentage+'%'}} aria-valuenow={rythmePercentage} aria-valuemin="0" aria-valuemax="100">{rythmePercentage+'%'}</div>
+                        </div>
+                    </div>*/
+
+      } catch (err) {
+        _iterator.e(err);
+      } finally {
+        _iterator.f();
+      }
+
+      var percentage = Math.ceil(hoursWorked / hoursExpected);
+
+      if (percentage > 100) {
+        percentage = 100;
+      }
+
+      if (percentage < 0) {
+        percentage = 0;
+      }
+
+      if (isNaN(percentage)) percentage = 0;
+      return percentage;
+    }
+  }, {
+    key: "getProgressBarRythmColor",
+    value: function getProgressBarRythmColor() {
+      if (this.props.reportData.completionState == 2) return 'bg-danger';
+      var percentage = this.getExpectedRhythmPercentage(this.props.reportData.template.activities);
+      if (percentage == 100) return 'bg-success';
+      return 'bg-warning';
+    }
+  }], [{
+    key: "getActivityCompletionPercentage",
+    value: function getActivityCompletionPercentage(activities) {
+      var count = 0;
+
+      var _iterator2 = _createForOfIteratorHelper(activities),
+          _step2;
+
+      try {
+        for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+          var item = _step2.value;
+
+          if (item.completionState >= 1) {
+            count++;
+          }
+        }
+      } catch (err) {
+        _iterator2.e(err);
+      } finally {
+        _iterator2.f();
+      }
+
+      return Math.ceil(count / activities.length * 100).toString();
+    }
+  }]);
+
+  return StudentTemplateTile;
+}(_react.Component);
+
+exports.StudentTemplateTile = StudentTemplateTile;
+
+_defineProperty(StudentTemplateTile, "defaultProps", {
+  reportData: null,
+  onClick: null
+});
 },{"react":"../node_modules/react/index.js","react-bootstrap":"../node_modules/react-bootstrap/esm/index.js","@fortawesome/free-solid-svg-icons":"../node_modules/@fortawesome/free-solid-svg-icons/index.es.js","@fortawesome/react-fontawesome":"../node_modules/@fortawesome/react-fontawesome/index.es.js","../libs/components/Components":"libs/components/Components.js","./TemplateView":"views/TemplateView.js","./AssignmentView":"views/AssignmentView.js","../common/common":"common/common.js","../libs/components/Pagination":"libs/components/Pagination.js","./ReportView":"views/ReportView.js","../libs/utils/Utils":"libs/utils/Utils.js"}],"index.js":[function(require,module,exports) {
 "use strict";
 

@@ -429,13 +429,16 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         return $result; 
     }
 
-    public function getWorkPlanList($userId, $limit = 0, $offset = 0, $state = 'ongoing'){
+    public function getWorkPlanList($userId, $limit = 0, $offset = 0, $state = 'ongoing', $forStudent = false){
         $where = "";
         if ($state == 'ongoing'){
             $where = "(t1.completionstate in (0,2) and t2.state = 0) or (t1.completionstate is null and t2.state = 0)";
         }
         if ($state == 'archive'){
             $where = "(t1.completionstate = 1 and t2.state = 0)";
+        }
+        if ($forStudent){
+            $where .= " and t1.userid = $userId";
         }
 
         $query = "select t1.id, t1.nb_hours_per_week as nbhoursperweek, from_unixtime(t1.startdate) as startdate, t1.completionstate as wpcompletionstate, t2.id as templateid, t2.creatorid, t2.name as templatename, t7.fullname as coursename, t7.id as courseid,
@@ -474,7 +477,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         }  
 
         foreach($workPlanList as $item){
-            $item->verifyRoles(false);
+            $item->verifyRoles($forStudent);
             $item->setAssignmentsEndDate();       
             $item->stats = $this->getWorkPlanStats($item->template->id);
         }
@@ -725,6 +728,7 @@ class TemplateActivity{
         if ($result->cmId > 0){
             list ($course, $cm) = get_course_and_cm_from_cmId($result->cmId);
             $result->cmUrl = $cm->__get('url')->out();
+            $result->cmName = $cm->name;
         }
 
         return $result;
@@ -780,10 +784,10 @@ class Assignment{
             $result->assignor->id = $dbData->assignorid;
             $result->assignor->firstName = $assignor->firstname;
             $result->assignor->lastName = $assignor->lastname;
+            $result->assignor->url = (new \moodle_url('/user/profile.php', array('id' => $assignor->id)))->out();
             $result->assignor->avatar = $OUTPUT->user_picture($assignor, array('size'=> 50));
         }
 
-        // $result->assignorUrl = (new \moodle_url('/user/profile.php', array('id' => $result->assignorId)))->out();
         // $result->userUrl = (new \moodle_url('/user/profile.php', array('id' => $result->userId)))->out();
 
         $result->startDate = $dbData->startdate;

@@ -69,16 +69,19 @@ class WebApi extends recitcommon\MoodleApi
     public function getWorkPlanList($request){
         try{
             $state = $request['state'];
+            $forStudent = boolval($request['forStudent']);
             $limit = intval($request['limit']);
             $offset = intval($request['offset']);
 
-            $this->canUserAccess('a');
+            if (!$forStudent){
+                $this->canUserAccess('a');
+            }
 
             if($state == 'template'){
                 $result = $this->ctrl->getTemplateList($this->signedUser->id, $limit, $offset);
             }
             else{
-                $result = $this->ctrl->getWorkPlanList($this->signedUser->id, $limit, $offset, $state);
+                $result = $this->ctrl->getWorkPlanList($this->signedUser->id, $limit, $offset, $state, $forStudent);
             }
             
             $this->prepareJson($result);

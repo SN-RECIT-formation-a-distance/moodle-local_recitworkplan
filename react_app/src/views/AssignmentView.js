@@ -32,7 +32,7 @@ export class AssignmentsView extends Component{
     }
 
     getData(){
-        $glVars.webApi.getWorkPlanList(this.state.pagination.item_per_page, this.state.pagination.current_page - 1, this.state.activeTab, this.getDataResult);
+        $glVars.webApi.getWorkPlanList(this.state.pagination.item_per_page, this.state.pagination.current_page - 1, this.state.activeTab, false, this.getDataResult);
     }
 
     getDataResult(result){
@@ -788,6 +788,7 @@ class ModalAssignmentPicker extends Component{
             template:{id: this.state.data.template.id},
             user: {id: item.userId, firstName: item.firstName, lastName: item.lastName, avatar: item.avatar},
             nbHoursPerWeek: 0,
+            comment: '',
             startDate: new Date()
         }]
         this.setState({flags: {dataChanged: true}}, () => this.onSave(newItems))
