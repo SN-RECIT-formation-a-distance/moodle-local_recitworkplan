@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Collapse, ButtonGroup, Button, Form, FormGroup, InputGroup, FormControl, Col, Table, Badge, Card} from 'react-bootstrap';
+import { Collapse, Row, Button, Form, FormGroup, InputGroup, FormControl, Col, Table, Badge, Card, ButtonGroup} from 'react-bootstrap';
 import { faPencilAlt,  faTrashAlt, faPlusSquare,  faSearch, faCopy, faSync, faMinus, faPlus, faArrowsAlt, faArrowRight} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {ComboBoxPlus, FeedbackCtrl, DataGrid, Modal, Pagination} from '../libs/components/Components';
@@ -477,5 +477,51 @@ export class ActivityPicker extends Component{
 
     onClose(){
         this.props.onClose(this.state.flags.dataChanged);
+    }
+}
+
+export class ModalTemplateForm extends Component{
+    static defaultProps = {        
+        data: null,
+        onDataChange: null,
+        onClose: null,
+        onSave: null
+    };
+
+    constructor(props){
+        super(props);
+    }
+
+    render(){
+        let modalBody = 
+            <Form>
+                <div className='h3 mb-4'>Description</div>
+                <Form.Group as={Row} >
+                    <Form.Label column sm="2">{"Nom"}</Form.Label>
+                    <Col sm="10">
+                        <Form.Control type="text" value={this.props.data.template.name} name="name" onChange={this.props.onDataChange} />
+                    </Col>
+                </Form.Group>
+                <Form.Group as={Row}>
+                    <Form.Label column sm="2">{"Description"}</Form.Label>
+                    <Col sm="10">
+                        <Form.Control as="textarea" rows={4} className='w-100' value={this.props.data.template.description} name="description" onChange={this.props.onDataChange} />
+                    </Col>
+                </Form.Group>
+                <Form.Group as={Row}>
+                    <Form.Label column sm="2">{""}</Form.Label>
+                    <Col sm="10">
+                        <Form.Check type="checkbox" label="Enregistrer en tant que gabarit" rows={4} className='w-100' disabled={this.props.data.assignments.length > 1} checked={this.props.data.template.state == 1} name="state" onChange={this.props.onDataChange} />
+                    </Col>
+                </Form.Group>
+            </Form>;
+
+        let modalFooter = 
+            <ButtonGroup>
+                    <Button variant='secondary' onClick={this.props.onClose}>Annuler</Button>
+                    <Button variant='success' className='ml-2' onClick={() => {this.props.onSave(this.props.data);}}>Enregistrer</Button>
+            </ButtonGroup>;
+
+        return <Modal title="Modifier gabarit" body={modalBody} onClose={this.props.onClose} footer={modalFooter}/>
     }
 }

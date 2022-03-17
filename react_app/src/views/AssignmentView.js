@@ -1,13 +1,13 @@
 import React, { Component } from 'react';
-import { Card, Tabs, Tab, Button, Form, DropdownButton, Dropdown, InputGroup, FormControl, Col, Row, Table, Badge, Collapse} from 'react-bootstrap';
-import { faPencilAlt,  faPlus, faTrashAlt, faCopy, faCheck, faSearch, faArrowRight, faArrowLeft, faEllipsisV, faArrowCircleDown, faArrowCircleUp, faMinus, faCheckSquare, faSquare, faArchive, faUser} from '@fortawesome/free-solid-svg-icons';
+import { ButtonGroup, Card, Tabs, Tab, Button, Form, DropdownButton, Dropdown, Col, Row, Table, Badge, Collapse} from 'react-bootstrap';
+import { faPencilAlt,  faPlus, faTrashAlt, faCopy, faCheck, faArrowRight, faArrowLeft, faEllipsisV, faArrowCircleDown, faArrowCircleUp, faMinus, faArchive, faUser} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {ComboBoxPlus, FeedbackCtrl, DataGrid, Modal, ToggleButtons } from '../libs/components/Components';
+import {ComboBoxPlus, FeedbackCtrl, Modal, ToggleButtons } from '../libs/components/Components';
 import {$glVars} from '../common/common';
-import { JsNx, UtilsString, UtilsDateTime, WorkPlanUtils } from '../libs/utils/Utils';
+import { JsNx, UtilsString, UtilsDateTime } from '../libs/utils/Utils';
 import { Pagination } from '../libs/components/Pagination';
-import {ActivityPicker} from './TemplateView';
-import { DateTime } from '../libs/components/DateTime';
+import {ActivityPicker, ModalTemplateForm} from './TemplateView';
+import { DateInput } from '../libs/components/DateTime';
 
 export class AssignmentsView extends Component{
     static defaultProps = {        
@@ -82,7 +82,7 @@ export class AssignmentsView extends Component{
                             }
 
                             let card = 
-                                <Card key={index} className='rounded' style={{width:'525px'}}>
+                                <Card key={index} className='rounded'>
                                     <div style={{backgroundColor: '#0f6fc5', width: `${progress}%`, height: '5px', maxWidth: "100%"}}>
                                          
                                     </div>
@@ -300,58 +300,38 @@ class WorkPlanForm extends Component{
             nbHoursCompletionTotal = nbHoursCompletionTotal + parseInt(act.nbHoursCompletion);
         }
 
-        let modalBody = <div>
-        <Form>
-            <div className='h3 mb-4'>Description</div>
-            <Form.Group as={Row} >
-                <Form.Label column sm="2">{"Nom"}</Form.Label>
-                <Col sm="10">
-                    <Form.Control type="text" value={this.state.data.template.name} name="name" onChange={this.onDataChange} />
-                </Col>
-            </Form.Group>
-            <Form.Group as={Row}>
-                <Form.Label column sm="2">{"Description"}</Form.Label>
-                <Col sm="10">
-                    <Form.Control as="textarea" rows={4} className='w-100' value={this.state.data.template.description} name="description" onChange={this.onDataChange} />
-                </Col>
-            </Form.Group>
-            <Form.Group as={Row}>
-                <Form.Label column sm="2">{""}</Form.Label>
-                <Col sm="10">
-                    <Form.Check type="checkbox" label="Enregistrer en tant que gabarit" rows={4} className='w-100' disabled={this.state.data.assignments.length > 1} checked={this.state.data.template.state == 1} name="state" onChange={this.onDataChange} />
-                </Col>
-            </Form.Group>
-        </Form>
-        <Button variant='primary' className='ml-2' onClick={() => {this.onSaveTemplate(this.state.data); this.setState({editModal:false});}}>Sauvegarder</Button>
-        <Button variant='secondary' onClick={() => this.setState({editModal:false})}>Annuler</Button>
-        </div>
-
         let body =  
             <div>                
                 <div className='d-flex mb-4' style={{alignItems: "center"}}>
-                    <Button onClick={this.props.onClose} className='rounded-circle' variant='outline-primary'><FontAwesomeIcon icon={faArrowLeft}/></Button>
+                    <Button title="Revenir" onClick={this.props.onClose} className='rounded-circle' variant='outline-primary'><FontAwesomeIcon icon={faArrowLeft}/></Button>
                     <span className="h1 ml-3">Plan de travail</span>
                 </div>
-                    <div className='h3 mb-4'>Description <a href='#' onClick={() => this.setState({editModal:true})}><FontAwesomeIcon icon={faPencilAlt}/></a></div>
-                    <div>
-                        <span className='bold'>Nom:</span> {this.state.data.template.name}
-                    </div>
-                    <div>
-                        <span className='bold'>Description:</span> {this.state.data.template.description}
-                    </div>
-                    <div>
-                        <span className='bold'>Gabarit:</span> {this.state.data.template.state == 1 ? 'Oui' : 'Non'}
-                    </div>
-                    <div>
-                    <span className='bold'>{"Nombre d'heure requis pour compléter ce plan: "}</span>
-                            {nbHoursCompletionTotal} heures
-                    </div>
-                    <div>
-                    <span className='bold'>{"Catégories de cours: "}</span>
-                            {categories.map((item, index) => {
-                                return item + ', '.substring(0,-2);
-                            })}
-                    </div> 
+                <Card>
+                    <Card.Body>
+                        <div className='h4 mb-4'>Description <Button title="Éditer" variant="outline-primary" className='rounded-circle' onClick={() => this.setState({editModal:true})}><FontAwesomeIcon icon={faPencilAlt}/></Button></div>
+                        <Row className='m-2'>
+                            <Col className='text-muted' sm={2}>Nom</Col>
+                            <Col sm={10} className='border border-secondary p-2 rounded'>{this.state.data.template.name}</Col>
+                        </Row>   
+                        <Row className='m-2'>
+                            <Col className='text-muted' sm={2}>Description</Col>
+                            <Col sm={10} className='border border-secondary p-2 rounded'>{this.state.data.template.ndescriptioname}</Col>
+                        </Row>                      
+                        <Row className='m-2'>
+                            <Col className='text-muted' sm={2}>Temps à consacrer</Col>
+                            <Col sm={10} className='border border-secondary p-2 rounded'>{`${nbHoursCompletionTotal} heures`}</Col>
+                        </Row> 
+                        <Row className='m-2'>
+                            <Col className='text-muted' sm={2}>Catégories de cours</Col>
+                            <Col sm={10} className='border border-secondary p-2 rounded'>
+                                {categories.map((item, index) => {
+                                    return item + ', '.substring(0,-2);
+                                })}
+                            </Col>
+                        </Row> 
+                    </Card.Body>
+                </Card>
+                    
                 <Tabs id="workPlanTabs" className="mt-3" variant="pills" fill  activeKey={this.state.tab} onSelect={this.onTabChange}>
                     <Tab eventKey="activities" title="Activités">
                         <div className='d-flex' style={{justifyContent: "space-between", alignItems: "center"}}>
@@ -411,10 +391,10 @@ class WorkPlanForm extends Component{
                                 <span className='h2 mr-3'>Affectations</span>
                                 <Button variant='outline-primary' className='rounded-circle' title='Attribuer un plan de travail.' onClick={() => this.onShowAssignments(true)} ><FontAwesomeIcon icon={faPlus}/></Button>
                             </div>
-                            <div style={{display:'inline'}}>
+                            <div className='d-flex align-items-center' style={{width: "50%", justifyContent: "space-between"}}>
                                 <Form.Check style={{display:'inline',marginRight:'10px'}} type="checkbox" onChange={this.onFilterChange} value={this.state.filter.late} name="late" label="Afficher seulement élève en retard"/>
-                                <Form.Control style={{display:'inline',width:'150px',marginRight:'10px'}} onChange={this.onSearch} type="search" value={this.state.queryStr} name='queryStr' placeholder="Nom, groupe..."/>
-                                Trier par <select type="select" onChange={(e) => this.setState({sortAssignment:e.target.value})}>
+                                <Form.Control style={{display:'inline',width:'200px',marginRight:'10px'}} onChange={this.onSearch} type="search" value={this.state.queryStr} name='queryStr' placeholder="Nom, groupe..."/>
+                                Trier par <select type="select" className='form-control' style={{width:'115px',}} onChange={(e) => this.setState({sortAssignment:e.target.value})}>
                                     <option value="lastname">Nom</option>
                                     <option value="firstname">Prénom</option>
                                     <option value="progress">Progrès</option>
@@ -450,18 +430,16 @@ class WorkPlanForm extends Component{
                                                     <div>
                                                         {item.completionState > 0 && <Button variant={"danger"}>{`Apprenant en retard`}</Button>}
                                                     </div>
-                                                    <div className="p-2 text-muted" style={{alignItems: 'center', display: 'flex'}}>
+                                                    <div className="p-2 text-muted" style={{alignItems: 'center', display: 'flex', justifyContent: 'flex-end'}}>
                                                         <span className='mr-3'>{"Achèvement"}</span>
                                                         <FontAwesomeIcon icon={faCheck}/><span className='ml-2 mr-3'>{progressText}</span>  
-                                                        <DropdownButton variant='outline-primary' title={<span><FontAwesomeIcon icon={faEllipsisV}  />{" "}</span>} id={`optionsAssignments${item.id}`}>
+                                                        <DropdownButton className='mr-3'variant='outline-primary' title={<span><FontAwesomeIcon icon={faEllipsisV}  />{" "}</span>} id={`optionsAssignments${item.id}`}>
                                                             <Dropdown.Item onClick={() => this.setState({editAssignment:item.id})}><FontAwesomeIcon icon={faPencilAlt}  />{" Modifier"}</Dropdown.Item>
                                                             <Dropdown.Item onClick={() => this.onDeleteAssignment(item.id)}><FontAwesomeIcon icon={faTrashAlt}  />{" Supprimer"}</Dropdown.Item>
                                                         </DropdownButton>
+                                                        <Button variant='outline-primary' onClick={() => this.onDetail(this.state.detail == item.id ? -1 : item.id)}><FontAwesomeIcon icon={this.state.detail == item.id ? faArrowCircleUp : faArrowCircleDown}/></Button>
                                                     </div>
                                                 </div>
-                                        <div className="p-2 text-muted" style={{textAlign: 'right'}}>
-                                            <a href="#" onClick={() => this.onDetail(this.state.detail == item.id ? -1 : item.id)}><FontAwesomeIcon icon={this.state.detail == item.id ? faArrowCircleUp : faArrowCircleDown}/></a>
-                                        </div>
                                         {this.state.detail == item.id && 
                                             <div style={{width:'100%'}}>
                                                 {this.state.data.template.activities.map((item, index) => {
@@ -499,7 +477,7 @@ class WorkPlanForm extends Component{
                 {this.state.showActivities && <ActivityPicker templateId={this.props.templateId} onClose={(refresh) => this.onShowActivities(false, refresh)}/>}
                 {this.state.showAssignments && <ModalAssignmentPicker data={this.state.data} onClose={(refresh) => this.onShowAssignments(false, refresh)}/>}
                 {this.state.editAssignment > 1 && <ModalAssignmentEditor assignment={this.state.editAssignment} data={this.state.data} onClose={(refresh) => this.onShowAssignments(false, refresh)}/>}
-                {this.state.editModal && <Modal title="Modifier gabarit" body={modalBody} onClose={() => this.setState({editModal:false})}/>}
+                {this.state.editModal && <ModalTemplateForm data={this.state.data} onClose={() => this.setState({editModal:false})} onDataChange={this.onDataChange} onSave={this.onSaveTemplate}/>}
             </div>
             
         let main = body;
@@ -527,16 +505,17 @@ class WorkPlanForm extends Component{
 
     onDataChange(event){
         let data = this.state.data;
-        if(data.template[event.target.name] !== event.target.value){
-            data.template[event.target.name] = event.target.value
-            this.setState({data:data});
-        }
 
-        //Exception for state/checkbox
-        if (event.target.name == 'state'){
-            data.template[event.target.name] = event.target.checked ? 1 : 0;
+        if(data.template[event.target.name] !== event.target.value){
+            //Exception for state/checkbox
+            if (event.target.name === 'state'){
+                data.template[event.target.name] = event.target.checked ? 1 : 0;
+            }
+            else{
+                data.template[event.target.name] = event.target.value
+            }
+            
             this.setState({data:data});
-            this.onSaveTemplate(data)
         }
     }
 
@@ -550,13 +529,13 @@ class WorkPlanForm extends Component{
 
             let data = that.state.data;
             if(data.template.id === 0){
-                data.template.id = result.data;
-                that.setState({data: data});
+                data.template.id = result.data;                
             }
+            that.setState({data: data, editModal: false});
         }
-        if (typeof this.state.data.template.state === 'undefined'){
+        /*if (typeof this.state.data.template.state === 'undefined'){
             this.state.data.template.state = 0;
-        }
+        }*/
         $glVars.webApi.saveTemplate(this.state.data.template, callback);
     }
 
@@ -631,7 +610,7 @@ class ModalAssignmentPicker extends Component{
         this.onDelete = this.onDelete.bind(this);
         this.onAdd = this.onAdd.bind(this);
 
-        this.state = {data: props.data, dropdownLists: {studentList: [], groupList: [], group: null, name: ''}, flags: {dataChanged: false}, collapse: false};
+        this.state = {data: props.data, dropdownLists: {studentList: [], groupList: [], group: null, name: ''}, flags: {dataChanged: false}};
     }
 
     componentDidMount(){
@@ -694,27 +673,20 @@ class ModalAssignmentPicker extends Component{
 
         let body = 
             <div>
-            <div className='w-100 d-flex align-items-center mb-3'>
-                <span className='h4'>Filtrez par groupe</span>
-                <Button variant="link" size="sm" onClick={() => {this.setState({collapse: !this.state.collapse})}}>
-                    {this.state.collapse ? <FontAwesomeIcon icon={faMinus}/> : <FontAwesomeIcon icon={faPlus}/>}
-                </Button>
-            </div>
-            <Collapse in={this.state.collapse} className="mb-3">
                 <div>
-                    <div style={{display: 'grid', gridGap: "1rem", gridTemplateColumns: "37% 37% 37%"}}>
-                        <Form.Group as={Col} >
-                            <Form.Label>{"Groupe"}</Form.Label>
-                            <ComboBoxPlus placeholder={"Sélectionnez votre option"} name="group" value={this.state.dropdownLists.group} options={this.state.dropdownLists.groupList} onChange={(e) => this.onFilterChange(e.target.name, e.target.value)} />
-                        </Form.Group>
-                    </div>
+                    <Form.Group as={Col} >
+                        <Form.Label>{"Filtrez par groupe"}</Form.Label>
+                        <ComboBoxPlus placeholder={"Sélectionnez votre option"} name="group" value={this.state.dropdownLists.group} options={this.state.dropdownLists.groupList} onChange={(e) => this.onFilterChange(e.target.name, e.target.value)} />
+                    </Form.Group>
                 </div>
-            </Collapse>
-                <div className='row'>
-                    <div className='col-md-4'>
-                        <h6>Liste d'élèves</h6>
-                        <input type='text' placeholder='Rechercher...' name='name' style={{width:'100%'}} value={this.state.dropdownLists.name} onChange={(e) => this.onFilterChange(e.target.name, e.target.value)} />
-                        <div style={{maxHeight: 500, overflowY: 'scroll'}}>
+                <div className='mt-4 row'>
+                    <div className='col-md-6'>
+                        <div style={{display: 'flex', alignItems: "center", justifyContent: "space-between"}}>
+                            <strong>Liste d'élèves</strong>
+                            <Form.Control style={{width:'200px'}} onChange={(e) => this.onFilterChange(e.target.name, e.target.value)}  type="search" value={this.state.dropdownLists.name} name='name' placeholder="Rechercher..."/>
+                        </div>
+                        
+                        <div className='mt-2 mb-2' style={{maxHeight: 500, overflowY: 'auto'}}>
                             <Table striped bordered hover>                                
                                 <tbody>
                                     {studentList.map((item, index) => {
@@ -729,13 +701,13 @@ class ModalAssignmentPicker extends Component{
                                             return row;
                                         }
                                     )}
-                                    {studentList.length == 0 && <tr><td>Pas de données</td></tr>}
+                                    {studentList.length == 0 && <tr><td className='text-muted'>Pas de données</td></tr>}
                                 </tbody>
                             </Table>
                         </div>
-                        <a href='#' onClick={() => this.onAddSelected()}>Ajouter tous les élèves de la liste</a>
+                        <Button variant="link" onClick={() => this.onAddSelected()}>{"Ajouter tous "}<FontAwesomeIcon icon={faArrowRight}/></Button>
                     </div>
-                    <div className='col-md-8'>
+                    <div className='col-md-6'>
                         <div>
                             <h6>Élèves assignés <Badge variant="warning" className="p-2 rounded">{`${this.state.data.assignments.length}`}</Badge></h6>
                             <div style={{maxHeight: 500, overflowY: 'scroll'}}>
@@ -876,6 +848,8 @@ class ModalAssignmentEditor extends Component{
     constructor(props){
         super(props);
 
+        this.onClose = this.onClose.bind(this);
+
         let assignment = 0;
         let index = 0;
         for (let i in props.data.assignments){
@@ -894,33 +868,36 @@ class ModalAssignmentEditor extends Component{
         if(this.state.data === null){ return null; }
 
         let item = this.state.assignment;
-        let body = <div>
-        <Form>
-            <Form.Group as={Row} >
-                <Form.Label column sm="2">{"Début"}</Form.Label>
-                <Col sm="10">
-                    <DateTime value={item.startDate} name="startDate" onChange={(event) => this.onDataChange(event, this.state.index)} />
-                </Col>
-            </Form.Group>
-            <Form.Group as={Row}>
-                <Form.Label column sm="2">{"Commentaire"}</Form.Label>
-                <Col sm="10">
-                    <Form.Control as="textarea" rows={4} className='w-100' name="comment" value={item.comment} onChange={(event) => this.onDataChange(event, this.state.index)}/>
-                </Col>
-            </Form.Group>
-            <Form.Group as={Row}>
-                <Form.Label column sm="2">{"h/semaine"}</Form.Label>
-                <Col sm="10">
-                    <Form.Control style={{width: '50px', display: 'inline'}} className="mr-3" type="text" value={item.nbHoursPerWeek} name="nbHoursPerWeek" onChange={(event) => this.onDataChange(event, this.state.index)} />
-                </Col>
-            </Form.Group>
-        </Form>
-        <Button variant='primary' className='ml-2' onClick={() => {this.onSave([item]); this.onClose();}}>Sauvegarder</Button>
-        <Button variant='secondary' onClick={() => this.onClose()}>Annuler</Button>
-        </div>
+        let body = 
+            <Form>
+                <Form.Group as={Row} >
+                    <Form.Label column sm="2">{"Début"}</Form.Label>
+                    <Col sm="10">
+                        <DateInput value={item.startDate} name="startDate" onChange={(event) => this.onDataChange(event, this.state.index)} />
+                    </Col>
+                </Form.Group>
+                <Form.Group as={Row}>
+                    <Form.Label column sm="2">{"Commentaire"}</Form.Label>
+                    <Col sm="10">
+                        <Form.Control as="textarea" rows={4} className='w-100' name="comment" value={item.comment} onChange={(event) => this.onDataChange(event, this.state.index)}/>
+                    </Col>
+                </Form.Group>
+                <Form.Group as={Row}>
+                    <Form.Label column sm="2">{"h/semaine"}</Form.Label>
+                    <Col sm="10">
+                        <Form.Control style={{width: '50px', display: 'inline'}} className="mr-3" type="text" value={item.nbHoursPerWeek} name="nbHoursPerWeek" onChange={(event) => this.onDataChange(event, this.state.index)} />
+                    </Col>
+                </Form.Group>
+            </Form>;
+
+        let modalFooter = 
+        <ButtonGroup>
+                <Button variant='secondary' onClick={this.onClose}>Annuler</Button>
+                <Button variant='success' className='ml-2' onClick={() => {this.onSave([item]);}}>Enregistrer</Button>
+        </ButtonGroup>;
 
 
-        let main = <Modal title={'Modifier élève'} body={body} width="800px" onClose={() => this.onClose()} />;
+        let main = <Modal title={'Modifier élève'} body={body} footer={modalFooter} width="800px" onClose={this.onClose} />;
 
         return (main);
     }
@@ -951,6 +928,8 @@ class ModalAssignmentEditor extends Component{
                 }
                 index++;
             }
+
+            that.onClose();
         }
 
         if(this.state.flags.dataChanged){
