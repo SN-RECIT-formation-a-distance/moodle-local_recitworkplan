@@ -292,7 +292,7 @@ export class ActivityPicker extends Component{
                                             let row =
                                                 <DataGrid.Body.RowDraggable data={item} onDrag={this.onDragRow} onDrop={this.onDropRow} key={index}>
                                                     <DataGrid.Body.Cell>
-                                                        <div className='d-flex align-items-center' style={{justifyContent: 'space-between'}}>
+                                                        <div className='align-items-center' style={{display: 'grid', gridTemplateColumns: "40px calc(100% - 40px - 40px) 40px", justifyContent: 'space-between'}}>
                                                             <div>
                                                                 <FontAwesomeIcon icon={faArrowsAlt} title="Déplacer l'item"/>
                                                             </div>

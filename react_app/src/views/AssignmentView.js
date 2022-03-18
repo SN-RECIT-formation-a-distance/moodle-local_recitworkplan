@@ -8,6 +8,7 @@ import { JsNx, UtilsString, UtilsDateTime } from '../libs/utils/Utils';
 import { Pagination } from '../libs/components/Pagination';
 import {ActivityPicker, ModalTemplateForm} from './TemplateView';
 import { DateInput } from '../libs/components/DateTime';
+import { UserActivityList } from './Components';
 
 export class AssignmentsView extends Component{
     static defaultProps = {        
@@ -221,7 +222,7 @@ class WorkPlanForm extends Component{
     }
 
     componentDidMount(){
-        this.getData();
+        this.getData(this.props.templateId);
         if (this.props.templateId == 0){
             this.setState({editModal:true})
         }
@@ -233,8 +234,8 @@ class WorkPlanForm extends Component{
         }
     }
 
-    getData(){
-        $glVars.webApi.getWorkPlanFormKit(this.props.templateId, this.getDataResult);
+    getData(templateId){
+        $glVars.webApi.getWorkPlanFormKit(templateId, this.getDataResult);
     }
 
     getDataResult(result){
@@ -340,7 +341,7 @@ class WorkPlanForm extends Component{
                                 <Button variant='outline-primary' className='rounded-circle' title='Ajouter des activités.' onClick={() => this.onShowActivities(true)} ><FontAwesomeIcon icon={faPlus}/></Button>
                             </div>
                             <div>
-                                <Form.Control onChange={this.onSearch} type="search" value={this.state.queryStr} name='queryStr' placeholder="Catégories, cours..."/>
+                                <Form.Control className='rounded' onChange={this.onSearch} type="search" value={this.state.queryStr} name='queryStr' placeholder="Catégories, cours..."/>
                             </div>
                         </div> 
                         <div>
@@ -393,8 +394,8 @@ class WorkPlanForm extends Component{
                             </div>
                             <div className='d-flex align-items-center' style={{width: "50%", justifyContent: "space-between"}}>
                                 <Form.Check style={{display:'inline',marginRight:'10px'}} type="checkbox" onChange={this.onFilterChange} value={this.state.filter.late} name="late" label="Afficher seulement élève en retard"/>
-                                <Form.Control style={{display:'inline',width:'200px',marginRight:'10px'}} onChange={this.onSearch} type="search" value={this.state.queryStr} name='queryStr' placeholder="Nom, groupe..."/>
-                                Trier par <select type="select" className='form-control' style={{width:'115px',}} onChange={(e) => this.setState({sortAssignment:e.target.value})}>
+                                <Form.Control className='rounded' style={{display:'inline',width:'200px',marginRight:'10px'}} onChange={this.onSearch} type="search" value={this.state.queryStr} name='queryStr' placeholder="Nom, groupe..."/>
+                                Trier par <select type="select" className='form-control rounded' style={{width:'115px',}} onChange={(e) => this.setState({sortAssignment:e.target.value})}>
                                     <option value="lastname">Nom</option>
                                     <option value="firstname">Prénom</option>
                                     <option value="progress">Progrès</option>
@@ -443,26 +444,7 @@ class WorkPlanForm extends Component{
                                         {this.state.detail == item.id && 
                                             <div style={{width:'100%'}}>
                                                 {this.state.data.template.activities.map((item, index) => {
-                                                        
-                                                        let card2 = 
-                                                            <Card key={index} className='rounded mt-2 mb-2'>
-                                                                <Card.Body style={{backgroundColor: "#ffffff", display: "grid", gridGap: '1rem', gridTemplateColumns: '50% auto auto', alignItems: 'center'}}>
-                                                                    <div>
-                                                                        <div className='h4'><strong><a href={item.cmUrl} target="_blank">{item.cmName}</a></strong></div>
-                                                                        <div className='h6 text-muted pl-3'>{`${item.categoryName}/${item.courseName}`}</div>
-                                                                        <div className='h6 text-muted pl-3'>{`${item.nbHoursCompletion} heures`}</div>
-                                                                    </div>
-                                                                    <div className="m-3 p-2">
-                                                                        {this.state.data.template.followUps.map((followUps, index2) => {
-                                                                            return <Button key={index2} variant={followUps.variant}>{followUps.desc}</Button>;
-                                                                        })}
-                                                                    </div>
-                                                                    <div className="p-2 text-muted" style={{alignItems: 'center', display: 'flex'}}>
-                                                                        {item.completionState > 0 && <Button variant='success'>Complété</Button>}
-                                                                    </div>
-                                                                </Card.Body>
-                                                            </Card>
-                                                        return (card2);                                     
+                                                         return (<UserActivityList data={item} key={index}/>);   
                                                     }
                                                 )}
                                             </div>}
@@ -474,9 +456,9 @@ class WorkPlanForm extends Component{
                         </div>
                     </Tab>
                 </Tabs>  
-                {this.state.showActivities && <ActivityPicker templateId={this.props.templateId} onClose={(refresh) => this.onShowActivities(false, refresh)}/>}
+                {this.state.showActivities && <ActivityPicker templateId={this.state.data.template.id} onClose={(refresh) => this.onShowActivities(false, refresh)}/>}
                 {this.state.showAssignments && <ModalAssignmentPicker data={this.state.data} onClose={(refresh) => this.onShowAssignments(false, refresh)}/>}
-                {this.state.editAssignment > 1 && <ModalAssignmentEditor assignment={this.state.editAssignment} data={this.state.data} onClose={(refresh) => this.onShowAssignments(false, refresh)}/>}
+                {this.state.editAssignment > 1 && <ModalAssignmentForm assignment={this.state.editAssignment} data={this.state.data} onClose={(refresh) => this.onShowAssignments(false, refresh)}/>}
                 {this.state.editModal && <ModalTemplateForm data={this.state.data} onClose={() => this.setState({editModal:false})} onDataChange={this.onDataChange} onSave={this.onSaveTemplate}/>}
             </div>
             
@@ -541,13 +523,13 @@ class WorkPlanForm extends Component{
 
     onShowActivities(value, refresh){
         refresh = (typeof refresh === 'undefined' ? false : refresh);
-        let callback = (refresh ? this.getData : null);
+        let callback = (refresh ? () => this.getData(this.state.data.template.id) : null);
         this.setState({showActivities: value}, callback);
     }
 
     onShowAssignments(value, refresh){
         refresh = (typeof refresh === 'undefined' ? false : refresh);
-        let callback = (refresh ? this.getData : null);
+        let callback = (refresh ? () => this.getData(this.state.data.template.id) : null);
         this.setState({showAssignments: value, editAssignment: -1}, callback);
     }
 
@@ -586,7 +568,6 @@ class WorkPlanForm extends Component{
             $glVars.webApi.deleteAssignment(assignmentId, callback);
         }
     }
-
 
     onSearch(event){
         this.setState({queryStr: event.target.value});
@@ -754,15 +735,21 @@ class ModalAssignmentPicker extends Component{
         this.setState({dropdownLists:list});
     }
 
-    onAdd(item){
-        let newItems = [{
+    createNewAssignment(item){
+        let result = {
             id: 0,
             template:{id: this.state.data.template.id},
             user: {id: item.userId, firstName: item.firstName, lastName: item.lastName, avatar: item.avatar},
             nbHoursPerWeek: 0,
             comment: '',
             startDate: new Date()
-        }]
+        };
+
+        return result;
+    }
+
+    onAdd(item){
+        let newItems = [this.createNewAssignment(item)]
         this.setState({flags: {dataChanged: true}}, () => this.onSave(newItems))
     }
 
@@ -770,16 +757,9 @@ class ModalAssignmentPicker extends Component{
         let newItems = []
         let studentList = this.getFilteredStudentList();
         for (let item of studentList){
-            newItems.push({
-                id: 0,
-                template:{id: this.state.data.template.id},
-                user: {id: item.userId, firstName: item.firstName, lastName: item.lastName, avatar: item.avatar},
-                nbHoursPerWeek: 0,
-                startDate: new Date()
-            });
+            newItems.push(this.createNewAssignment(item));
         }
         this.setState({flags: {dataChanged: true}}, () => this.onSave(newItems))
-
     }
 
     onDelete(assignmentId){
@@ -838,7 +818,7 @@ class ModalAssignmentPicker extends Component{
     }
 }
 
-class ModalAssignmentEditor extends Component{
+class ModalAssignmentForm extends Component{
     static defaultProps = {        
         data: null,
         onClose: null,
@@ -893,7 +873,7 @@ class ModalAssignmentEditor extends Component{
         let modalFooter = 
         <ButtonGroup>
                 <Button variant='secondary' onClick={this.onClose}>Annuler</Button>
-                <Button variant='success' className='ml-2' onClick={() => {this.onSave([item]);}}>Enregistrer</Button>
+                <Button disabled={!this.state.flags.dataChanged} variant='success' className='ml-2' onClick={() => {this.onSave([item]);}}>Enregistrer</Button>
         </ButtonGroup>;
 
 

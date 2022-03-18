@@ -7,7 +7,7 @@ import { TemplatesView } from './TemplateView';
 import { AssignmentsView } from './AssignmentView';
 import {$glVars} from '../common/common';
 import { Pagination } from '../libs/components/Pagination';
-import { ReportView } from './ReportView';
+import { UserActivityList } from './Components';
 import { UtilsDateTime, WorkPlanUtils } from '../libs/utils/Utils';
 
 export class StudentView extends Component {
@@ -90,55 +90,32 @@ export class StudentTemplateTile extends Component {
 
         let main = 
         <Card className='rounded' style={{width:'100%'}}>
-            <div className={rythmeColor} style={{width: `${progressValue}%`, height: '5px', maxWidth: "100%"}}>
-                 
-            </div>
-            <Card.Body style={{backgroundColor: "#f0f0f0"}}>
-                <div className='d-flex' style={{justifyContent: 'space-between'}}>
-                    <a href='#' onClick={() => this.setState({detail:this.props.reportData.id})} className='h3'>{this.props.reportData.template.name}</a>
-                </div>
-                <div className='row'>
-                    <div className="col-md-4">
-                        <span style={{fontWeight:'bold'}}>Début :</span> {UtilsDateTime.getDate(this.state.assignment.startDate)}<br/>
-                        <span style={{fontWeight:'bold'}}>Fin :</span> {UtilsDateTime.getDate(this.state.assignment.endDate)}<br/>
-                        <span style={{fontWeight:'bold'}}>État :</span> {WorkPlanUtils.getCompletionState(this.state.assignment)}<br/>
-                        <span style={{fontWeight:'bold'}}>Rythme (h/semaine) :</span> {this.state.assignment.nbHoursPerWeek}<br/>
-                        <span style={{fontWeight:'bold'}}>Professeur :</span> <a href={this.state.assignment.assignor.url} target="_blank"><span dangerouslySetInnerHTML={{__html: this.state.assignment.assignor.avatar}}></span>{`${this.state.assignment.assignor.firstName} ${this.state.assignment.assignor.lastName}`}</a>
+            <div className={rythmeColor} style={{width: `${progressValue}%`, height: '5px', maxWidth: "100%"}}></div>
+            <Card.Body style={{backgroundColor: "#f0f0f0"}} >
+                <div  style={{backgroundColor: "#f0f0f0", justifyContent: 'space-between', display: "flex", alignItems: "center"}}>
+                    <div>
+                        <div className='h4'>{this.props.reportData.template.name}</div>
+                        <div className='text-muted'>{`Échéance: ${UtilsDateTime.getDate(this.state.assignment.endDate)}`}</div>
+                        <div className='text-muted'>{`Rythme: ${this.state.assignment.nbHoursPerWeek} (h/semaine)`}</div>
                     </div>
-                    <div className="col-md-3">
+                    <div>
+                        <div className='text-muted'>{`Attribué par `}<a href={this.state.assignment.assignor.url} target="_blank"><span dangerouslySetInnerHTML={{__html: this.state.assignment.assignor.avatar}}></span></a></div>
+                    </div>
+                    <div>
                         {this.state.assignment.completionState > 0 && <Button variant={"danger"}>{`En retard`}</Button>}
                     </div> 
-                    <div className="col-md-4">
+                    <div >
                         <span style={{fontWeight:'bold'}}>{"Achèvement "}</span><FontAwesomeIcon icon={faCheck}/><span className='ml-2'>{progressText}</span>  
                     </div>
-                    <div className="col-md-1" style={{textAlign: 'right'}}>
-                        <a href="#" onClick={() => this.setState({detail:this.state.detail == this.props.reportData.id ? -1 : this.props.reportData.id})}><FontAwesomeIcon icon={this.state.detail == this.props.reportData.id ? faArrowCircleUp : faArrowCircleDown}/></a>
+                    <div >
+                        <Button variant='outline-primary'  onClick={() => this.setState({detail:this.state.detail == this.props.reportData.id ? -1 : this.props.reportData.id})}><FontAwesomeIcon icon={this.state.detail == this.props.reportData.id ? faArrowCircleUp : faArrowCircleDown}/></Button>
                     </div>
                 </div>
                 {this.state.detail == this.props.reportData.id && 
                     <div style={{width:'100%'}}>
                         
                         {this.props.reportData.template.activities.map((item, index) => {
-                                
-                                let card2 = 
-                                    <Card key={index} className='rounded mt-2 mb-2'>
-                                        <Card.Body style={{backgroundColor: "#ffffff", display: "grid", gridGap: '1rem', gridTemplateColumns: '50% auto auto', alignItems: 'center'}}>
-                                            <div>
-                                                <div className='h4'><strong><a href={item.cmUrl} target="_blank">{item.cmName}</a></strong></div>
-                                                <div className='h6 text-muted pl-3'>{`${item.categoryName}/${item.courseName}`}</div>
-                                                <div className='h6 text-muted pl-3'>{`${item.nbHoursCompletion} heures`}</div>
-                                            </div>
-                                            <div className="m-3 p-2">
-                                                {this.props.reportData.template.followUps.map((followUps, index2) => {
-                                                    return <Button key={index2} variant={followUps.variant}>{followUps.desc}</Button>;
-                                                })}
-                                            </div>
-                                            <div className="p-2 text-muted" style={{alignItems: 'center', display: 'flex'}}>
-                                                {item.completionState > 0 && <Button variant='success'>Complété</Button>}
-                                            </div>
-                                        </Card.Body>
-                                    </Card>
-                                return (card2);                                     
+                                return (<UserActivityList data={item} key={index}/>);                                     
                             }
                         )}
                     </div>}
