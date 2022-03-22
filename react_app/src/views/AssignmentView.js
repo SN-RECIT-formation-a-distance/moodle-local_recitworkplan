@@ -598,7 +598,7 @@ class ModalAssignmentPicker extends Component{
         this.onDelete = this.onDelete.bind(this);
         this.onAdd = this.onAdd.bind(this);
 
-        this.state = {data: props.data, dropdownLists: {studentList: [], groupList: [], group: null, name: ''}, flags: {dataChanged: false}};
+        this.state = {data: props.data, dropdownLists: {studentList: [], groupList: [], group: null, name: ''}, flags: {dataChanged: false}, rhythme: ''};
     }
 
     componentDidMount(){
@@ -693,7 +693,6 @@ class ModalAssignmentPicker extends Component{
                                 </tbody>
                             </Table>
                         </div>
-                        <Button variant="link" onClick={() => this.onAddSelected()}>{"Ajouter tous les utilisateurs "}<FontAwesomeIcon icon={faArrowRight}/></Button>
                     </div>
                     <div className='col-md-6'>
                         <div>
@@ -728,6 +727,8 @@ class ModalAssignmentPicker extends Component{
                             </div>
                         </div>
                     </div>
+                        <Form.Control style={{width:'180px',display:'inline',marginLeft:'14px'}} onChange={(e) => this.setState({rhythme:e.target.value})}  type="number" value={this.state.rhythme} name='rhythme' placeholder="Rythme (h/semaine)"/>
+                        <Button variant="link" onClick={() => this.onAddSelected()}>{"Ajouter tous les utilisateurs "}<FontAwesomeIcon icon={faArrowRight}/></Button>
                 </div>
             </div>;
 
@@ -747,7 +748,7 @@ class ModalAssignmentPicker extends Component{
             id: 0,
             template:{id: this.state.data.template.id},
             user: {id: item.userId, firstName: item.firstName, lastName: item.lastName, avatar: item.avatar},
-            nbHoursPerWeek: 0,
+            nbHoursPerWeek: this.state.rhythme == '' ? 0 : this.state.rhythme,
             comment: '',
             startDate: new Date()
         };
