@@ -316,7 +316,7 @@ class WorkPlanForm extends Component{
                         </Row>   
                         <Row className='m-2'>
                             <Col className='text-muted' sm={2}>Description</Col>
-                            <Col sm={10} className='border border-secondary p-2 rounded'>{this.state.data.template.ndescriptioname}</Col>
+                            <Col sm={10} className='border border-secondary p-2 rounded'>{this.state.data.template.description}</Col>
                         </Row>                      
                         <Row className='m-2'>
                             <Col className='text-muted' sm={2}>Temps à consacrer</Col>

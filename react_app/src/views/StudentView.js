@@ -9,6 +9,7 @@ import {$glVars} from '../common/common';
 import { Pagination } from '../libs/components/Pagination';
 import { UserActivityList } from './Components';
 import { UtilsDateTime, WorkPlanUtils } from '../libs/utils/Utils';
+import { ClickableElipsis } from '../libs/components/ClickableElipsis';
 
 export class StudentView extends Component {
     constructor(props) {
@@ -92,9 +93,10 @@ export class StudentTemplateTile extends Component {
         <Card className='rounded' style={{width:'100%'}}>
             <div className={rythmeColor} style={{width: `${progressValue}%`, height: '5px', maxWidth: "100%"}}></div>
             <Card.Body style={{backgroundColor: "#f0f0f0"}} >
-                <div  style={{backgroundColor: "#f0f0f0", justifyContent: 'space-between', display: "flex", alignItems: "center"}}>
+                <div className='h4'>{this.props.reportData.template.name}</div>
+                <ClickableElipsis text={this.props.reportData.template.description}/>
+                <div style={{backgroundColor: "#f0f0f0", justifyContent: 'space-between', display: "flex", alignItems: "center"}}>
                     <div>
-                        <div className='h4'>{this.props.reportData.template.name}</div>
                         <div className='text-muted'>{`Échéance: ${UtilsDateTime.getDate(this.state.assignment.endDate)}`}</div>
                         <div className='text-muted'>{`Rythme: ${this.state.assignment.nbHoursPerWeek} (h/semaine)`}</div>
                     </div>
