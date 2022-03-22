@@ -104,7 +104,7 @@ export class StudentTemplateTile extends Component {
                         <div className='text-muted'>{`Attribué par `}<a href={this.state.assignment.assignor.url} target="_blank"><span dangerouslySetInnerHTML={{__html: this.state.assignment.assignor.avatar}}></span></a></div>
                     </div>
                     <div>
-                        {this.state.assignment.completionState > 0 && <Button variant={"danger"}>{`En retard`}</Button>}
+                        {this.state.assignment.completionState == 2 && <Button variant={"danger"}>{`En retard`}</Button>}
                     </div> 
                     <div >
                         <span style={{fontWeight:'bold'}}>{"Achèvement "}</span><FontAwesomeIcon icon={faCheck}/><span className='ml-2'>{progressText}</span>  

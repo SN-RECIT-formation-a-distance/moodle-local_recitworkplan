@@ -436,7 +436,7 @@ class WorkPlanForm extends Component{
                                                         <div className='text-muted'>{`Échéance: ${UtilsDateTime.getDate(item.endDate)}`}</div>
                                                     </div>
                                                     <div>
-                                                        {item.completionState > 0 && <Button variant={"danger"}>{`Apprenant en retard`}</Button>}
+                                                        {item.completionState == 2 && <Button variant={"danger"}>{`Apprenant en retard`}</Button>}
                                                     </div>
                                                     <div className="p-2 text-muted" style={{alignItems: 'center', display: 'flex', justifyContent: 'flex-end'}}>
                                                         <span className='mr-3'>{"Achèvement"}</span>
