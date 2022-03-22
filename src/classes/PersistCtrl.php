@@ -583,12 +583,12 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
     
 
     private function addCalendarEvent($templateId, $userId){
-
+        global $CFG;
         $workPlan = $this->getWorkPlan($userId, $templateId);
         if ($workPlan == null){ return; }
 
         $name = "Fin du plan ".$workPlan->template->name;
-        $desc = $name; 
+        $desc = "<a href='".$CFG->wwwroot."/local/recitworkplan/view.php'>".$name."</a>"; 
         $workPlan->setAssignmentsEndDate();
         if (!isset($workPlan->assignments[0]->endDate)){ return; } 
 
