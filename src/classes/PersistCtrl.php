@@ -608,7 +608,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         $event->visible = TRUE;
         $event->timeduration = 0;
 
-        \calendar_event::create($event);
+        \calendar_event::create($event, false);
     }
 
     private function deleteCalendarEvent($assignmentId = 0, $userId = 0){
