@@ -274,6 +274,10 @@ class WorkPlanForm extends Component{
             if (this.state.sortAssignment == 'lastname'){
                 return a.user.lastName.localeCompare(b.user.lastName);
             }
+            if (this.state.sortAssignment == 'enddate'){
+                if (!a.endDate || !b.endDate) return 0;
+                return a.endDate.localeCompare(b.endDate);
+            }
             if (this.state.sortAssignment == 'progress'){
                 let progressValueA = 0;
                 if(this.state.data.stats.assignmentcompleted[`userid${a.user.id}`]){
@@ -400,6 +404,7 @@ class WorkPlanForm extends Component{
                                     <option value="lastname">Nom</option>
                                     <option value="firstname">Prénom</option>
                                     <option value="progress">Progrès</option>
+                                    <option value="enddate">Date d'échéance</option>
                                 </select>
                             </div>
                         </div>
@@ -428,6 +433,7 @@ class WorkPlanForm extends Component{
                                                         <strong>{item.user.firstName}</strong><span  className='ml-3 text-muted'>Groupe:</span><span className='text-muted'>{` ${item.user.groupList}`}</span>
                                                         <div className='text-muted'>Dernière connexion: {item.user.lastAccess}</div>
                                                         <div className='text-muted'>{`Début: ${UtilsDateTime.getDate(item.startDate)} (${item.nbHoursPerWeek} h/semaine)`}</div>
+                                                        <div className='text-muted'>{`Échéance: ${UtilsDateTime.getDate(item.endDate)}`}</div>
                                                     </div>
                                                     <div>
                                                         {item.completionState > 0 && <Button variant={"danger"}>{`Apprenant en retard`}</Button>}
