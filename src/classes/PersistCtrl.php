@@ -437,8 +437,11 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         if ($state == 'archive'){
             $where = "(t1.completionstate = 1 and t2.state = 0)";
         }
+        $wheretmp = "";
         if ($forStudent){
-            $where .= " and t1.userid = $userId";
+            $wheretmp .= "where userid = $userId";
+        }else{
+            $wheretmp .= "where creatorid = $userId";
         }
 
         $query = "select t1.id, t1.nb_hours_per_week as nbhoursperweek, from_unixtime(t1.startdate) as startdate, t1.completionstate as wpcompletionstate, t2.id as templateid, t2.creatorid, t2.name as templatename, t7.fullname as coursename, t7.id as courseid,
@@ -463,7 +466,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
 
         $this->createTmpWorkPlanTable($query);
         
-        $rst = $this->mysqlConn->execSQLAndGetObjects("select * from workplans");
+        $rst = $this->mysqlConn->execSQLAndGetObjects("select * from workplans $wheretmp");
 
         $workPlanList = array();
         $total_count = 0;
