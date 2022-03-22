@@ -740,8 +740,6 @@ class TemplateActivity{
 
 class Assignment{
     public $id = 0;
-    //@Template
-    public $template = null;
     public $user = null;
     public $assignor = null;
     public $startDate = null;
@@ -768,7 +766,6 @@ class Assignment{
 
         $result = new Assignment();
         $result->id = $dbData->id;
-        $result->template = Template::create($dbData);
       
         if((isset($dbData->userid)) && ($dbData->userid != 0)){
             $user = $DB->get_record('user', array('id' => $dbData->userid));
