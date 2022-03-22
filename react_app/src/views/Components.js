@@ -12,7 +12,8 @@ import { DateInput } from '../libs/components/DateTime';
 
 export class UserActivityList extends Component{
     static defaultProps = {        
-        data: null
+        data: null,
+        user: null
     };
 
     constructor(props){
@@ -21,6 +22,7 @@ export class UserActivityList extends Component{
 
     render(){
         let item = this.props.data;
+        let userActivity = JsNx.getItem(this.props.user.activities, 'cmId', item.cmId);
 
         let main = 
             <Card className='rounded mt-2 mb-2'>
@@ -31,7 +33,7 @@ export class UserActivityList extends Component{
                         <div className='h6 text-muted pl-3'>{`${item.nbHoursCompletion} heures`}</div>
                     </div>
                     <div className="p-2 text-muted" style={{alignItems: 'center', display: 'flex'}}>
-                        {item.completionState > 0 && <Button variant='success'>Complété</Button>}
+                        {userActivity.completionState > 0 && <Button variant='success'>Complété</Button>}
                     </div>
                 </Card.Body>
             </Card>

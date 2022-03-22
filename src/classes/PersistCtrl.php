@@ -701,11 +701,6 @@ class TemplateActivity{
     public $nbHoursCompletion = 0;
     public $roles = "";
     public $categoryroles = "";
-    /**
-     * Whether or not the user has completed the activity. 
-     * Available states: 0 = not completed if there's no row in this table, that also counts as 0 1 = completed 2 = completed, show passed 3 = completed, show failed
-     */
-    public $completionState = 0;
 
     public static function create($dbData){
         $result = new TemplateActivity();
@@ -724,8 +719,6 @@ class TemplateActivity{
 
         $result->categoryroles = explode(",", $dbData->categoryroles);
         $result->categoryroles = Utils::moodleRoles2RecitRoles($result->categoryroles);
-
-        $result->completionState = (isset($dbData->activitycompletionstate) ? $dbData->activitycompletionstate : $result->completionState);
 
         //Get cm url
         if ($result->cmId > 0){
@@ -752,8 +745,6 @@ class Assignment{
     public $completionState = 0;
 
     public function __construct(){
-        $this->template = new Template();    
-
         $this->startDate = new DateTime();    
     }
 
@@ -776,6 +767,7 @@ class Assignment{
             $result->user->groupList = (isset($dbData->grouplist) ? $dbData->grouplist : ''); 
             $result->user->lastAccess = (isset($dbData->lastaccess) ? $dbData->lastaccess : ''); 
             $result->user->avatar = $OUTPUT->user_picture($user, array('size'=> 50));
+            $result->user->activities = array();
         }
         
         if((isset($dbData->assignorid)) && ($dbData->assignorid != 0)){
@@ -800,6 +792,17 @@ class Assignment{
         $result->completionState = $dbData->wpcompletionstate;
 
         return $result;
+    }
+
+    public function addUserActivity($dbData){
+        /**
+         * Whether or not the user has completed the activity. 
+         * Available states: 0 = not completed if there's no row in this table, that also counts as 0 1 = completed 2 = completed, show passed 3 = completed, show failed
+         */
+        $item = new stdClass();
+        $item->completionState = (isset($dbData->activitycompletionstate) ? $dbData->activitycompletionstate : 0);
+        $item->cmId = (isset($dbData->cmid) ? $dbData->cmid : 0);
+        $this->user->activities[] = $item;
     }
 
     public function setEndDate($template){
@@ -831,12 +834,14 @@ class WorkPlan{
     public function addAssignment($dbData){   
         foreach($this->assignments as $item){
             if($item->id == $dbData->id){
+                $item->addUserActivity($dbData);
                 return;
             }
         }
 
         $obj = Assignment::create($dbData);
         if($obj != null){
+            $obj->addUserActivity($dbData);
             $this->assignments[] = $obj;
         }
     }

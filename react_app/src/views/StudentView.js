@@ -117,7 +117,7 @@ export class StudentTemplateTile extends Component {
                     <div style={{width:'100%'}}>
                         
                         {this.props.reportData.template.activities.map((item, index) => {
-                                return (<UserActivityList data={item} key={index}/>);                                     
+                                return (<UserActivityList user={this.state.assignment.user} data={item} key={index}/>);                                     
                             }
                         )}
                     </div>}

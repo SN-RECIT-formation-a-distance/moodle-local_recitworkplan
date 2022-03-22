@@ -450,8 +450,8 @@ class WorkPlanForm extends Component{
                                                 </div>
                                         {this.state.detail == item.id && 
                                             <div style={{width:'100%'}}>
-                                                {this.state.data.template.activities.map((item, index) => {
-                                                         return (<UserActivityList data={item} key={index}/>);   
+                                                {this.state.data.template.activities.map((act, index) => {
+                                                         return (<UserActivityList user={item.user} data={act} key={index}/>);   
                                                     }
                                                 )}
                                             </div>}
