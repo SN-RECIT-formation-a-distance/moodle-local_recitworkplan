@@ -70,7 +70,7 @@ export class AssignmentsView extends Component{
                     </div>
                     <div>
                         <ToggleButtons name="completionState" onChange={this.onCompletionStateChange} type="radio"  defaultValue={this.state.activeTab} options={
-                            [{value: "ongoing", text: "En Cours"}, {value: "archive", text: "Archivés"}, {value: "template", text: "Gabarits"}]}/>
+                            [{value: "ongoing", text: "En cours"}, {value: "archive", text: "Archivés"}, {value: "template", text: "Gabarits"}]}/>
                     </div>
                 </div> 
 
@@ -687,7 +687,7 @@ class ModalAssignmentPicker extends Component{
                                 </tbody>
                             </Table>
                         </div>
-                        <Button variant="link" onClick={() => this.onAddSelected()}>{"Ajouter tous "}<FontAwesomeIcon icon={faArrowRight}/></Button>
+                        <Button variant="link" onClick={() => this.onAddSelected()}>{"Ajouter tous les utilisateurs "}<FontAwesomeIcon icon={faArrowRight}/></Button>
                     </div>
                     <div className='col-md-6'>
                         <div>
