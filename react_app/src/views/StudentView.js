@@ -74,7 +74,7 @@ export class StudentTemplateTile extends Component {
 
     constructor(props) {
         super(props);
-        this.state = {detail:false, assignment:this.props.reportData.assignments[0]};
+        this.state = {detail: this.props.reportData.id, assignment: this.props.reportData.assignments[0]};
     }
  
     render() {
@@ -110,7 +110,7 @@ export class StudentTemplateTile extends Component {
                         <span style={{fontWeight:'bold'}}>{"Achèvement "}</span><FontAwesomeIcon icon={faCheck}/><span className='ml-2'>{progressText}</span>  
                     </div>
                     <div >
-                        <Button variant='outline-primary'  onClick={() => this.setState({detail:this.state.detail == this.props.reportData.id ? -1 : this.props.reportData.id})}><FontAwesomeIcon icon={this.state.detail == this.props.reportData.id ? faArrowCircleUp : faArrowCircleDown}/></Button>
+                        <Button variant='outline-primary' onClick={() => this.setState({detail:this.state.detail == this.props.reportData.id ? -1 : this.props.reportData.id})}><FontAwesomeIcon icon={this.state.detail == this.props.reportData.id ? faArrowCircleUp : faArrowCircleDown}/></Button>
                     </div>
                 </div>
                 {this.state.detail == this.props.reportData.id && 
