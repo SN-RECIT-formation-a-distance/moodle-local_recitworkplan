@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { ButtonGroup, Card, Tabs, Tab, Button, Form, DropdownButton, Dropdown, Col, Row, Table, Badge, Collapse} from 'react-bootstrap';
-import { faPencilAlt,  faPlus, faTrashAlt, faCopy, faCheck, faArrowRight, faArrowLeft, faEllipsisV, faArrowCircleDown, faArrowCircleUp, faMinus, faArchive, faUser} from '@fortawesome/free-solid-svg-icons';
+import { faPencilAlt,  faPlus, faTrashAlt, faCopy, faCheck, faArrowRight, faArrowLeft, faEllipsisV, faSyncAlt, faBookmark, faMinus, faArchive, faUser} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {ComboBoxPlus, FeedbackCtrl, Modal, ToggleButtons } from '../libs/components/Components';
 import {$glVars} from '../common/common';
@@ -69,8 +69,10 @@ export class AssignmentsView extends Component{
                         <Button variant='outline-primary' className='rounded-circle' title='Créer un plan de travail.' onClick={this.onAdd}><FontAwesomeIcon icon={faPlus}/></Button>
                     </div>
                     <div>
-                        <ToggleButtons name="completionState" onChange={this.onCompletionStateChange} type="radio"  defaultValue={this.state.activeTab} options={
-                            [{value: "ongoing", text: "En cours"}, {value: "archive", text: "Archivés"}, {value: "template", text: "Gabarits"}]}/>
+                        <ToggleButtons name="completionState" onChange={this.onCompletionStateChange} type="radio"  defaultValue={this.state.activeTab} options={[
+                            {value: "ongoing", text: <span><FontAwesomeIcon icon={faSyncAlt}  />{" En cours"}</span>}, 
+                            {value: "archive", text:  <span><FontAwesomeIcon icon={faArchive}  />{" Archivés"}</span>}, 
+                            {value: "template", text: <span><FontAwesomeIcon icon={faBookmark}  />{" Gabarits"}</span>}]}/>
                     </div>
                 </div> 
 
@@ -92,10 +94,10 @@ export class AssignmentsView extends Component{
                                             <a href='#' onClick={() => this.onEdit(workPlan.template.id, 'activities')} className='h3'>{workPlan.template.name}</a>
                                             <DropdownButton variant='outline-primary' title={<span><FontAwesomeIcon icon={faEllipsisV}  />{" "}</span>} id={`optionsWorkPlan${workPlan.template.id}`}>
                                                 <Dropdown.Item onClick={() => this.onCopy(workPlan.template.id)}><FontAwesomeIcon icon={faCopy}  />{" Copier"}</Dropdown.Item>
-                                                {workPlan.template.state == 1 && <Dropdown.Item onClick={() => this.onCopy(workPlan.template.id, 0)}><FontAwesomeIcon icon={faUser}  />{" Utiliser"}</Dropdown.Item>}
-                                                {workPlan.template.state != 1 && <Dropdown.Item onClick={() => this.onCopy(workPlan.template.id, 1)}><FontAwesomeIcon icon={faUser}  />{" Enregistrer en tant que gabarit"}</Dropdown.Item>}
+                                                {workPlan.template.state == 1 && <Dropdown.Item onClick={() => this.onCopy(workPlan.template.id, 0)}><FontAwesomeIcon icon={faBookmark}  />{" Utiliser ce gabarit"}</Dropdown.Item>}
+                                                {workPlan.template.state != 1 && <Dropdown.Item onClick={() => this.onCopy(workPlan.template.id, 1)}><FontAwesomeIcon icon={faBookmark}  />{" Enregistrer en tant que gabarit"}</Dropdown.Item>}
                                                 <Dropdown.Item onClick={() => this.onDelete(workPlan.template.id)}><FontAwesomeIcon icon={faTrashAlt}  />{" Supprimer"}</Dropdown.Item>
-                                                <Dropdown.Item onClick={() => this.onArchive(workPlan)}><FontAwesomeIcon icon={faArchive}  />{" Archiver"}</Dropdown.Item>
+                                                {workPlan.assignments.length > 0 && JsNx.getItem(workPlan.assignments, 'completionState', 1, null) === null &&  <Dropdown.Item onClick={() => this.onArchive(workPlan)}><FontAwesomeIcon icon={faArchive}  />{" Archiver"}</Dropdown.Item>}
                                             </DropdownButton>
                                         </div>
                                         <div className="m-2 p-2">
@@ -445,16 +447,19 @@ class WorkPlanForm extends Component{
                                                             <Dropdown.Item onClick={() => this.setState({editAssignment:item.id})}><FontAwesomeIcon icon={faPencilAlt}  />{" Modifier"}</Dropdown.Item>
                                                             <Dropdown.Item onClick={() => this.onDeleteAssignment(item.id)}><FontAwesomeIcon icon={faTrashAlt}  />{" Supprimer"}</Dropdown.Item>
                                                         </DropdownButton>
-                                                        <Button variant='outline-primary' onClick={() => this.onDetail(this.state.detail == item.id ? -1 : item.id)}><FontAwesomeIcon icon={this.state.detail == item.id ? faArrowCircleUp : faArrowCircleDown}/></Button>
                                                     </div>
                                                 </div>
-                                        {this.state.detail == item.id && 
-                                            <div style={{width:'100%'}}>
-                                                {this.state.data.template.activities.map((act, index) => {
-                                                         return (<UserActivityList user={item.user} data={act} key={index}/>);   
-                                                    }
-                                                )}
-                                            </div>}
+                                                <div className='mt-3 d-flex align-items-center'>
+                                                    <strong>{"Activités"}</strong>
+                                                    <Button variant='link'  onClick={() => this.onDetail(this.state.detail == item.id ? -1 : item.id)}><FontAwesomeIcon icon={this.state.detail == item.id ? faMinus : faPlus}/></Button>
+                                                </div>  
+                                                {this.state.detail == item.id && 
+                                                    <div style={{width:'100%'}}>
+                                                        {this.state.data.template.activities.map((act, index) => {
+                                                                return (<UserActivityList user={item.user} data={act} key={index}/>);   
+                                                            }
+                                                        )}
+                                                </div>}
                                             </Card.Body>
                                         </Card>
                                     return (card);                                     
@@ -671,7 +676,7 @@ class ModalAssignmentPicker extends Component{
                     <div className='col-md-6'>
                         <div style={{display: 'flex', alignItems: "center", justifyContent: "space-between"}}>
                             <strong>Liste d'élèves</strong>
-                            <Form.Control style={{width:'200px'}} onChange={(e) => this.onFilterChange(e.target.name, e.target.value)}  type="search" value={this.state.dropdownLists.name} name='name' placeholder="Rechercher..."/>
+                            <Form.Control className='rounded' style={{width:'200px'}} onChange={(e) => this.onFilterChange(e.target.name, e.target.value)}  type="search" value={this.state.dropdownLists.name} name='name' placeholder="Rechercher..."/>
                         </div>
                         
                         <div className='mt-2 mb-2' style={{maxHeight: 500, overflowY: 'auto'}}>
@@ -727,12 +732,14 @@ class ModalAssignmentPicker extends Component{
                             </div>
                         </div>
                     </div>
-                        <Form.Control style={{width:'180px',display:'inline',marginLeft:'14px'}} onChange={(e) => this.setState({rhythme:e.target.value})}  type="number" value={this.state.rhythme} name='rhythme' placeholder="Rythme (h/semaine)"/>
+                    <div className='col-12'>
+                        <Form.Control className='rounded' style={{width:'180px',display:'inline'}} onChange={(e) => this.setState({rhythme:e.target.value})}  type="number" value={this.state.rhythme} name='rhythme' placeholder="Rythme (h/semaine)"/>
                         <Button variant="link" onClick={() => this.onAddSelected()}>{"Ajouter tous les utilisateurs "}<FontAwesomeIcon icon={faArrowRight}/></Button>
+                    </div>
                 </div>
             </div>;
 
-        let main = <Modal title={'Attribuer un plan de travail'} body={body} width="800px" onClose={this.onClose} />;
+        let main = <Modal title={'Attribuer un plan de travail'} body={body} width="850px" onClose={this.onClose} />;
 
         return (main);
     }

@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import {ButtonToolbar, Tabs, Tab, ButtonGroup, Button, Card, ToggleButton} from 'react-bootstrap';
-import {faTachometerAlt, faTasks, faHome, faFileAlt, faSync, faFile, faCross, faCheck, faTimes, faBackward, faArrowCircleUp, faArrowCircleDown} from '@fortawesome/free-solid-svg-icons';
+import {faPlus, faMinus, faSyncAlt, faArchive, faFileAlt, faSync, faFile, faCross, faCheck, faTimes, faBackward, faArrowCircleUp, faArrowCircleDown} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {FeedbackCtrl, ToggleButtons} from '../libs/components/Components';
 import { TemplatesView } from './TemplateView';
@@ -28,7 +28,8 @@ export class StudentView extends Component {
             </div>
             <div>
                 <ToggleButtons name="completionState" onChange={(e) => this.onCompletionStateChange(e)} type="radio"  defaultValue={this.state.activeTab} options={
-                    [{value: "ongoing", text: "En Cours"}, {value: "archive", text: "Archivés"}]}/>
+                    [{value: "ongoing", text: <span><FontAwesomeIcon icon={faSyncAlt}  />{" En cours"}</span>}, 
+                    {value: "archive", text:  <span><FontAwesomeIcon icon={faArchive}  />{" Archivés"}</span>}]}/>
             </div>
         </div> 
 
@@ -93,8 +94,11 @@ export class StudentTemplateTile extends Component {
         <Card className='rounded' style={{width:'100%'}}>
             <div className={rythmeColor} style={{width: `${progressValue}%`, height: '5px', maxWidth: "100%"}}></div>
             <Card.Body style={{backgroundColor: "#f0f0f0"}} >
-                <div className='h4'>{this.props.reportData.template.name}</div>
-                <ClickableElipsis text={this.props.reportData.template.description}/>
+                <div className='mb-3'>
+                    <div className='h4'>{this.props.reportData.template.name}</div>
+                    <ClickableElipsis className='text-muted' text={this.props.reportData.template.description}/>
+                </div>
+                
                 <div style={{backgroundColor: "#f0f0f0", justifyContent: 'space-between', display: "flex", alignItems: "center"}}>
                     <div>
                         <div className='text-muted'>{`Échéance: ${UtilsDateTime.getDate(this.state.assignment.endDate)}`}</div>
@@ -103,19 +107,21 @@ export class StudentTemplateTile extends Component {
                     <div>
                         <div className='text-muted'>{`Attribué par `}<a href={this.state.assignment.assignor.url} target="_blank"><span dangerouslySetInnerHTML={{__html: this.state.assignment.assignor.avatar}}></span></a></div>
                     </div>
-                    <div>
-                        {this.state.assignment.completionState == 2 && <Button variant={"danger"}>{`En retard`}</Button>}
-                    </div> 
+                    {this.state.assignment.completionState == 2 &&
+                        <div>
+                            <Button variant={"danger"}>{`En retard`}</Button>
+                        </div> 
+                    }
                     <div >
-                        <span style={{fontWeight:'bold'}}>{"Achèvement "}</span><FontAwesomeIcon icon={faCheck}/><span className='ml-2'>{progressText}</span>  
-                    </div>
-                    <div >
-                        <Button variant='outline-primary' onClick={() => this.setState({detail:this.state.detail == this.props.reportData.id ? -1 : this.props.reportData.id})}><FontAwesomeIcon icon={this.state.detail == this.props.reportData.id ? faArrowCircleUp : faArrowCircleDown}/></Button>
+                        <span>{"Achèvement "}</span><FontAwesomeIcon icon={faCheck}/><span className='ml-2'>{progressText}</span>  
                     </div>
                 </div>
+                <div className='mt-3 d-flex align-items-center'>
+                    <strong>{"Activités"}</strong>
+                    <Button variant='link' onClick={() => this.setState({detail:this.state.detail == this.props.reportData.id ? -1 : this.props.reportData.id})}><FontAwesomeIcon icon={this.state.detail == this.props.reportData.id ? faMinus : faPlus}/></Button>
+                </div>  
                 {this.state.detail == this.props.reportData.id && 
-                    <div style={{width:'100%'}}>
-                        
+                    <div style={{width:'100%'}}>                        
                         {this.props.reportData.template.activities.map((item, index) => {
                                 return (<UserActivityList user={this.state.assignment.user} data={item} key={index}/>);                                     
                             }

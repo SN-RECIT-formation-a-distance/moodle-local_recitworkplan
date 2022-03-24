@@ -22,7 +22,7 @@ export class UserActivityList extends Component{
 
     render(){
         let item = this.props.data;
-        let userActivity = JsNx.getItem(this.props.user.activities, 'cmId', item.cmId);
+        let userActivity = JsNx.getItem(this.props.user.activities, 'cmId', item.cmId, []);
 
         let main = 
             <Card className='rounded mt-2 mb-2'>

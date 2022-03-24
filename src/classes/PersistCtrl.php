@@ -241,7 +241,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
             if (!is_numeric($state)){
                 $query = "insert into {$this->prefix}recit_wp_tpl (creatorid, name, description, lastupdate, state) select creatorid, concat(name, ' (copie)'), description, now(), state from {$this->prefix}recit_wp_tpl where id = $templateId";
             }else{
-                $query = "insert into {$this->prefix}recit_wp_tpl (creatorid, name, description, lastupdate, state) select creatorid, concat(name, ' (copie)'), description, now(), $state from {$this->prefix}recit_wp_tpl where id = $templateId";
+                $query = "insert into {$this->prefix}recit_wp_tpl (creatorid, name, description, lastupdate, state) select {$this->signedUser->id}, concat(name, ' (copie)'), description, now(), $state from {$this->prefix}recit_wp_tpl where id = $templateId";
             }
             $this->mysqlConn->execSQL($query);
             $newTemplateId = $this->mysqlConn->getLastInsertId("{$this->prefix}recit_wp_tpl", "id");
@@ -515,13 +515,12 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
     }
 
     public function saveAssignment($data){
-        global $USER;
         try{
             $startDate = $data->startDate;
             if (is_string($data->startDate)) $startDate = new DateTime($data->startDate);
 
             $fields = array("templateid", "userid", "assignorid", "nb_hours_per_week", "startdate", "lastupdate", "comment");
-            $values = array($data->template->id, $data->user->id, $USER->id, $data->nbHoursPerWeek, $startDate->getTimestamp(), time(), $data->comment);
+            $values = array($data->template->id, $data->user->id, $this->signedUser->id, $data->nbHoursPerWeek, $startDate->getTimestamp(), time(), $data->comment);
 
             if (isset($data->completionState)){
                 $fields[] = "completionstate";
