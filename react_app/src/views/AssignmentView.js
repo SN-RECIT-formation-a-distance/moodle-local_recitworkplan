@@ -63,7 +63,7 @@ export class AssignmentsView extends Component{
         
         let main = 
             <div>
-                <div className='d-flex' style={{justifyContent: "space-between"}}>
+                <div className='d-flex d-block-mobile' style={{justifyContent: "space-between"}}>
                     <div className='d-flex' style={{alignItems: "center"}}>
                         <span className='h1 mr-3'>Plans de travail</span>
                         <Button variant='outline-primary' className='rounded-circle' title='Créer un plan de travail.' onClick={this.onAdd}><FontAwesomeIcon icon={faPlus}/></Button>
@@ -76,7 +76,7 @@ export class AssignmentsView extends Component{
                     </div>
                 </div> 
 
-                <div style={{display: "grid", gridGap: "1rem", gridTemplateColumns: "auto auto auto"}}>
+                <div className='grid-3'>
                     {dataProvider.map((workPlan, index) => {
                             let progress = 0;
                             
@@ -367,7 +367,7 @@ class WorkPlanForm extends Component{
                                             <div style={{backgroundColor: '#0f6fc5', width: `${progressValue}%`, height: '5px'}}>
                                                 
                                             </div>
-                                            <Card.Body style={{backgroundColor: "#f0f0f0", display: "grid", gridGap: '1rem', gridTemplateColumns: 'auto auto 240px', alignItems: 'center'}}>
+                                            <Card.Body className='grid-activity'>
                                                 <div>
                                                     <div className='h4'><strong><a href={item.cmUrl} target="_blank">{item.cmName}</a></strong></div>
                                                     <div className='h6 text-muted pl-3'>{`${item.categoryName}/${item.courseName}`}</div>
@@ -394,14 +394,14 @@ class WorkPlanForm extends Component{
                         </div>
                     </Tab>
                     <Tab eventKey="assignments" title="Affectations" disabled={this.state.data.template.state == 1}>
-                        <div className='d-flex' style={{justifyContent: "space-between", alignItems: "center"}}>
+                        <div className='d-flex d-block-mobile' style={{justifyContent: "space-between", alignItems: "center"}}>
                             <div className='d-flex' style={{alignItems: "center"}}>
                                 <span className='h2 mr-3'>Affectations</span>
                                 <Button variant='outline-primary' className='rounded-circle' title='Attribuer un plan de travail.' onClick={() => this.onShowAssignments(true)} ><FontAwesomeIcon icon={faPlus}/></Button>
                             </div>
-                            <div className='d-flex align-items-center' style={{width: "50%", justifyContent: "space-between"}}>
+                            <div className='d-flex align-items-center d-block-mobile w-100-mobile' style={{width: "50%", justifyContent: "space-between"}}>
                                 <Form.Check style={{display:'inline',marginRight:'10px'}} type="checkbox" onChange={this.onFilterChange} value={this.state.filter.late} name="late" label="Afficher seulement élève en retard"/>
-                                <Form.Control className='rounded' style={{display:'inline',width:'200px',marginRight:'10px'}} onChange={this.onSearch} type="search" value={this.state.queryStr} name='queryStr' placeholder="Nom, groupe..."/>
+                                <Form.Control className='rounded' className='w-100-mobile' style={{display:'inline',width:'200px',marginRight:'10px'}} onChange={this.onSearch} type="search" value={this.state.queryStr} name='queryStr' placeholder="Nom, groupe..."/>
                                 Trier par <select type="select" className='form-control rounded' style={{width:'115px',}} onChange={(e) => this.setState({sortAssignment:e.target.value})}>
                                     <option value="lastname">Nom</option>
                                     <option value="firstname">Prénom</option>
@@ -427,7 +427,7 @@ class WorkPlanForm extends Component{
                                                 
                                             </div>
                                             <Card.Body style={{backgroundColor: "#f0f0f0"}}>
-                                                <div style={{display: "grid", gridGap: '1rem', gridTemplateColumns: '50px auto auto auto', alignItems: 'center'}}>
+                                                <div className='grid-assignments'>
                                                     <div>
                                                         <span dangerouslySetInnerHTML={{__html: item.user.avatar}}></span>
                                                     </div>
@@ -667,7 +667,7 @@ class ModalAssignmentPicker extends Component{
         let body = 
             <div>
                 <div>
-                    <Form.Group as={Col} >
+                    <Form.Group as={Col}>
                         <Form.Label>{"Filtrez par groupe"}</Form.Label>
                         <ComboBoxPlus placeholder={"Sélectionnez votre option"} name="group" value={this.state.dropdownLists.group} options={this.state.dropdownLists.groupList} onChange={(e) => this.onFilterChange(e.target.name, e.target.value)} />
                     </Form.Group>
@@ -739,7 +739,7 @@ class ModalAssignmentPicker extends Component{
                 </div>
             </div>;
 
-        let main = <Modal title={'Attribuer un plan de travail'} body={body} width="850px" onClose={this.onClose} />;
+        let main = <Modal title={'Attribuer un plan de travail'} body={body} style={{maxWidth:900, width:'auto'}} onClose={this.onClose} />;
 
         return (main);
     }

@@ -241,29 +241,27 @@ export class ActivityPicker extends Component{
                         {this.state.collapse ? <FontAwesomeIcon icon={faMinus}/> : <FontAwesomeIcon icon={faPlus}/>}
                     </Button>
                 </div>
-                <Collapse in={this.state.collapse} className="mb-3">
-                    <div>
-                        <div style={{display: 'grid', gridGap: "1rem", gridTemplateColumns: "37% 37% 37%"}}>
-                            <Form.Group as={Col} >
+                <Collapse in={this.state.collapse} className="mb-3 w-100">
+                        <div className='row'>
+                            <Form.Group className='col-md-4'>
                                 <Form.Label>{"Catégorie"}</Form.Label>
                                 <ComboBoxPlus placeholder={"Sélectionnez votre option"} name="categoryId" value={this.state.dropdownLists.categoryId} options={this.state.dropdownLists.categoryList} onChange={this.onFilterChange} />
                             </Form.Group>
-                            <Form.Group as={Col} >
+                            <Form.Group className='col-md-4'>
                                 <Form.Label>{"Cours"}</Form.Label>
                                 <ComboBoxPlus placeholder={"Sélectionnez votre option"} name="courseId" value={this.state.dropdownLists.courseId} options={tmpCourseList} onChange={this.onFilterChange} />
                             </Form.Group>
-                            <Form.Group as={Col} >
+                            <Form.Group className='col-md-4'>
                                 <Form.Label>{"Section"}</Form.Label>
                                 <ComboBoxPlus placeholder={"Sélectionnez votre option"} name="sectionId" value={this.state.dropdownLists.sectionId} options={tmpSectionList} onChange={this.onFilterChange} />
                             </Form.Group>
                         </div>
-                    </div>
                 </Collapse>
                 <div className='row w-100'>
                     <div style={{backgroundColor: '#f9f9f9', padding: '1rem'}} className='col-md-4'>
                         <div>
                             <h6>Liste d'activités</h6>
-                            <div style={{maxHeight: 500, overflowY: 'scroll'}}>
+                            <div style={{maxHeight: 500, maxWidth: 600, overflowY: 'scroll'}}>
                                 <Table striped bordered hover>                                
                                     <tbody>
                                         {tmpActivityList.map((item, index) => {
@@ -321,7 +319,7 @@ export class ActivityPicker extends Component{
                 </div>                
             </div>;
 
-        let main = <Modal title={this.props.title} width="990px" body={body} onClose={this.onClose} />;
+        let main = <Modal title={this.props.title} style={{maxWidth:900, width:'auto'}} body={body} onClose={this.onClose} />;
 
         return (main);
     }

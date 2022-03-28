@@ -721,12 +721,16 @@ class TemplateActivity{
 
         //Get cm url
         if ($result->cmId > 0){
-            list ($course, $cm) = get_course_and_cm_from_cmId($result->cmId);
-            $url = $cm->__get('url');
-            // if user has permission
-            if($url){
-                $result->cmUrl = $cm->__get('url')->out();
-                $result->cmName = $cm->name;
+            try {
+                list ($course, $cm) = get_course_and_cm_from_cmId($result->cmId, '', $result->courseId);
+                $url = $cm->__get('url');
+                // if user has permission
+                if($url){
+                    $result->cmUrl = $cm->__get('url')->out();
+                    $result->cmName = $cm->name;
+                }
+            }catch(\Exception $e){
+                //cm does not exist
             }
         }
 
