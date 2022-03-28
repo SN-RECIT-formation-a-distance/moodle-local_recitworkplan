@@ -69426,7 +69426,7 @@ var WorkPlanForm = /*#__PURE__*/function (_Component2) {
             categories.push(act.categoryName);
           }
 
-          nbHoursCompletionTotal = nbHoursCompletionTotal + parseInt(act.nbHoursCompletion);
+          nbHoursCompletionTotal = nbHoursCompletionTotal + parseFloat(act.nbHoursCompletion);
         }
       } catch (err) {
         _iterator2.e(err);

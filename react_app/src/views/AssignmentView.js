@@ -305,7 +305,7 @@ class WorkPlanForm extends Component{
             if (!categories.includes(act.categoryName)){
                 categories.push(act.categoryName);
             }
-            nbHoursCompletionTotal = nbHoursCompletionTotal + parseInt(act.nbHoursCompletion);
+            nbHoursCompletionTotal = nbHoursCompletionTotal + parseFloat(act.nbHoursCompletion);
         }
 
         let body =  
