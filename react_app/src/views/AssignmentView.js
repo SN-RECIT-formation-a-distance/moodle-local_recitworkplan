@@ -300,13 +300,16 @@ class WorkPlanForm extends Component{
         });
 
         let nbHoursCompletionTotal = 0;
+        let catList = "";
         let categories = [];
         for (let act of activityList){
             if (!categories.includes(act.categoryName)){
                 categories.push(act.categoryName);
+                catList = catList + act.categoryName + ", ";
             }
             nbHoursCompletionTotal = nbHoursCompletionTotal + parseFloat(act.nbHoursCompletion);
         }
+        catList = catList.substring(0,catList.length-2);
 
         let body =  
             <div>                
@@ -332,9 +335,7 @@ class WorkPlanForm extends Component{
                         <Row className='m-2'>
                             <Col className='text-muted' sm={2}>Catégories de cours</Col>
                             <Col sm={10} className='border border-secondary p-2 rounded'>
-                                {categories.map((item, index) => {
-                                    return item + ', '.substring(0,-2);
-                                })}
+                                {catList}
                             </Col>
                         </Row> 
                     </Card.Body>

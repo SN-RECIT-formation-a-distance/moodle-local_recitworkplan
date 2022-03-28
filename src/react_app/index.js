@@ -69413,6 +69413,7 @@ var WorkPlanForm = /*#__PURE__*/function (_Component2) {
         return 0;
       });
       var nbHoursCompletionTotal = 0;
+      var catList = "";
       var categories = [];
 
       var _iterator2 = _createForOfIteratorHelper(activityList),
@@ -69424,6 +69425,7 @@ var WorkPlanForm = /*#__PURE__*/function (_Component2) {
 
           if (!categories.includes(act.categoryName)) {
             categories.push(act.categoryName);
+            catList = catList + act.categoryName + ", ";
           }
 
           nbHoursCompletionTotal = nbHoursCompletionTotal + parseFloat(act.nbHoursCompletion);
@@ -69433,6 +69435,8 @@ var WorkPlanForm = /*#__PURE__*/function (_Component2) {
       } finally {
         _iterator2.f();
       }
+
+      catList = catList.substring(0, catList.length - 2);
 
       var body = /*#__PURE__*/_react.default.createElement("div", null, /*#__PURE__*/_react.default.createElement("div", {
         className: "d-flex mb-4",
@@ -69493,9 +69497,7 @@ var WorkPlanForm = /*#__PURE__*/function (_Component2) {
       }, "Cat\xE9gories de cours"), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Col, {
         sm: 10,
         className: "border border-secondary p-2 rounded"
-      }, categories.map(function (item, index) {
-        return item + ', '.substring(0, -2);
-      }))))), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Tabs, {
+      }, catList)))), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Tabs, {
         id: "workPlanTabs",
         className: "mt-3",
         variant: "pills",
