@@ -520,7 +520,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
             if (is_string($data->startDate)) $startDate = new DateTime($data->startDate);
 
             $fields = array("templateid", "userid", "assignorid", "nb_hours_per_week", "startdate", "lastupdate", "comment");
-            $values = array($data->template->id, $data->user->id, $this->signedUser->id, $data->nbHoursPerWeek, $startDate->getTimestamp(), time(), $data->comment);
+            $values = array($data->templateId, $data->user->id, $this->signedUser->id, $data->nbHoursPerWeek, $startDate->getTimestamp(), time(), $data->comment);
 
             if (isset($data->completionState)){
                 $fields[] = "completionstate";
@@ -531,13 +531,13 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
                 $query = $this->mysqlConn->prepareStmt("insert", "{$this->prefix}recit_wp_tpl_assign", $fields, $values);
                 $this->mysqlConn->execSQL($query);
                 $data->id = $this->mysqlConn->getLastInsertId("{$this->prefix}recit_wp_tpl_assign", "id");
-                $this->addCalendarEvent($data->template->id, $data->user->id);
+                $this->addCalendarEvent($data->templateId, $data->user->id);
             }
             else{
                 $query = $this->mysqlConn->prepareStmt("update", "{$this->prefix}recit_wp_tpl_assign", $fields, $values, array("id"), array($data->id));
                 $this->mysqlConn->execSQL($query);
                 $this->deleteCalendarEvent($data->id, $data->user->id);
-                $this->addCalendarEvent($data->template->id, $data->user->id);
+                $this->addCalendarEvent($data->templateId, $data->user->id);
             }
 
             return $data->id;
@@ -745,6 +745,7 @@ class Assignment{
     public $startDate = null;
     public $endDate = null;
     public $nbHoursPerWeek = 0;
+    public $templateId = 0;
     public $comment = "";
     /**
      * 0 = ongoing, 1 = archived, 2 = late
@@ -764,6 +765,7 @@ class Assignment{
 
         $result = new Assignment();
         $result->id = $dbData->id;
+        $result->templateId = $dbData->templateid;
       
         if((isset($dbData->userid)) && ($dbData->userid != 0)){
             $user = $DB->get_record('user', array('id' => $dbData->userid));
