@@ -109,7 +109,7 @@ export class StudentTemplateTile extends Component {
                     </div>
                     {this.state.assignment.completionState == 2 &&
                         <div>
-                            <Button variant={"danger"}>{`En retard`}</Button>
+                            <span className='badge btn-danger'>{`En retard`}</span>
                         </div> 
                     }
                     <div >

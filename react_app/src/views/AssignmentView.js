@@ -107,7 +107,7 @@ export class AssignmentsView extends Component{
                                             {workPlan.template.state != 1 && <Button variant='outline-primary' className='rounded-circle' title='Attribuer un plan de travail.' onClick={() => this.onEdit(workPlan.template.id, 'assignments')}><FontAwesomeIcon icon={faPlus}/></Button>}
                                         </div>
                                         <div className="m-3 p-2">
-                                            {workPlan.stats && workPlan.stats.nbLateStudents > 0 && <Button variant={"danger"}>{`${workPlan.stats.nbLateStudents} apprenants en retard`}</Button>}
+                                            {workPlan.stats && workPlan.stats.nbLateStudents > 0 && <span className='badge bg-danger'>{`${workPlan.stats.nbLateStudents} apprenants en retard`}</span>}
                                         </div>  
                                         {workPlan.stats && workPlan.stats.nbStudents > 0 && 
                                             <div className="p-2 text-muted">
@@ -401,7 +401,6 @@ class WorkPlanForm extends Component{
                                 <Button variant='outline-primary' className='rounded-circle' title='Attribuer un plan de travail.' onClick={() => this.onShowAssignments(true)} ><FontAwesomeIcon icon={faPlus}/></Button>
                             </div>
                             <div className='d-flex align-items-center d-block-mobile w-100-mobile' style={{width: "50%", justifyContent: "space-between"}}>
-                                <Form.Check style={{display:'inline',marginRight:'10px'}} type="checkbox" onChange={this.onFilterChange} value={this.state.filter.late} name="late" label="Afficher seulement élève en retard"/>
                                 <Form.Control className='rounded' className='w-100-mobile' style={{display:'inline',width:'200px',marginRight:'10px'}} onChange={this.onSearch} type="search" value={this.state.queryStr} name='queryStr' placeholder="Nom, groupe..."/>
                                 Trier par <select type="select" className='form-control rounded' style={{width:'115px',}} onChange={(e) => this.setState({sortAssignment:e.target.value})}>
                                     <option value="lastname">Nom</option>
@@ -409,6 +408,7 @@ class WorkPlanForm extends Component{
                                     <option value="progress">Progrès</option>
                                     <option value="enddate">Date d'échéance</option>
                                 </select>
+                                <Form.Check style={{display:'inline',marginLeft:'10px'}} type="checkbox" onChange={this.onFilterChange} value={this.state.filter.late} name="late" label="Afficher seulement les élèves en retard"/>
                             </div>
                         </div>
 
@@ -439,7 +439,7 @@ class WorkPlanForm extends Component{
                                                         <div className='text-muted'>{`Échéance: ${UtilsDateTime.getDate(item.endDate)}`}</div>
                                                     </div>
                                                     <div>
-                                                        {item.completionState == 2 && <Button variant={"danger"}>{`Apprenant en retard`}</Button>}
+                                                        {item.completionState == 2 && <span className='badge bg-danger'>{`Apprenant en retard`}</span>}
                                                     </div>
                                                     <div className="p-2 text-muted" style={{alignItems: 'center', display: 'flex', justifyContent: 'flex-end'}}>
                                                         <span className='mr-3'>{"Achèvement"}</span>

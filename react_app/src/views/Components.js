@@ -33,7 +33,7 @@ export class UserActivityList extends Component{
                         <div className='h6 text-muted pl-3'>{`${item.nbHoursCompletion} heures`}</div>
                     </div>
                     <div className="p-2 text-muted" style={{alignItems: 'center', display: 'flex'}}>
-                        {userActivity.completionState > 0 && <Button variant='success'>Complété</Button>}
+                        {userActivity.completionState > 0 && <span className='badge bg-success'>Complété</span>}
                     </div>
                 </Card.Body>
             </Card>

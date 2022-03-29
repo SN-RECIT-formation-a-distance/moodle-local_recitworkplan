@@ -68863,8 +68863,8 @@ var UserActivityList = /*#__PURE__*/function (_Component) {
           alignItems: 'center',
           display: 'flex'
         }
-      }, userActivity.completionState > 0 && /*#__PURE__*/_react.default.createElement(_reactBootstrap.Button, {
-        variant: "success"
+      }, userActivity.completionState > 0 && /*#__PURE__*/_react.default.createElement("span", {
+        className: "badge bg-success"
       }, "Compl\xE9t\xE9"))));
 
       return main;
@@ -69160,8 +69160,8 @@ var AssignmentsView = /*#__PURE__*/function (_Component) {
           icon: _freeSolidSvgIcons.faPlus
         }))), /*#__PURE__*/_react.default.createElement("div", {
           className: "m-3 p-2"
-        }, workPlan.stats && workPlan.stats.nbLateStudents > 0 && /*#__PURE__*/_react.default.createElement(_reactBootstrap.Button, {
-          variant: "danger"
+        }, workPlan.stats && workPlan.stats.nbLateStudents > 0 && /*#__PURE__*/_react.default.createElement("span", {
+          className: "badge bg-danger"
         }, "".concat(workPlan.stats.nbLateStudents, " apprenants en retard"))), workPlan.stats && workPlan.stats.nbStudents > 0 && /*#__PURE__*/_react.default.createElement("div", {
           className: "p-2 text-muted"
         }, /*#__PURE__*/_react.default.createElement("span", {
@@ -69667,17 +69667,7 @@ var WorkPlanForm = /*#__PURE__*/function (_Component2) {
           width: "50%",
           justifyContent: "space-between"
         }
-      }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Check, {
-        style: {
-          display: 'inline',
-          marginRight: '10px'
-        },
-        type: "checkbox",
-        onChange: this.onFilterChange,
-        value: this.state.filter.late,
-        name: "late",
-        label: "Afficher seulement \xE9l\xE8ve en retard"
-      }), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Control, (_React$createElement = {
+      }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Control, (_React$createElement = {
         className: "rounded"
       }, _defineProperty(_React$createElement, "className", "w-100-mobile"), _defineProperty(_React$createElement, "style", {
         display: 'inline',
@@ -69702,7 +69692,17 @@ var WorkPlanForm = /*#__PURE__*/function (_Component2) {
         value: "progress"
       }, "Progr\xE8s"), /*#__PURE__*/_react.default.createElement("option", {
         value: "enddate"
-      }, "Date d'\xE9ch\xE9ance")))), /*#__PURE__*/_react.default.createElement("div", null, assignments.map(function (item, index) {
+      }, "Date d'\xE9ch\xE9ance")), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Check, {
+        style: {
+          display: 'inline',
+          marginLeft: '10px'
+        },
+        type: "checkbox",
+        onChange: this.onFilterChange,
+        value: this.state.filter.late,
+        name: "late",
+        label: "Afficher seulement les \xE9l\xE8ves en retard"
+      }))), /*#__PURE__*/_react.default.createElement("div", null, assignments.map(function (item, index) {
         var progressValue = 0;
         var progressText = "0/".concat(_this4.state.data.stats.nbActivities);
 
@@ -69742,8 +69742,8 @@ var WorkPlanForm = /*#__PURE__*/function (_Component2) {
           className: "text-muted"
         }, "D\xE9but: ".concat(_Utils.UtilsDateTime.getDate(item.startDate), " (").concat(item.nbHoursPerWeek, " h/semaine)")), /*#__PURE__*/_react.default.createElement("div", {
           className: "text-muted"
-        }, "\xC9ch\xE9ance: ".concat(_Utils.UtilsDateTime.getDate(item.endDate)))), /*#__PURE__*/_react.default.createElement("div", null, item.completionState == 2 && /*#__PURE__*/_react.default.createElement(_reactBootstrap.Button, {
-          variant: "danger"
+        }, "\xC9ch\xE9ance: ".concat(_Utils.UtilsDateTime.getDate(item.endDate)))), /*#__PURE__*/_react.default.createElement("div", null, item.completionState == 2 && /*#__PURE__*/_react.default.createElement("span", {
+          className: "badge bg-danger"
         }, "Apprenant en retard")), /*#__PURE__*/_react.default.createElement("div", {
           className: "p-2 text-muted",
           style: {
@@ -71223,8 +71223,8 @@ var StudentTemplateTile = /*#__PURE__*/function (_Component2) {
         dangerouslySetInnerHTML: {
           __html: this.state.assignment.assignor.avatar
         }
-      })))), this.state.assignment.completionState == 2 && /*#__PURE__*/_react.default.createElement("div", null, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Button, {
-        variant: "danger"
+      })))), this.state.assignment.completionState == 2 && /*#__PURE__*/_react.default.createElement("div", null, /*#__PURE__*/_react.default.createElement("span", {
+        className: "badge btn-danger"
       }, "En retard")), /*#__PURE__*/_react.default.createElement("div", null, /*#__PURE__*/_react.default.createElement("span", null, "Achèvement "), /*#__PURE__*/_react.default.createElement(_reactFontawesome.FontAwesomeIcon, {
         icon: _freeSolidSvgIcons.faCheck
       }), /*#__PURE__*/_react.default.createElement("span", {
