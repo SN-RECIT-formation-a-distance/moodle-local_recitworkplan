@@ -4,7 +4,7 @@ import { faPencilAlt,  faPlus, faTrashAlt, faCopy, faCheck, faArrowRight, faArro
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {ComboBoxPlus, FeedbackCtrl, Modal, ToggleButtons } from '../libs/components/Components';
 import {$glVars} from '../common/common';
-import { JsNx, UtilsString, UtilsDateTime } from '../libs/utils/Utils';
+import { JsNx, UtilsString, UtilsDateTime, WorkPlanUtils } from '../libs/utils/Utils';
 import { Pagination } from '../libs/components/Pagination';
 import {ActivityPicker, ModalTemplateForm} from './TemplateView';
 import { DateInput } from '../libs/components/DateTime';
@@ -221,7 +221,7 @@ class WorkPlanForm extends Component{
         this.onSearch = this.onSearch.bind(this);
         this.onFilterChange = this.onFilterChange.bind(this);
 
-        this.state = {tab: this.props.activeTab, data: null, queryStr: "", detail: -1, showActivities: false, showAssignments: false, filter: {late:false}, editModal: false, editAssignment: -1, sortAssignment: 0};
+        this.state = {tab: this.props.activeTab, data: null, queryStr: "", detail: -1, showActivities: false, showAssignments: false, filter: {late:false}, editModal: false, editAssignmentId: -1, sortAssignment: 0};
     }
 
     componentDidMount(){
@@ -417,7 +417,7 @@ class WorkPlanForm extends Component{
                                     let progressValue = 0;
                                     let progressText  = `0/${this.state.data.stats.nbActivities}`;
                                     if(this.state.data.stats.assignmentcompleted[`userid${item.user.id}`]){
-                                        progressValue = this.state.data.stats.assignmentcompleted[`userid${item.user.id}`]/this.state.data.stats.nbActivities * 100;
+                                        progressValue = WorkPlanUtils.getAssignmentProgress(this.state.data.template.activities, item);
                                         progressText = `${this.state.data.stats.assignmentcompleted[`userid${item.user.id}`]}/${this.state.data.stats.nbActivities}`;
                                     }
                                     progressValue = (isNaN(progressValue) ? 0 : progressValue);
@@ -445,7 +445,7 @@ class WorkPlanForm extends Component{
                                                         <span className='mr-3'>{"Achèvement"}</span>
                                                         <FontAwesomeIcon icon={faCheck}/><span className='ml-2 mr-3'>{progressText}</span>  
                                                         <DropdownButton className='mr-3'variant='outline-primary' title={<span><FontAwesomeIcon icon={faEllipsisV}  />{" "}</span>} id={`optionsAssignments${item.id}`}>
-                                                            <Dropdown.Item onClick={() => this.setState({editAssignment:item.id})}><FontAwesomeIcon icon={faPencilAlt}  />{" Modifier"}</Dropdown.Item>
+                                                            <Dropdown.Item onClick={() => this.setState({editAssignmentId:item.id})}><FontAwesomeIcon icon={faPencilAlt}  />{" Modifier"}</Dropdown.Item>
                                                             <Dropdown.Item onClick={() => this.onDeleteAssignment(item.id)}><FontAwesomeIcon icon={faTrashAlt}  />{" Supprimer"}</Dropdown.Item>
                                                         </DropdownButton>
                                                     </div>
@@ -471,7 +471,7 @@ class WorkPlanForm extends Component{
                 </Tabs>  
                 {this.state.showActivities && <ActivityPicker templateId={this.state.data.template.id} onClose={(refresh) => this.onShowActivities(false, refresh)}/>}
                 {this.state.showAssignments && <ModalAssignmentPicker data={this.state.data} onClose={(refresh) => this.onShowAssignments(false, refresh)}/>}
-                {this.state.editAssignment > 1 && <ModalAssignmentForm assignment={this.state.editAssignment} data={this.state.data} onClose={(refresh) => this.onShowAssignments(false, refresh)}/>}
+                {this.state.editAssignmentId > 1 && <ModalAssignmentForm assignmentId={this.state.editAssignmentId} data={this.state.data} onClose={(refresh) => this.onShowAssignments(false, refresh)}/>}
                 {this.state.editModal && <ModalTemplateForm data={this.state.data} onClose={() => this.setState({editModal:false})} onDataChange={this.onDataChange} onSave={this.onSaveTemplate}/>}
             </div>
             
@@ -543,7 +543,7 @@ class WorkPlanForm extends Component{
     onShowAssignments(value, refresh){
         refresh = (typeof refresh === 'undefined' ? false : refresh);
         let callback = (refresh ? () => this.getData(this.state.data.template.id) : null);
-        this.setState({showAssignments: value, editAssignment: -1}, callback);
+        this.setState({showAssignments: value, editAssignmentId: -1}, callback);
     }
 
     onDeleteActivity(tplActId){
@@ -560,7 +560,7 @@ class WorkPlanForm extends Component{
         }
 
         if(window.confirm($glVars.i18n.tags.msgConfirmDeletion)){
-            $glVars.webApi.deleteTplAct(tplActId, callback);
+            $glVars.webApi.deleteTplAct(this.state.data.template.id, tplActId, callback);
         }
     }
 
@@ -838,7 +838,7 @@ class ModalAssignmentForm extends Component{
     static defaultProps = {        
         data: null,
         onClose: null,
-        assignment: null,
+        assignmentId: null,
     };
 
     constructor(props){
@@ -849,7 +849,7 @@ class ModalAssignmentForm extends Component{
         let assignment = 0;
         let index = 0;
         for (let i in props.data.assignments){
-            if (props.data.assignments[i].id == props.assignment){
+            if (props.data.assignments[i].id == props.assignmentId){
                 assignment = props.data.assignments[i];
                 index = i;
                 break

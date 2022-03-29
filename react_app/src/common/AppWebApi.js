@@ -122,8 +122,8 @@ export class AppWebApi extends WebApi
         this.post(this.gateway, options, onSuccess);
     }
 
-    deleteTplAct(tplActId, onSuccess){
-        let data = {tplActId: tplActId, service: "deleteTplAct"};
+    deleteTplAct(templateId, tplActId, onSuccess){
+        let data = {templateId: templateId, tplActId: tplActId, service: "deleteTplAct"};
         this.post(this.gateway, data, onSuccess);
     }
 };

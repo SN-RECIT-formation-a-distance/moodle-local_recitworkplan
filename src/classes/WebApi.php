@@ -160,6 +160,7 @@ class WebApi extends recitcommon\MoodleApi
             $this->canUserAccess('a');
             $assignmentId = intval($request['assignmentId']);
             $this->ctrl->deleteAssignment($assignmentId);
+            $this->ctrl->deleteCalendarEvent($assignmentId);
             return new WebApiResult(true);
         }
         catch(Exception $ex){
@@ -248,7 +249,7 @@ class WebApi extends recitcommon\MoodleApi
 
             $result = $this->ctrl->saveTplAct($data);
 
-            $this->ctrl->recalculateCalendarEvents($result->templateId);
+            $this->ctrl->processWorkPlan($result->templateId);
 
             return new WebApiResult(true, $result);
         }
@@ -261,7 +262,9 @@ class WebApi extends recitcommon\MoodleApi
         try{
             $this->canUserAccess('a');
             $tplActId = intval($request['tplActId']);
+            $templateId = intval($request['templateId']);
             $this->ctrl->deleteTplAct($tplActId);
+            $this->ctrl->processWorkPlan($templateId);
             return new WebApiResult(true);
         }
         catch(Exception $ex){

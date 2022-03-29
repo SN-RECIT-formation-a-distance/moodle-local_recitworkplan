@@ -66899,18 +66899,18 @@ _defineProperty(JsNx, "copy", function (arr, level) {
       //return jQuery.extend(this); // Array of prototype-objects (function). The jQuery technique can be used to deep-copy all array-types. ex: [function () {}, function () {}];
       var result = [];
 
-      var _iterator4 = _createForOfIteratorHelper(arr),
-          _step4;
+      var _iterator5 = _createForOfIteratorHelper(arr),
+          _step5;
 
       try {
-        for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
-          var item = _step4.value;
+        for (_iterator5.s(); !(_step5 = _iterator5.n()).done;) {
+          var item = _step5.value;
           result.push(item !== null ? JsNx.clone(item) : null);
         }
       } catch (err) {
-        _iterator4.e(err);
+        _iterator5.e(err);
       } finally {
-        _iterator4.f();
+        _iterator5.f();
       }
 
       return result;
@@ -67353,6 +67353,33 @@ var WorkPlanUtils = /*#__PURE__*/function () {
 
       return result;
     }
+  }, {
+    key: "getAssignmentProgress",
+    value: function getAssignmentProgress(activities, assignment) {
+      var hrCompleted = 0;
+      var hrTotal = 0;
+
+      var _iterator4 = _createForOfIteratorHelper(activities),
+          _step4;
+
+      try {
+        for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
+          var it = _step4.value;
+          hrTotal = hrTotal + it.nbHoursCompletion;
+          var userActivity = JsNx.getItem(assignment.user.activities, 'cmId', it.cmId, []);
+
+          if (userActivity.completionState > 0) {
+            hrCompleted = hrCompleted + it.nbHoursCompletion;
+          }
+        }
+      } catch (err) {
+        _iterator4.e(err);
+      } finally {
+        _iterator4.f();
+      }
+
+      return hrCompleted / hrTotal * 100;
+    }
   }]);
 
   return WorkPlanUtils;
@@ -67679,8 +67706,9 @@ var AppWebApi = /*#__PURE__*/function (_WebApi) {
     }
   }, {
     key: "deleteTplAct",
-    value: function deleteTplAct(tplActId, onSuccess) {
+    value: function deleteTplAct(templateId, tplActId, onSuccess) {
       var data = {
+        templateId: templateId,
         tplActId: tplActId,
         service: "deleteTplAct"
       };
@@ -69302,7 +69330,7 @@ var WorkPlanForm = /*#__PURE__*/function (_Component2) {
         late: false
       },
       editModal: false,
-      editAssignment: -1,
+      editAssignmentId: -1,
       sortAssignment: 0
     };
     return _this3;
@@ -69679,7 +69707,7 @@ var WorkPlanForm = /*#__PURE__*/function (_Component2) {
         var progressText = "0/".concat(_this4.state.data.stats.nbActivities);
 
         if (_this4.state.data.stats.assignmentcompleted["userid".concat(item.user.id)]) {
-          progressValue = _this4.state.data.stats.assignmentcompleted["userid".concat(item.user.id)] / _this4.state.data.stats.nbActivities * 100;
+          progressValue = _Utils.WorkPlanUtils.getAssignmentProgress(_this4.state.data.template.activities, item);
           progressText = "".concat(_this4.state.data.stats.assignmentcompleted["userid".concat(item.user.id)], "/").concat(_this4.state.data.stats.nbActivities);
         }
 
@@ -69739,7 +69767,7 @@ var WorkPlanForm = /*#__PURE__*/function (_Component2) {
         }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Dropdown.Item, {
           onClick: function onClick() {
             return _this4.setState({
-              editAssignment: item.id
+              editAssignmentId: item.id
             });
           }
         }, /*#__PURE__*/_react.default.createElement(_reactFontawesome.FontAwesomeIcon, {
@@ -69782,8 +69810,8 @@ var WorkPlanForm = /*#__PURE__*/function (_Component2) {
         onClose: function onClose(refresh) {
           return _this4.onShowAssignments(false, refresh);
         }
-      }), this.state.editAssignment > 1 && /*#__PURE__*/_react.default.createElement(ModalAssignmentForm, {
-        assignment: this.state.editAssignment,
+      }), this.state.editAssignmentId > 1 && /*#__PURE__*/_react.default.createElement(ModalAssignmentForm, {
+        assignmentId: this.state.editAssignmentId,
         data: this.state.data,
         onClose: function onClose(refresh) {
           return _this4.onShowAssignments(false, refresh);
@@ -69903,7 +69931,7 @@ var WorkPlanForm = /*#__PURE__*/function (_Component2) {
       } : null;
       this.setState({
         showAssignments: value,
-        editAssignment: -1
+        editAssignmentId: -1
       }, callback);
     }
   }, {
@@ -69928,7 +69956,7 @@ var WorkPlanForm = /*#__PURE__*/function (_Component2) {
       };
 
       if (window.confirm(_common.$glVars.i18n.tags.msgConfirmDeletion)) {
-        _common.$glVars.webApi.deleteTplAct(tplActId, callback);
+        _common.$glVars.webApi.deleteTplAct(this.state.data.template.id, tplActId, callback);
       }
     }
   }, {
@@ -70456,7 +70484,7 @@ var ModalAssignmentForm = /*#__PURE__*/function (_Component4) {
     var index = 0;
 
     for (var i in props.data.assignments) {
-      if (props.data.assignments[i].id == props.assignment) {
+      if (props.data.assignments[i].id == props.assignmentId) {
         assignment = props.data.assignments[i];
         index = i;
         break;
@@ -70628,7 +70656,7 @@ var ModalAssignmentForm = /*#__PURE__*/function (_Component4) {
 _defineProperty(ModalAssignmentForm, "defaultProps", {
   data: null,
   onClose: null,
-  assignment: null
+  assignmentId: null
 });
 },{"react":"../node_modules/react/index.js","react-bootstrap":"../node_modules/react-bootstrap/esm/index.js","@fortawesome/free-solid-svg-icons":"../node_modules/@fortawesome/free-solid-svg-icons/index.es.js","@fortawesome/react-fontawesome":"../node_modules/@fortawesome/react-fontawesome/index.es.js","../libs/components/Components":"libs/components/Components.js","../common/common":"common/common.js","../libs/utils/Utils":"libs/utils/Utils.js","../libs/components/Pagination":"libs/components/Pagination.js","./TemplateView":"views/TemplateView.js","../libs/components/DateTime":"libs/components/DateTime.js","./Components":"views/Components.js"}],"views/ReportView.js":[function(require,module,exports) {
 "use strict";
@@ -71144,7 +71172,7 @@ var StudentTemplateTile = /*#__PURE__*/function (_Component2) {
       var progressText = "0/".concat(this.props.reportData.stats.nbActivities);
 
       if (this.props.reportData.stats.assignmentcompleted["userid".concat(this.state.assignment.user.id)]) {
-        progressValue = this.props.reportData.stats.assignmentcompleted["userid".concat(this.state.assignment.user.id)] / this.props.reportData.stats.nbActivities * 100;
+        progressValue = _Utils.WorkPlanUtils.getAssignmentProgress(this.props.reportData.template.activities, this.state.assignment);
         progressText = "".concat(this.props.reportData.stats.assignmentcompleted["userid".concat(this.state.assignment.user.id)], "/").concat(this.props.reportData.stats.nbActivities);
       }
 

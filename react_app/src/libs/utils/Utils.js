@@ -493,4 +493,18 @@ export class WorkPlanUtils {
 
         return result;
     }
+
+    static getAssignmentProgress(activities, assignment){
+        let hrCompleted = 0;
+        let hrTotal = 0;
+        for (let it of activities){
+            hrTotal = hrTotal + it.nbHoursCompletion;
+            let userActivity = JsNx.getItem(assignment.user.activities, 'cmId', it.cmId, []);
+            if (userActivity.completionState > 0){
+                hrCompleted = hrCompleted + it.nbHoursCompletion;
+            }
+        }
+
+        return hrCompleted / hrTotal * 100;
+    }
 }

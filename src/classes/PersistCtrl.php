@@ -360,16 +360,24 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
 
     protected function getWorkPlanStats($templateId){
         $query = "select templateid, count(distinct cmid) as nbActivities, count(DISTINCT userid) as nbStudents, 
-        (case wpcompletionstate when 1 then count(distinct userid,wpcompletionstate) else 0 end) as workPlanCompletion,
         coalesce(group_concat(if(activitycompletionstate = 1, concat('cmid',cmid), null)),0) activitycompleted, 
-        coalesce(group_concat(if(activitycompletionstate = 1, concat('userid',userid), null)),0) assignmentcompleted,
-        (case wpcompletionstate when 2 then count(distinct userid,wpcompletionstate) else 0 end) as nbLateStudents
+        coalesce(group_concat(if(activitycompletionstate = 1, concat('userid',userid), null)),0) assignmentcompleted
             from workplans where templateid = $templateId group by templateid";
 
         $result = $this->mysqlConn->execSQLAndGetObject($query);
 
         $result->activitycompleted = array_count_values(explode(",", $result->activitycompleted));
         $result->assignmentcompleted = array_count_values(explode(",", $result->assignmentcompleted));
+
+        $query = "SELECT COUNT(DISTINCT userid) as count FROM workplans WHERE wpcompletionstate = 3 AND templateid=$templateId";
+
+        $rst = $this->mysqlConn->execSQLAndGetObject($query);
+        $result->workPlanCompletion = $rst->count;
+
+        $query = "SELECT COUNT(DISTINCT userid) as count FROM workplans WHERE wpcompletionstate = 2 AND templateid=$templateId";
+
+        $rst = $this->mysqlConn->execSQLAndGetObject($query);
+        $result->nbLateStudents = $rst->count;
 
         return $result;
     }
@@ -432,7 +440,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
     public function getWorkPlanList($userId, $limit = 0, $offset = 0, $state = 'ongoing', $forStudent = false){
         $where = "";
         if ($state == 'ongoing'){
-            $where = "(t1.completionstate in (0,2) and t2.state = 0) or (t1.completionstate is null and t2.state = 0)";
+            $where = "(t1.completionstate in (0,2,3) and t2.state = 0) or (t1.completionstate is null and t2.state = 0)";
         }
         if ($state == 'archive'){
             $where = "(t1.completionstate = 1 and t2.state = 0)";
@@ -461,7 +469,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
 
         if ($limit > 0){
             $offsetsql = $offset * $limit;
-            $query .= " LIMIT $limit OFFSET $offsetsql";
+            //$query .= " LIMIT $limit OFFSET $offsetsql";
         }
 
         $this->createTmpWorkPlanTable($query);
@@ -559,7 +567,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
 
     public function setAssignmentCompletionState($userId, $cmId){
         try{		
-            $query = "select assignmentId, templateid,  (case when nbIncompleteAct = 0 then 1 when now() > enddate and nbIncompleteAct > 0 then 2 else 0 end) as completionstate, nbIncompleteAct, startdate, enddate, cmids FROM
+            $query = "select assignmentId, templateid,  (case when nbIncompleteAct = 0 then 3 when now() > enddate and nbIncompleteAct > 0 then 2 else 0 end) as completionstate, nbIncompleteAct, startdate, enddate, cmids FROM
             (select t1.id as assignmentId, t1.templateid, from_unixtime(any_value(t1.startdate)) as startdate, date_add(from_unixtime(any_value(t1.startdate)), interval (sum(t2.nb_hours_completion) / any_value(t1.nb_hours_per_week)) week) as enddate, sum(if(coalesce(t3.completionstate,0) = 0, 1, 0)) as nbIncompleteAct,
              group_concat(DISTINCT t2.cmid) as cmids
             from mdl_recit_wp_tpl_assign as t1 
@@ -574,6 +582,33 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
             if(!empty($obj)){
                 $query = $this->mysqlConn->prepareStmt("update", "{$this->prefix}recit_wp_tpl_assign", array('completionstate'), array($obj->completionstate), array("id"), array($obj->assignmentId));
                 $this->mysqlConn->execSQL($query);
+            }
+
+            return true;
+        }
+        catch(\Exception $ex){
+            throw $ex;
+        }
+    }
+
+    public function setTplAssignmentCompletionState($tplId){
+        try{		
+            $query = "select assignmentId, templateid,  (case when nbIncompleteAct = 0 then 3 when now() > enddate and nbIncompleteAct > 0 then 2 else 0 end) as completionstate, nbIncompleteAct, startdate, enddate, cmids FROM
+            (select t1.id as assignmentId, t1.templateid, from_unixtime(any_value(t1.startdate)) as startdate, date_add(from_unixtime(any_value(t1.startdate)), interval (sum(t2.nb_hours_completion) / any_value(t1.nb_hours_per_week)) week) as enddate, sum(if(coalesce(t3.completionstate,0) = 0, 1, 0)) as nbIncompleteAct,
+             group_concat(DISTINCT t2.cmid) as cmids
+            from mdl_recit_wp_tpl_assign as t1 
+            inner join mdl_recit_wp_tpl_act as t2 on t1.templateid = t2.templateid 
+            left join mdl_course_modules_completion as t3 on t2.cmid = t3.coursemoduleid and t1.userid = t3.userid
+            where t1.templateid = $tplId
+            group by t1.userid, t1.id) as tab";
+           
+            $rst = $this->mysqlConn->execSQLAndGetObjects($query);
+
+            if(!empty($rst)){
+                foreach($rst as $obj){
+                    $query = $this->mysqlConn->prepareStmt("update", "{$this->prefix}recit_wp_tpl_assign", array('completionstate'), array($obj->completionstate), array("id"), array($obj->assignmentId));
+                    $this->mysqlConn->execSQL($query);
+                }
             }
 
             return true;
@@ -630,10 +665,17 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         if (!$assignments){
             $assignments = $DB->get_records('recit_wp_tpl_assign', array('templateid' => $tplId));
         }
+
+        $DB->execute("DELETE FROM {event} WHERE instance IN (SELECT id FROM {recit_wp_tpl_assign} WHERE templateid = ?) AND userid IN (SELECT userid FROM {recit_wp_tpl_assign} WHERE templateid = ?)", [$tplId, $tplId]);
+
         foreach($assignments as $assignment){
-            //$this->deleteCalendarEvent($assignment->id);
-            //$this->addCalendarEvent($assignment->templateid, $assignment->userid);
+            $this->addCalendarEvent($assignment->templateid, $assignment->userid);
         }
+    }
+
+    public function processWorkPlan($tplId){
+        $this->recalculateCalendarEvents($tplId);
+        $this->setTplAssignmentCompletionState($tplId);
     }
 }
 
