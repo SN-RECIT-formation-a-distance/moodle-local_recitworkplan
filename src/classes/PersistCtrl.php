@@ -26,7 +26,7 @@ require_once "$CFG->dirroot/local/recitcommon/php/PersistCtrl.php";
 require_once "$CFG->dirroot/local/recitcommon/php/Utils.php";
 require_once "$CFG->dirroot/user/externallib.php";
 require_once "$CFG->dirroot/calendar/lib.php";
-
+require_once __DIR__ . '/../lib.php';
 
 use DateTime;
 use recitcommon;
@@ -56,49 +56,105 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         parent::__construct($mysqlConn, $signedUser);
     }
     
-    protected function getCatAdminRolesStmt($userId){
-        $query = " select st4.instanceid as categoryId,
-        group_concat(distinct st1.shortname) as categoryroles
-        from {$this->prefix}role as st1 
-        inner join {$this->prefix}role_assignments as st2 on st1.id = st2.roleid 
-        inner join {$this->prefix}context as st4 on st2.contextid = st4.id and contextlevel = 40
-        where st2.userid = $userId 
-        group by st4.instanceid";
-
-        return $query;
-    }
-    
-    protected function getAdminRolesStmt($userId){
-        $query = " select st3.instanceid as courseId, 
-        group_concat(distinct st1.shortname) as roles
-        from {$this->prefix}role as st1 
-        inner join {$this->prefix}role_assignments as st2 on st1.id = st2.roleid 
-        inner join {$this->prefix}context as st3 on st2.contextid = st3.id and contextlevel = 50
-        where st2.userid = $userId 
-        group by st3.instanceid";
+    protected function getAdminRolesStmt($userId, $capabilities){
+        $cap = "";
+        foreach ($capabilities as $c){
+            $cap .= "'".$c."',";
+        }
+        $cap = substr($cap, 0, -1);
+        $query = "SELECT t1.id, t1.capability, t2.shortname, t3.contextid, t3.userid, t4.contextlevel, t4.instanceid
+        FROM `{$this->prefix}role_capabilities` as t1 
+        inner join {$this->prefix}role as t2 on t1.roleid = t2.id
+        inner join {$this->prefix}role_assignments as t3 on t1.roleid = t3.roleid
+        inner join {$this->prefix}context as t4 on t3.contextid = t4.id
+        WHERE t1.capability in (".$cap.") and t3.userid=$userId";
+        
 
         return $query;
     }
 
-    public function getUserRoles($userId, $courseId){
+    public function getCatCourseSectionActivityList($enrolled = false, $categoryId = 0, $courseId = 0){
         global $DB;
+
+        $enrolledStmt = "";
+        $extraFields = "";
+        $extraJoin = "";
+        $whereStmt = " 1 ";
+        $extraOrder = "";
+        $params = array();
+
+        if($enrolled){
+            $enrolledStmt = ",(select st2.id from {enrol} as st1 inner join {user_enrolments} as st2 on st1.id = st2.enrolid where st1.courseid = t2.id and st2.userid =:userid1) as enrolled";
+            $whereStmt .= " and (enrolled is not null) ";
+            $params['userid1'] = $this->signedUser->id;
+        }
+
+        if($categoryId > 0){
+            $whereStmt .= " and (categoryid =:categoryid) ";
+            $params['categoryid'] = $categoryId;
+        }
+
+        if($courseId > 0){
+            $extraFields = ", t3.id as sectionid, if(length(coalesce(t3.name, '')) = 0, concat('Section ', t3.section), t3.name) as sectionname, t4.id as cmid, 'unknown' as cmname, t4.deletioninprogress as deletioninprogress ";
+            $extraJoin = " inner join {course_sections} as t3 on t2.id = t3.course inner join {course_modules} as t4 on t3.id = t4.section ";
+            $whereStmt .= " and (courseid =:courseid) and (deletioninprogress = 0) ";
+            $extraOrder = ", sectionname asc";
+            $params['courseid'] = $courseId;
+        }
+        $params['userid2'] = $this->signedUser->id;
+        $params['userid3'] = $this->signedUser->id;
+        $params['cap1'] = RECITWORKPLAN_ASSIGN_CAPABILITY;
+        $params['cap2'] = RECITWORKPLAN_MANAGE_CAPABILITY;
+        $params['cap3'] = RECITWORKPLAN_MANAGE_CAPABILITY;
 
         $DB->execute("set @uniqueId = 0");
 
-        $query = "select @uniqueId := @uniqueId + 1 as uniqueId, st1.shortname from {role_assignments} as t1
-        inner join {role} as st1 on st1.id = t1.roleid where t1.userid=$userId
-        ";
+        $query = "select * from
+        (select @uniqueId := @uniqueId + 1 as uniqueId, t1.id as categoryid, t1.name as categoryname, t2.id as courseid, t2.shortname as coursename,
+        (select group_concat(distinct st3.capability) from {role_capabilities} as st3 inner join {role_assignments} as st4 on st3.roleid = st4.roleid where st4.contextid in (select id from {context} where instanceid = t2.id and contextlevel = 50) and st4.userid =:userid2 and (st3.capability=:cap1 or st3.capability=:cap2)) as roles,
+        (select group_concat(distinct st3.capability) from {role_capabilities} as st3 inner join {role_assignments} as st4 on st3.roleid = st4.roleid where st4.contextid in (select id from {context} where instanceid = t2.category and contextlevel = 40) and st4.userid =:userid3 and st3.capability=:cap3) as categoryroles
+        $extraFields
+        $enrolledStmt
+        from {course_categories} as t1
+        inner join {course} as t2 on t1.id = t2.category and t2.visible = 1
+        $extraJoin) as tab
+        where $whereStmt
+        order by categoryname asc, coursename asc $extraOrder";
+        
+        $rst = $DB->get_records_sql($query, $params);
 
-        $rst = $DB->get_records_sql($query);
-        $rst = array_values($rst);
-
+        $lastCourseId = null;
+        $modinfo = null;
         $result = array();
-        if (isset($rst[0])){
-            foreach ($rst as $data){
-                $result[] = $data->shortname;
+		foreach($rst as $item){                        
+            unset($item->uniqueid);
+            $item->categoryId = $item->categoryid; unset($item->categoryid);
+            $item->categoryName = $item->categoryname; unset($item->categoryname);
+            $item->courseId = $item->courseid; unset($item->courseid);
+            $item->courseName = $item->coursename; unset($item->coursename);
+           
+            if(isset($item->roles)){
+                $item->roles = explode(",", $item->roles);
             }
-        }
-        $result = Utils::moodleRoles2RecitRoles($result);
+
+            if(isset($item->categoryroles)){
+                $item->categoryroles = explode(",", $item->categoryroles);
+            }
+
+            if(isset($item->cmid)){
+                if($lastCourseId != $item->courseId){
+                    $modinfo = get_fast_modinfo($item->courseId);
+                }
+                $item->cmname = $this->getCmNameFromCmId($item->cmid, $item->courseId, $modinfo);
+
+                $item->sectionId = $item->sectionid; unset($item->sectionid);
+                $item->sectionName = $item->sectionname; unset($item->sectionname);
+                $item->cmId = $item->cmid; unset($item->cmid);
+                $item->cmName = $item->cmname; unset($item->cmname);
+            }
+
+            $result[] = $item;
+        }  
 
         return $result;
     }
@@ -107,15 +163,13 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         
         $query = "select  t2.id as templateid, t2.creatorid, t2.name as templatename, t2.state as templatestate, t7.fullname as coursename, t7.id as courseid,
         t2.description as templatedesc, from_unixtime(t2.lastupdate) as lastupdate, t3.cmid, t3.nb_hours_completion as nb_hours_completion, 
-        count(*) OVER() AS total_count,
-        tblRoles.roles, tblCatRoles.categoryroles, t8.name as categoryname, t3.id as tpl_act_id
+        count(*) OVER() AS total_count, t8.name as categoryname, t3.id as tpl_act_id
         from  {$this->prefix}recit_wp_tpl as t2 
         left join {$this->prefix}recit_wp_tpl_act as t3 on t3.templateid = t2.id
         left join {$this->prefix}course_modules as t5 on t3.cmid = t5.id
         left join {$this->prefix}course as t7 on t7.id = t5.course
         left join {$this->prefix}course_categories as t8 on t7.category = t8.id
-        left join (".$this->getAdminRolesStmt($userId).") as tblRoles on t5.course = tblRoles.courseId
-        left join (".$this->getCatAdminRolesStmt($userId).") as tblCatRoles on t7.category = tblCatRoles.categoryId
+        inner join (".$this->getAdminRolesStmt($userId, array(RECITWORKPLAN_ASSIGN_CAPABILITY, RECITWORKPLAN_MANAGE_CAPABILITY)).") as tblRoles on (t7.category = tblRoles.instanceid and tblRoles.contextlevel = 40) or (t5.course = tblRoles.instanceid and tblRoles.contextlevel = 50)
         where t2.state = 1";
 
         if ($limit > 0){
@@ -135,10 +189,6 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
             $total_count = $item->total_count;
         }  
 
-        foreach($workPlanList as $item){
-            $item->verifyRoles(false);
-        }
-
         $pagination = new Pagination();
         $pagination->items = array_values($workPlanList);
         $pagination->current_offset = $offset;
@@ -152,19 +202,18 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
 
         $DB->execute("set @uniqueId = 0");
 
-        $query = "select  @uniqueId := @uniqueId + 1 as uniqueId, t1.id as templateid, t1.creatorid, t1.name as templatename, t1.state as templatestate, t1.description as templatedesc,  if(t1.lastupdate > 0, from_unixtime(t1.lastupdate), null) as lastupdate, t4.fullname as coursename, 
-        t2.id as tpl_act_id, t2.cmid, t2.nb_hours_completion, t2.slot, t4.id as courseid, t4.shortname as coursename, t5.id as categoryid, t5.name as categoryname, tblRoles.roles, tblCatRoles.categoryroles
-        from {recit_wp_tpl} as t1
-        left join {recit_wp_tpl_act} as t2 on t1.id = t2.templateid
-        left join {course_modules} as t3 on t2.cmid = t3.id
-        left join {course} as t4 on t3.course = t4.id
-        left join {course_categories} as t5 on t4.category = t5.id
-        left join (".$this->getAdminRolesStmt($userId).") as tblRoles on t4.id = tblRoles.courseId
-        left join (".$this->getCatAdminRolesStmt($userId).") as tblCatRoles on t4.category = tblCatRoles.categoryId
-        where t1.id =:templateid
+        $query = "select  @uniqueId := @uniqueId + 1 as uniqueId, t1.id as templateid, t1.creatorid, t1.name as templatename, t1.state as templatestate, t1.description as templatedesc, if(t1.lastupdate > 0, from_unixtime(t1.lastupdate), null) as lastupdate, t4.fullname as coursename, 
+        t2.id as tpl_act_id, t2.cmid, t2.nb_hours_completion, t2.slot, t4.id as courseid, t4.shortname as coursename, t5.id as categoryid, t5.name as categoryname
+        from {$this->prefix}recit_wp_tpl as t1
+        left join {$this->prefix}recit_wp_tpl_act as t2 on t1.id = t2.templateid
+        left join {$this->prefix}course_modules as t3 on t2.cmid = t3.id
+        left join {$this->prefix}course as t4 on t3.course = t4.id
+        left join {$this->prefix}course_categories as t5 on t4.category = t5.id
+        inner join (".$this->getAdminRolesStmt($userId, array(RECITWORKPLAN_ASSIGN_CAPABILITY, RECITWORKPLAN_MANAGE_CAPABILITY)).") as tblRoles on (t4.category = tblRoles.instanceid and tblRoles.contextlevel = 40) or (t4.id = tblRoles.instanceid and tblRoles.contextlevel = 50)
+        where t1.id =$templateId
         order by t4.id, t2.slot asc";
 
-        $rst = $DB->get_records_sql($query, array('templateid' => $templateId));
+        $rst = $this->mysqlConn->execSQLAndGetObjects($query);
 
         $modinfo = null;
         $result = null;
@@ -182,10 +231,6 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
             $item->cmname = $this->getCmNameFromCmId($item->cmid, $item->courseid, $modinfo);
             
             $result->addActivity($item);
-        }  
-
-        if(!$result->verifyRoles()){
-            throw new \Exception("The logged in user has no permission to view this template.");
         }
 
         return $result;
@@ -321,19 +366,19 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         inner join {enrol} as t3 on t2.enrolid = t3.id
         left join (select g.name,gm.userid,g.courseid from {groups_members} as gm
         inner join {groups} as g on gm.groupid = g.id) as t10 on t10.courseid = t3.courseid and t10.userid = t2.userid
-        left join (select st3.instanceid as courseId, 
-        group_concat(distinct st1.shortname) as roles, st2.userid
-        from {role} as st1 
-        inner join {role_assignments} as st2 on st1.id = st2.roleid 
-        inner join {context} as st3 on st2.contextid = st3.id and contextlevel = 50
-        group by st2.userid, st3.instanceid) as tblRoles on t3.courseid = tblRoles.courseId and t1.id = tblRoles.userid
+        inner join (SELECT t1.id, t1.capability, t2.shortname, t3.contextid, t3.userid, t4.contextlevel, t4.instanceid
+        FROM `{$this->prefix}role_capabilities` as t1 
+        inner join {$this->prefix}role as t2 on t1.roleid = t2.id
+        inner join {$this->prefix}role_assignments as t3 on t1.roleid = t3.roleid
+        inner join {$this->prefix}context as t4 on t3.contextid = t4.id
+        WHERE t1.capability = ?) as tblRoles on t3.courseid = tblRoles.instanceid and t1.id = tblRoles.userid
         where t3.courseid in (select st2.course from {recit_wp_tpl_act} as st1 
                              inner join {course_modules} as st2 on st1.cmid = st2.id 
-                             where st1.templateid = $templateId) and tblRoles.roles = 'student'
+                             where st1.templateid = $templateId)
         group by t1.id
         order by firstname, lastname asc";
 
-        $rst = $DB->get_records_sql($query);
+        $rst = $DB->get_records_sql($query, [RECITWORKPLAN_FOLLOW_CAPABILITY]);
 
         
 		foreach($rst as $item){
@@ -359,33 +404,44 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
     }
 
     protected function getWorkPlanStats($templateId){
-        $query = "select templateid, count(distinct cmid) as nbActivities, count(DISTINCT userid) as nbStudents, 
+        $query = "select count(distinct cmid) as nbActivities, count(DISTINCT userid) as nbStudents, 
         coalesce(group_concat(if(activitycompletionstate = 1, concat('cmid',cmid), null)),0) activitycompleted, 
         coalesce(group_concat(if(activitycompletionstate = 1, concat('userid',userid), null)),0) assignmentcompleted
             from workplans where templateid = $templateId group by templateid";
 
         $result = $this->mysqlConn->execSQLAndGetObject($query);
+        $stats = new stdClass();
+        $stats->templateid = $templateId;
 
-        $result->activitycompleted = array_count_values(explode(",", $result->activitycompleted));
-        $result->assignmentcompleted = array_count_values(explode(",", $result->assignmentcompleted));
+        if (!$result){
+            $stats->activitycompleted = 0;
+            $stats->assignmentcompleted = 0;
+            $stats->nbActivities = 0;
+            $stats->nbStudents = 0;
+        }else{
+            $stats->activitycompleted = array_count_values(explode(",", $result->activitycompleted));
+            $stats->assignmentcompleted = array_count_values(explode(",", $result->assignmentcompleted));
+            $stats->nbActivities = $result->nbActivities;
+            $stats->nbStudents = $result->nbStudents;
+        }
 
         $query = "SELECT COUNT(DISTINCT userid) as count FROM workplans WHERE wpcompletionstate = 3 AND templateid=$templateId";
 
         $rst = $this->mysqlConn->execSQLAndGetObject($query);
-        $result->workPlanCompletion = $rst->count;
+        $stats->workPlanCompletion = $rst->count;
 
         $query = "SELECT COUNT(DISTINCT userid) as count FROM workplans WHERE wpcompletionstate = 2 AND templateid=$templateId";
 
         $rst = $this->mysqlConn->execSQLAndGetObject($query);
-        $result->nbLateStudents = $rst->count;
+        $stats->nbLateStudents = $rst->count;
 
-        return $result;
+        return $stats;
     }
 
     public function getWorkPlan($userId, $templateId){
         $query = "select  t1.id, t1.nb_hours_per_week as nbhoursperweek, from_unixtime(t1.startdate) as startdate, t1.completionstate as wpcompletionstate, t2.id as templateid, t2.creatorid, t2.name as templatename, t2.state as templatestate, t7.fullname as coursename, t7.id as courseid,
         t2.description as templatedesc, from_unixtime(t2.lastupdate) as lastupdate, t3.cmid, t3.nb_hours_completion as nb_hours_completion, count(*) OVER() AS total_count,
-        t6.completionstate as activitycompletionstate, tblRoles.roles, tblCatRoles.categoryroles, t1.assignorid, t8.name as categoryname, t3.id as tpl_act_id, t1.comment as comment,
+        t6.completionstate as activitycompletionstate, t1.assignorid, t8.name as categoryname, t3.id as tpl_act_id, t1.comment as comment,
         users.userid, users.firstname, users.lastname, users.lastaccess, users.grouplist
         from {$this->prefix}recit_wp_tpl as t2
         left join {$this->prefix}recit_wp_tpl_assign as t1 on t1.templateid = t2.id
@@ -399,8 +455,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
             left join {$this->prefix}groups as t10 on t9.groupid = t10.id 
             group by t4.id, t10.courseid) as users on users.userid = t1.userid and (users.courseid = t5.course or users.courseid is null)
         left join {$this->prefix}course_modules_completion as t6 on t5.id = t6.coursemoduleid and t6.userid = users.userid 
-        left join (".$this->getAdminRolesStmt($userId).") as tblRoles on t5.course = tblRoles.courseId
-        left join (".$this->getCatAdminRolesStmt($userId).") as tblCatRoles on t7.category = tblCatRoles.categoryId
+        inner join (".$this->getAdminRolesStmt($userId, array(RECITWORKPLAN_ASSIGN_CAPABILITY, RECITWORKPLAN_MANAGE_CAPABILITY)).") as tblRoles on (t7.category = tblRoles.instanceid and tblRoles.contextlevel = 40) or (t5.course = tblRoles.instanceid and tblRoles.contextlevel = 50)
         where  t2.id = $templateId
         order by t7.id asc, users.firstname asc, users.lastname asc, t3.slot ";
 
@@ -424,11 +479,6 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
             $result->addAssignment($item);
         }  
 
-        /*usort($result->template->activities, function ($a, $b) {
-            return strcmp($a->slot, $b->slot);
-        });*/
-
-        $result->verifyRoles(false);
         $result->setAssignmentsEndDate();       
         $result->stats = $this->getWorkPlanStats($templateId);
 
@@ -445,16 +495,28 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         if ($state == 'archive'){
             $where = "(t1.completionstate = 1 and t2.state = 0)";
         }
+        
+        $capabilities = array();
         $wheretmp = "";
+        $innerJoinSmt = "";
         if ($forStudent){
             $wheretmp .= "where userid = $userId";
-        }else{
+            $capabilities[] = RECITWORKPLAN_FOLLOW_CAPABILITY;
+            $innerJoinSmt = "inner join (".$this->getAdminRolesStmt($userId, $capabilities).") as tblRoles on (t5.course = tblRoles.instanceid and tblRoles.contextlevel = 50)";
+        }else if (in_array($state, array('ongoing','archive'))){
             $wheretmp .= "where creatorid = $userId";
+            $capabilities[] = RECITWORKPLAN_ASSIGN_CAPABILITY;
+            $capabilities[] = RECITWORKPLAN_MANAGE_CAPABILITY;
+            $innerJoinSmt = "inner join (".$this->getAdminRolesStmt($userId, $capabilities).") as tblRoles on (t5.course = tblRoles.instanceid and tblRoles.contextlevel = 50)";
+        }else if (in_array($state, array('manager'))){
+            $capabilities[] = RECITWORKPLAN_MANAGE_CAPABILITY;
+            $innerJoinSmt = "inner join (".$this->getAdminRolesStmt($userId, $capabilities).") as tblRoles on ((t7.category = tblRoles.instanceid and tblRoles.contextlevel = 40) or (t5.course = tblRoles.instanceid and tblRoles.contextlevel = 50))";
+            $where = "(t1.completionstate in (0,2,3))";
         }
-
-        $query = "select t1.id, t1.nb_hours_per_week as nbhoursperweek, from_unixtime(t1.startdate) as startdate, t1.completionstate as wpcompletionstate, t2.id as templateid, t2.creatorid, t2.name as templatename, t7.fullname as coursename, t7.id as courseid,
+        
+        $query = "select t1.id, t1.nb_hours_per_week as nbhoursperweek, from_unixtime(t1.startdate) as startdate, t1.completionstate as wpcompletionstate, t2.id as templateid, t2.creatorid as creatorid, t2.name as templatename, t7.fullname as coursename, t7.id as courseid,
         t2.description as templatedesc, from_unixtime(t2.lastupdate) as lastupdate, t3.cmid, t3.nb_hours_completion as nb_hours_completion, t4.id as userid, t4.firstname, t4.lastname, count(*) OVER() AS total_count,
-        t6.completionstate as activitycompletionstate, tblRoles.roles, tblCatRoles.categoryroles, t1.assignorid, t8.name as categoryname, t3.id as tpl_act_id, t2.state as templatestate, t1.comment as comment
+        t6.completionstate as activitycompletionstate, t1.assignorid, t8.name as categoryname, t3.id as tpl_act_id, t2.state as templatestate, t1.comment as comment
         from {$this->prefix}recit_wp_tpl as t2
         left join {$this->prefix}recit_wp_tpl_assign as t1 on t1.templateid = t2.id
         left join {$this->prefix}recit_wp_tpl_act as t3 on t3.templateid = t2.id
@@ -463,8 +525,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         left join {$this->prefix}course as t7 on t7.id = t5.course
         left join {$this->prefix}course_categories as t8 on t7.category = t8.id
         left join {$this->prefix}course_modules_completion as t6 on t5.id = t6.coursemoduleid and t6.userid = t4.id
-        left join (".$this->getAdminRolesStmt($userId).") as tblRoles on t5.course = tblRoles.courseId
-        left join (".$this->getCatAdminRolesStmt($userId).") as tblCatRoles on t7.category = tblCatRoles.categoryId 
+        $innerJoinSmt
         where $where";
 
         if ($limit > 0){
@@ -488,7 +549,6 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         }  
 
         foreach($workPlanList as $item){
-            $item->verifyRoles($forStudent);
             $item->setAssignmentsEndDate();       
             $item->stats = $this->getWorkPlanStats($item->template->id);
         }
@@ -619,7 +679,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
     }
     
 
-    private function addCalendarEvent($templateId, $userId){
+    public function addCalendarEvent($templateId, $userId){
         global $CFG;
         $workPlan = $this->getWorkPlan($userId, $templateId);
         if ($workPlan == null){ return; }
@@ -648,7 +708,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         \calendar_event::create($event, false);
     }
 
-    private function deleteCalendarEvent($assignmentId = 0, $userId = 0){
+    public function deleteCalendarEvent($assignmentId = 0, $userId = 0){
         global $DB;
         $where = array('eventtype' => 'planformation');
         if ($assignmentId > 0){
@@ -714,19 +774,6 @@ class Template{
 
         $this->activities[] = TemplateActivity::create($dbData);
     }
-
-    public function verifyRoles($isStudent = false){
-        foreach($this->activities as $act){
-            if(!Utils::isAdminRole($act->roles) && !Utils::isAdminRole($act->categoryroles) && !$isStudent){
-                return false;
-            }
-            if(isset($act->roles[0]) && $act->roles[0] != 'sd' && $isStudent){
-                return false;
-            }
-        }
-
-        return true;
-    }
 }
 
 class TemplateActivity{
@@ -740,8 +787,6 @@ class TemplateActivity{
     public $categoryId = 0;
     public $categoryName = "";
     public $nbHoursCompletion = 0;
-    public $roles = "";
-    public $categoryroles = "";
 
     public static function create($dbData){
         $result = new TemplateActivity();
@@ -755,11 +800,6 @@ class TemplateActivity{
         $result->categoryName = (isset($dbData->categoryname) ? $dbData->categoryname : $result->categoryName);
         $result->nbHoursCompletion = (isset($dbData->nb_hours_completion) ? $dbData->nb_hours_completion : $result->nbHoursCompletion);
 
-        $result->roles = explode(",", $dbData->roles);
-        $result->roles = Utils::moodleRoles2RecitRoles($result->roles);
-
-        $result->categoryroles = explode(",", $dbData->categoryroles);
-        $result->categoryroles = Utils::moodleRoles2RecitRoles($result->categoryroles);
 
         //Get cm url
         if ($result->cmId > 0){
@@ -903,21 +943,6 @@ class WorkPlan{
         }
 
         $this->template->addActivity($dbData);
-    }
-
-    public function verifyRoles($isStudent = false){
-        if(empty($template)){ return;}
-
-        foreach($this->assignments as $index => $item){
-            if(!$this->template->verifyRoles($isStudent)){
-                unset($this->assignments[$index]);
-                continue;
-            }
-        }
-
-        if (count($this->assignments) > 0){
-            $this->assignments = array_values($this->assignments);
-        }
     }
 
     public function setAssignmentsEndDate(){        

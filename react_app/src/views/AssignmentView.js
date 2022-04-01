@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { ButtonGroup, Card, Tabs, Tab, Button, Form, DropdownButton, Dropdown, Col, Row, Table, Badge, Collapse} from 'react-bootstrap';
-import { faPencilAlt,  faPlus, faTrashAlt, faCopy, faCheck, faArrowRight, faArrowLeft, faEllipsisV, faSyncAlt, faBookmark, faMinus, faArchive, faUser} from '@fortawesome/free-solid-svg-icons';
+import { faPencilAlt,  faPlus, faTrashAlt, faCopy, faCheck, faArrowRight, faArrowLeft, faEllipsisV, faSyncAlt, faBookmark, faChevronUp, faChevronDown, faArchive, faUser, faChalkboardTeacher} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {ComboBoxPlus, FeedbackCtrl, Modal, ToggleButtons } from '../libs/components/Components';
 import {$glVars} from '../common/common';
@@ -72,7 +72,9 @@ export class AssignmentsView extends Component{
                         <ToggleButtons name="completionState" onChange={this.onCompletionStateChange} type="radio"  defaultValue={this.state.activeTab} options={[
                             {value: "ongoing", text: <span><FontAwesomeIcon icon={faSyncAlt}  />{" En cours"}</span>}, 
                             {value: "archive", text:  <span><FontAwesomeIcon icon={faArchive}  />{" Archivés"}</span>}, 
-                            {value: "template", text: <span><FontAwesomeIcon icon={faBookmark}  />{" Gabarits"}</span>}]}/>
+                            {value: "template", text: <span><FontAwesomeIcon icon={faBookmark}  />{" Gabarits"}</span>},
+                            {value: "manager", text: <span><FontAwesomeIcon icon={faChalkboardTeacher}  />{" Gestionnaire"}</span>},
+                            ]}/>
                     </div>
                 </div> 
 
@@ -452,7 +454,7 @@ class WorkPlanForm extends Component{
                                                 </div>
                                                 <div className='mt-3 d-flex align-items-center'>
                                                     <strong>{"Activités"}</strong>
-                                                    <Button variant='link'  onClick={() => this.onDetail(this.state.detail == item.id ? -1 : item.id)}><FontAwesomeIcon icon={this.state.detail == item.id ? faMinus : faPlus}/></Button>
+                                                    <Button variant='link'  onClick={() => this.onDetail(this.state.detail == item.id ? -1 : item.id)}><FontAwesomeIcon icon={this.state.detail == item.id ? faChevronUp : faChevronDown}/></Button>
                                                 </div>  
                                                 {this.state.detail == item.id && 
                                                     <div style={{width:'100%'}}>

@@ -43,18 +43,13 @@ class WebApi extends recitcommon\MoodleApi
      * $level [a = admin | s = student]
      */
     public function canUserAccess($level, $cmId = 0, $userId = 0, $courseId = 0){
-        $userRoles = array();
+        global $DB;
         $userId = $this->signedUser->id;
-        $courseId = $this->course->id;
-        $userRoles = $this->ctrl->getUserRoles($userId, $courseId);
+        $isTeacher = $DB->record_exists_sql('select id from {role_assignments} where userid=:userid and roleid in (select roleid from {role_capabilities} where capability=:name1 or capability=:name2)', ['userid' => $userId, 'name1' => RECITWORKPLAN_ASSIGN_CAPABILITY, 'name2' => RECITWORKPLAN_MANAGE_CAPABILITY]);
 
-
-        // if the user is admin then it has access to all
-        if(Utils::isAdminRole($userRoles)){
-            return true;
-        }
-         // if the level is admin then the user must have a admin role to have access
-        else if(($level == 'a') && Utils::isAdminRole($userRoles)){
+        
+         // if the level is admin then the user must have access to CAPABILITY
+        if(($level == 'a') && $isTeacher){
             return true;
         }
         // if the user is student then it has access only if it is accessing its own stuff
@@ -167,21 +162,30 @@ class WebApi extends recitcommon\MoodleApi
             return new WebApiResult(false, false, $ex->GetMessage());
         }
     }
-/*
-    public function getTemplateList($request){
+    
+    public function getCatCourseSectionActivityList($request){   
         try{
-            $this->canUserAccess('a');
-            $limit = intval($request['limit']);
-            $offset = intval($request['offset']);
-            $result = $this->ctrl->getTemplateList($this->signedUser->id, $limit, $offset);
-            $this->prepareJson($result);
+            $enrolled = boolval($request['enrolled']);
+            $categoryId = intval($request['categoryId']);
+            $courseId = intval($request['courseId']);
+            
+            if($enrolled){
+                $this->canUserAccess('s', 0, $this->signedUser->id);
+            }
+            else{
+                $this->canUserAccess('a');
+            }
+           
+            $result = $this->ctrl->getCatCourseSectionActivityList($enrolled, $categoryId, $courseId);
+			$this->prepareJson($result);            
+            
             return new WebApiResult(true, $result);
         }
         catch(Exception $ex){
-            return new WebApiResult(false, false, $ex->GetMessage());
-        }
+            return new WebApiResult(false, null, $ex->GetMessage());
+        }        
     }
-*/
+
     public function getTemplateFormFormKit($request){
         try{
             $this->canUserAccess('a');

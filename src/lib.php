@@ -18,6 +18,10 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once(dirname(__FILE__)."/classes/PersistCtrl.php");
 
+define('RECITWORKPLAN_ASSIGN_CAPABILITY', 'local/recitworkplan:assignworkplans');
+define('RECITWORKPLAN_FOLLOW_CAPABILITY', 'local/recitworkplan:followworkplans');
+define('RECITWORKPLAN_MANAGE_CAPABILITY', 'local/recitworkplan:manageworkplans');
+
 function recitworkplan_course_module_completion_updated_event(\core\event\course_module_completion_updated $event){
     global $USER, $DB;
 
