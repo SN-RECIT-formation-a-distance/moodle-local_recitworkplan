@@ -325,11 +325,15 @@ class WorkPlanForm extends Component{
                         <Row className='m-2'>
                             <Col className='text-muted' sm={2}>Nom</Col>
                             <Col sm={10} className='border border-secondary p-2 rounded'>{this.state.data.template.name}</Col>
-                        </Row>   
+                        </Row>
                         <Row className='m-2'>
                             <Col className='text-muted' sm={2}>Description</Col>
                             <Col sm={10} className='border border-secondary p-2 rounded'>{this.state.data.template.description}</Col>
-                        </Row>                      
+                        </Row>
+                        <Row className='m-2'>
+                            <Col className='text-muted' sm={2}>URL de communication</Col>
+                            <Col sm={10} className='border border-secondary p-2 rounded'><a target="_blank" href={this.state.data.template.communication_url}>{this.state.data.template.communication_url}</a></Col>
+                        </Row>             
                         <Row className='m-2'>
                             <Col className='text-muted' sm={2}>Temps à consacrer</Col>
                             <Col sm={10} className='border border-secondary p-2 rounded'>{`${nbHoursCompletionTotal} heures`}</Col>

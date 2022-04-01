@@ -106,6 +106,7 @@ export class StudentTemplateTile extends Component {
                     </div>
                     <div>
                         <div className='text-muted'>{`Attribué par `}<a href={this.state.assignment.assignor.url} target="_blank"><span dangerouslySetInnerHTML={{__html: this.state.assignment.assignor.avatar}}></span></a></div>
+                        {this.props.reportData.template.communication_url && this.props.reportData.template.communication_url.length > 0 && <div className='text-muted'><a href={this.props.reportData.template.communication_url} target="_blank">Contacter</a></div>}
                     </div>
                     {this.state.assignment.completionState == 2 &&
                         <div>

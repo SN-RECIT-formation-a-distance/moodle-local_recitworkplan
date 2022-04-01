@@ -336,6 +336,12 @@ export class ModalTemplateForm extends Component{
                     </Col>
                 </Form.Group>
                 <Form.Group as={Row}>
+                    <Form.Label column sm="2">{"URL de communication"}</Form.Label>
+                    <Col sm="10">
+                        <Form.Control type="text" className='w-100' value={this.props.data.template.communication_url} name="communication_url" onChange={this.props.onDataChange} />
+                    </Col>
+                </Form.Group>
+                <Form.Group as={Row}>
                     <Form.Label column sm="2">{""}</Form.Label>
                     <Col sm="10">
                         <Form.Check type="checkbox" label="Enregistrer en tant que gabarit" rows={4} className='w-100' disabled={this.props.data.assignments.length > 1} checked={this.props.data.template.state == 1} name="state" onChange={this.props.onDataChange} />

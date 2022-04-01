@@ -162,7 +162,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
     public function getTemplateList($userId, $limit = 0, $offset = 0){
         
         $query = "select  t2.id as templateid, t2.creatorid, t2.name as templatename, t2.state as templatestate, t7.fullname as coursename, t7.id as courseid,
-        t2.description as templatedesc, from_unixtime(t2.lastupdate) as lastupdate, t3.cmid, t3.nb_hours_completion as nb_hours_completion, 
+        t2.description as templatedesc, t2.communication_url as communication_url, from_unixtime(t2.lastupdate) as lastupdate, t3.cmid, t3.nb_hours_completion as nb_hours_completion, 
         count(*) OVER() AS total_count, t8.name as categoryname, t3.id as tpl_act_id
         from  {$this->prefix}recit_wp_tpl as t2 
         left join {$this->prefix}recit_wp_tpl_act as t3 on t3.templateid = t2.id
@@ -202,7 +202,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
 
         $DB->execute("set @uniqueId = 0");
 
-        $query = "select  @uniqueId := @uniqueId + 1 as uniqueId, t1.id as templateid, t1.creatorid, t1.name as templatename, t1.state as templatestate, t1.description as templatedesc, if(t1.lastupdate > 0, from_unixtime(t1.lastupdate), null) as lastupdate, t4.fullname as coursename, 
+        $query = "select  @uniqueId := @uniqueId + 1 as uniqueId, t1.id as templateid, t1.creatorid, t1.name as templatename, t1.state as templatestate, t1.communication_url as communication_url, t1.description as templatedesc, if(t1.lastupdate > 0, from_unixtime(t1.lastupdate), null) as lastupdate, t4.fullname as coursename, 
         t2.id as tpl_act_id, t2.cmid, t2.nb_hours_completion, t2.slot, t4.id as courseid, t4.shortname as coursename, t5.id as categoryid, t5.name as categoryname
         from {$this->prefix}recit_wp_tpl as t1
         left join {$this->prefix}recit_wp_tpl_act as t2 on t1.id = t2.templateid
@@ -239,8 +239,8 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
     public function saveTemplate($data){
         try{	
             $result = $data->id;
-            $fields = array("name", "description", "lastupdate", "state");
-            $values = array($data->name, $data->description, time(), $data->state);
+            $fields = array("name", "description", "communication_url", "lastupdate", "state");
+            $values = array($data->name, $data->description, $data->communication_url, time(), $data->state);
 
             if($data->id == 0){
                 $fields[] = "creatorid";
@@ -284,9 +284,9 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
             $this->mysqlConn->beginTransaction();
 
             if (!is_numeric($state)){
-                $query = "insert into {$this->prefix}recit_wp_tpl (creatorid, name, description, lastupdate, state) select creatorid, concat(name, ' (copie)'), description, now(), state from {$this->prefix}recit_wp_tpl where id = $templateId";
+                $query = "insert into {$this->prefix}recit_wp_tpl (creatorid, name, description, communication_url, lastupdate, state) select creatorid, concat(name, ' (copie)'), description, communication_url, now(), state from {$this->prefix}recit_wp_tpl where id = $templateId";
             }else{
-                $query = "insert into {$this->prefix}recit_wp_tpl (creatorid, name, description, lastupdate, state) select {$this->signedUser->id}, concat(name, ' (copie)'), description, now(), $state from {$this->prefix}recit_wp_tpl where id = $templateId";
+                $query = "insert into {$this->prefix}recit_wp_tpl (creatorid, name, description, communication_url, lastupdate, state) select {$this->signedUser->id}, concat(name, ' (copie)'), description, communication_url, now(), $state from {$this->prefix}recit_wp_tpl where id = $templateId";
             }
             $this->mysqlConn->execSQL($query);
             $newTemplateId = $this->mysqlConn->getLastInsertId("{$this->prefix}recit_wp_tpl", "id");
@@ -439,9 +439,9 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
     }
 
     public function getWorkPlan($userId, $templateId){
-        $query = "select  t1.id, t1.nb_hours_per_week as nbhoursperweek, from_unixtime(t1.startdate) as startdate, t1.completionstate as wpcompletionstate, t2.id as templateid, t2.creatorid, t2.name as templatename, t2.state as templatestate, t7.fullname as coursename, t7.id as courseid,
+        $query = "select t1.id, t1.nb_hours_per_week as nbhoursperweek, from_unixtime(t1.startdate) as startdate, t1.completionstate as wpcompletionstate, t2.id as templateid, t2.creatorid, t2.name as templatename, t2.state as templatestate, t7.fullname as coursename, t7.id as courseid,
         t2.description as templatedesc, from_unixtime(t2.lastupdate) as lastupdate, t3.cmid, t3.nb_hours_completion as nb_hours_completion, count(*) OVER() AS total_count,
-        t6.completionstate as activitycompletionstate, t1.assignorid, t8.name as categoryname, t3.id as tpl_act_id, t1.comment as comment,
+        t6.completionstate as activitycompletionstate, t1.assignorid, t8.name as categoryname, t3.id as tpl_act_id, t1.comment as comment, t2.communication_url as communication_url,
         users.userid, users.firstname, users.lastname, users.lastaccess, users.grouplist
         from {$this->prefix}recit_wp_tpl as t2
         left join {$this->prefix}recit_wp_tpl_assign as t1 on t1.templateid = t2.id
@@ -515,7 +515,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         }
         
         $query = "select t1.id, t1.nb_hours_per_week as nbhoursperweek, from_unixtime(t1.startdate) as startdate, t1.completionstate as wpcompletionstate, t2.id as templateid, t2.creatorid as creatorid, t2.name as templatename, t7.fullname as coursename, t7.id as courseid,
-        t2.description as templatedesc, from_unixtime(t2.lastupdate) as lastupdate, t3.cmid, t3.nb_hours_completion as nb_hours_completion, t4.id as userid, t4.firstname, t4.lastname, count(*) OVER() AS total_count,
+        t2.description as templatedesc, t2.communication_url as communication_url, from_unixtime(t2.lastupdate) as lastupdate, t3.cmid, t3.nb_hours_completion as nb_hours_completion, t4.id as userid, t4.firstname, t4.lastname, count(*) OVER() AS total_count,
         t6.completionstate as activitycompletionstate, t1.assignorid, t8.name as categoryname, t3.id as tpl_act_id, t2.state as templatestate, t1.comment as comment
         from {$this->prefix}recit_wp_tpl as t2
         left join {$this->prefix}recit_wp_tpl_assign as t1 on t1.templateid = t2.id
@@ -743,6 +743,7 @@ class Template{
     public $id = 0;
     public $name = "";
     public $description = "";
+    public $communication_url = "";
     public $creatorId = 0;
     public $state = 0;
     public $lastUpdate = null;
@@ -756,6 +757,7 @@ class Template{
         $result->id = $dbData->templateid;
         $result->name = $dbData->templatename;
         $result->description = $dbData->templatedesc; 
+        $result->communication_url = $dbData->communication_url;
         $result->creatorId = $dbData->creatorid;
         $result->lastUpdate = $dbData->lastupdate;
         $result->state = $dbData->templatestate;
