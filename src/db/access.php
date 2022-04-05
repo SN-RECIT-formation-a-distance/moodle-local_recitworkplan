@@ -19,8 +19,6 @@ defined('MOODLE_INTERNAL') || die();
 require_once(__DIR__ . '/../lib.php');
 
 $capabilities = [
-
-
     RECITWORKPLAN_ASSIGN_CAPABILITY => [
         'riskbitmask' => RISK_PERSONAL,
         'captype' => 'write',

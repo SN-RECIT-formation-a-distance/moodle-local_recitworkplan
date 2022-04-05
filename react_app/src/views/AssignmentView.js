@@ -355,7 +355,7 @@ class WorkPlanForm extends Component{
                                 <Button variant='outline-primary' className='rounded-circle' title='Ajouter des activités.' onClick={() => this.onShowActivities(true)} ><FontAwesomeIcon icon={faPlus}/></Button>
                             </div>
                             <div>
-                                <Form.Control className='rounded' onChange={this.onSearch} type="search" value={this.state.queryStr} name='queryStr' placeholder="Catégories, cours..."/>
+                                Filtrer par <Form.Control style={{width: '300px', display: 'inline-block'}} className='rounded' onChange={this.onSearch} type="search" value={this.state.queryStr} name='queryStr' placeholder="Catégories, cours..."/>
                             </div>
                         </div> 
                         <div>
@@ -406,8 +406,8 @@ class WorkPlanForm extends Component{
                                 <span className='h2 mr-3'>Affectations</span>
                                 <Button variant='outline-primary' className='rounded-circle' title='Attribuer un plan de travail.' onClick={() => this.onShowAssignments(true)} ><FontAwesomeIcon icon={faPlus}/></Button>
                             </div>
-                            <div className='d-flex align-items-center d-block-mobile w-100-mobile' style={{width: "50%", justifyContent: "space-between"}}>
-                                <Form.Control className='rounded' className='w-100-mobile' style={{display:'inline',width:'200px',marginRight:'10px'}} onChange={this.onSearch} type="search" value={this.state.queryStr} name='queryStr' placeholder="Nom, groupe..."/>
+                            <div className='d-flex align-items-center d-block-mobile w-100-mobile' style={{width: "60%", justifyContent: "space-between"}}>
+                                Filtrer par <Form.Control className='rounded' className='w-100-mobile' style={{display:'inline',width:'200px',marginRight:'10px'}} onChange={this.onSearch} type="search" value={this.state.queryStr} name='queryStr' placeholder="Nom, groupe..."/>
                                 Trier par <select type="select" className='form-control rounded' style={{width:'115px',}} onChange={(e) => this.setState({sortAssignment:e.target.value})}>
                                     <option value="lastname">Nom</option>
                                     <option value="firstname">Prénom</option>
