@@ -34,6 +34,8 @@ export class UserActivityList extends Component{
                     </div>
                     <div className="p-2 text-muted" style={{alignItems: 'center', display: 'flex'}}>
                         {userActivity.completionState > 0 && <span className='badge bg-success'>Complété</span>}
+                        {userActivity.followup == 1 && <span className='badge bg-warning'>En attente de correction</span>}
+                        {userActivity.followup == 2 && <span className='badge bg-warning'>En attente de rétroaction</span>}
                     </div>
                 </Card.Body>
             </Card>

@@ -438,15 +438,58 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         return $stats;
     }
 
+    public function getWorkFollowUpStmt($templateId){
+        global $CFG;
+        /* Followup
+            1 = à corriger
+            2 = rétroaction
+            */
+        $stmt = "(SELECT t3.id as cmId, t1.name as cmName, FROM_UNIXTIME(min(tuser.timemodified)) as timeModified, count(*) as nbItems, tuser.userid,
+        1 as followup
+        FROM {$this->prefix}assign as t1
+        inner join {$this->prefix}assign_submission as tuser on t1.id = tuser.assignment
+        inner join {$this->prefix}course_modules as t3 on t1.id = t3.instance and t3.module = (select id from {$this->prefix}modules where name = 'assign') and t1.course = t3.course
+        left join {$this->prefix}assign_grades as t4 on t4.assignment = tuser.assignment and t4.userid = tuser.userid
+        where t3.id in (select cmid from {$this->prefix}recit_wp_tpl_act where templateid = $templateId) and tuser.status = 'submitted' and (coalesce(t4.grade,0) <= 0 or tuser.timemodified > coalesce(t4.timemodified,0))
+        group by t3.id, t1.id, tuser.userid, tuser.timemodified)
+        union
+        (SELECT t3.id as cmId, t1.name as cmName, FROM_UNIXTIME(t1.timemodified) as timeModified, count(*) as nbItems, tuser.userid,
+        2 as followup
+        FROM {$this->prefix}recitcahiercanada as t1
+        inner join {$this->prefix}recitcc_cm_notes as t2 on t1.id = t2.ccid
+        left join {$this->prefix}recitcc_user_notes as tuser on t2.id = tuser.cccmid
+        inner join {$this->prefix}course_modules as t3 on t1.id = t3.instance and t3.module = (select id from {$this->prefix}modules where name = 'recitcahiercanada') and t1.course = t3.course
+        where if(tuser.id > 0 and length(tuser.note) > 0 and (length(REGEXP_REPLACE(trim(coalesce(tuser.feedback, '')), '<[^>]*>+', '')) = 0), 1, 0) = 1 
+        and t3.id in (select cmid from {$this->prefix}recit_wp_tpl_act where templateid = $templateId) and t2.notifyteacher = 1
+        group by t3.id, t1.id, tuser.userid, t1.timemodified)
+        union
+        (select cmId, cmName, timeModified, count(*) as nbItems, userid, followup from 
+        (SELECT  t1.id as cmId, t2.name as cmName, max(t3.timemodified) as timeModified, t3.userid, t3.attempt as quizAttempt, t4.questionusageid, group_concat(tuser.state order by tuser.sequencenumber) as states,
+        1 as followup
+        FROM 
+        {$this->prefix}course_modules as t1 
+        inner join {$this->prefix}quiz as t2 on t2.id = t1.instance and t1.module = (select id from {$this->prefix}modules where name = 'quiz') and t2.course = t1.course
+        inner join {$this->prefix}quiz_attempts as t3 on t3.quiz = t2.id 
+        inner join {$this->prefix}question_attempts as t4 on  t4.questionusageid = t3.uniqueid
+        inner join {$this->prefix}question_attempt_steps as tuser on t4.id = tuser.questionattemptid
+        where t1.id in (select cmid from {$this->prefix}recit_wp_tpl_act where templateid = $templateId)
+        group by t1.id, t2.id, t3.id, t4.id, tuser.userid, t3.timemodified) as tab
+        where right(states, 12) = 'needsgrading'
+        group by cmId, timeModified, userid)";
+        
+        return $stmt;
+    }
+
     public function getWorkPlan($userId, $templateId){
         $query = "select t1.id, t1.nb_hours_per_week as nbhoursperweek, from_unixtime(t1.startdate) as startdate, t1.completionstate as wpcompletionstate, t2.id as templateid, t2.creatorid, t2.name as templatename, t2.state as templatestate, t7.fullname as coursename, t7.id as courseid,
         t2.description as templatedesc, from_unixtime(t2.lastupdate) as lastupdate, t3.cmid, t3.nb_hours_completion as nb_hours_completion, count(*) OVER() AS total_count,
-        t6.completionstate as activitycompletionstate, t1.assignorid, t8.name as categoryname, t3.id as tpl_act_id, t1.comment as comment, t2.communication_url as communication_url,
+        t6.completionstate as activitycompletionstate, t1.assignorid, t8.name as categoryname, t3.id as tpl_act_id, t1.comment as comment, t2.communication_url as communication_url, fup.followup,
         users.userid, users.firstname, users.lastname, users.lastaccess, users.grouplist
         from {$this->prefix}recit_wp_tpl as t2
         left join {$this->prefix}recit_wp_tpl_assign as t1 on t1.templateid = t2.id
         left join {$this->prefix}recit_wp_tpl_act as t3 on t3.templateid = t2.id
         left join {$this->prefix}course_modules as t5 on t3.cmid = t5.id
+        left join (".$this->getWorkFollowUpStmt($templateId).") as fup on t3.cmid = fup.cmId and t1.userid = fup.userid
         left join {$this->prefix}course as t7 on t7.id = t5.course
         left join {$this->prefix}course_categories as t8 on t7.category = t8.id
         left join (select t4.id as userid, t4.firstname, t4.lastname, from_unixtime(t4.lastaccess) as lastaccess, group_concat(t10.name) as grouplist, t10.courseid
@@ -894,6 +937,7 @@ class Assignment{
          */
         $item = new stdClass();
         $item->completionState = (isset($dbData->activitycompletionstate) ? $dbData->activitycompletionstate : 0);
+        $item->followup = (isset($dbData->followup) ? $dbData->followup : 0);
         $item->cmId = (isset($dbData->cmid) ? $dbData->cmid : 0);
         $this->user->activities[] = $item;
     }

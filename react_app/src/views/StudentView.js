@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import {ButtonToolbar, Tabs, Tab, ButtonGroup, Button, Card, ToggleButton} from 'react-bootstrap';
-import {faPlus, faMinus, faSyncAlt, faArchive, faFileAlt, faSync, faFile, faCross, faCheck, faTimes, faBackward, faArrowCircleUp, faArrowCircleDown} from '@fortawesome/free-solid-svg-icons';
+import {faPlus, faMinus, faSyncAlt, faArchive, faFileAlt, faSync, faFile, faCross, faCheck, faTimes, faBackward, faArrowCircleUp, faArrowCircleDown, faChevronUp, faChevronDown} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {FeedbackCtrl, ToggleButtons} from '../libs/components/Components';
 import { TemplatesView } from './TemplateView';
@@ -119,7 +119,7 @@ export class StudentTemplateTile extends Component {
                 </div>
                 <div className='mt-3 d-flex align-items-center'>
                     <strong>{"Activités"}</strong>
-                    <Button variant='link' onClick={() => this.setState({detail:this.state.detail == this.props.reportData.id ? -1 : this.props.reportData.id})}><FontAwesomeIcon icon={this.state.detail == this.props.reportData.id ? faMinus : faPlus}/></Button>
+                    <Button variant='link' onClick={() => this.setState({detail:this.state.detail == this.props.reportData.id ? -1 : this.props.reportData.id})}><FontAwesomeIcon icon={this.state.detail == this.props.reportData.id ? faChevronDown : faChevronUp}/></Button>
                 </div>  
                 {this.state.detail == this.props.reportData.id && 
                     <div style={{width:'100%'}}>                        
