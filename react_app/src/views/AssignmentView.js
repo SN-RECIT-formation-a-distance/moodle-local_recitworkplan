@@ -347,7 +347,7 @@ class WorkPlanForm extends Component{
                     </Card.Body>
                 </Card>
                     
-                <Tabs id="workPlanTabs" className="mt-3" variant="pills" fill  activeKey={this.state.tab} onSelect={this.onTabChange}>
+                <Tabs id="workPlanTabs" className="mt-3 bg-light" variant="pills" fill  activeKey={this.state.tab} onSelect={this.onTabChange}>
                     <Tab eventKey="activities" title="Activités">
                         <div className='d-flex' style={{justifyContent: "space-between", alignItems: "center"}}>
                             <div className='d-flex' style={{alignItems: "center"}}>
@@ -760,7 +760,7 @@ class ModalAssignmentPicker extends Component{
     createNewAssignment(item){
         let result = {
             id: 0,
-            template:{id: this.state.data.template.id},
+            templateId: this.state.data.template.id,
             user: {id: item.userId, firstName: item.firstName, lastName: item.lastName, avatar: item.avatar},
             nbHoursPerWeek: this.state.rhythme == '' ? 0 : this.state.rhythme,
             comment: '',

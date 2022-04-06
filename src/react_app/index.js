@@ -69389,7 +69389,7 @@ var WorkPlanForm = /*#__PURE__*/function (_Component2) {
         className: "border border-secondary p-2 rounded"
       }, catList)))), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Tabs, {
         id: "workPlanTabs",
-        className: "mt-3",
+        className: "mt-3 bg-light",
         variant: "pills",
         fill: true,
         activeKey: this.state.tab,
@@ -69419,7 +69419,11 @@ var WorkPlanForm = /*#__PURE__*/function (_Component2) {
         }
       }, /*#__PURE__*/_react.default.createElement(_reactFontawesome.FontAwesomeIcon, {
         icon: _freeSolidSvgIcons.faPlus
-      }))), /*#__PURE__*/_react.default.createElement("div", null, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Control, {
+      }))), /*#__PURE__*/_react.default.createElement("div", null, "Filtrer par ", /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Control, {
+        style: {
+          width: '300px',
+          display: 'inline-block'
+        },
         className: "rounded",
         onChange: this.onSearch,
         type: "search",
@@ -69526,10 +69530,10 @@ var WorkPlanForm = /*#__PURE__*/function (_Component2) {
       }))), /*#__PURE__*/_react.default.createElement("div", {
         className: "d-flex align-items-center d-block-mobile w-100-mobile",
         style: {
-          width: "50%",
+          width: "60%",
           justifyContent: "space-between"
         }
-      }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Control, (_React$createElement = {
+      }, "Filtrer par ", /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Control, (_React$createElement = {
         className: "rounded"
       }, _defineProperty(_React$createElement, "className", "w-100-mobile"), _defineProperty(_React$createElement, "style", {
         display: 'inline',
@@ -70173,9 +70177,7 @@ var ModalAssignmentPicker = /*#__PURE__*/function (_Component3) {
     value: function createNewAssignment(item) {
       var result = {
         id: 0,
-        template: {
-          id: this.state.data.template.id
-        },
+        templateId: this.state.data.template.id,
         user: {
           id: item.userId,
           firstName: item.firstName,
@@ -71389,7 +71391,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "57582" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "58679" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

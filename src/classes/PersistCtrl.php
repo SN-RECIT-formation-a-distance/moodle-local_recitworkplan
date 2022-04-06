@@ -209,7 +209,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         left join {$this->prefix}course_modules as t3 on t2.cmid = t3.id
         left join {$this->prefix}course as t4 on t3.course = t4.id
         left join {$this->prefix}course_categories as t5 on t4.category = t5.id
-        inner join (".$this->getAdminRolesStmt($userId, array(RECITWORKPLAN_ASSIGN_CAPABILITY, RECITWORKPLAN_MANAGE_CAPABILITY)).") as tblRoles on (t4.category = tblRoles.instanceid and tblRoles.contextlevel = 40) or (t4.id = tblRoles.instanceid and tblRoles.contextlevel = 50)
+        left join (".$this->getAdminRolesStmt($userId, array(RECITWORKPLAN_ASSIGN_CAPABILITY, RECITWORKPLAN_MANAGE_CAPABILITY)).") as tblRoles on (t4.category = tblRoles.instanceid and tblRoles.contextlevel = 40) or (t4.id = tblRoles.instanceid and tblRoles.contextlevel = 50)
         where t1.id =$templateId
         order by t4.id, t2.slot asc";
 
