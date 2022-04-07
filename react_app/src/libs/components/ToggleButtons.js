@@ -25,7 +25,7 @@ export class ToggleButtons extends Component {
                 <ToggleButtonGroup size={this.props.bsSize} type={this.props.type} name={this.props.name} defaultValue={this.props.defaultValue} onChange={this.onChange}>                                
                     {this.props.options.map((item, index) => {   
                         let element = 
-                            <BsToggleButton key={index} variant={(this.props.defaultValue.includes(item.value) ? "primary" : "light")} value={item.value} disabled={this.props.disabled}>
+                            <BsToggleButton key={index} variant={(this.props.defaultValue.includes(item.value) ? "primary" : "light")} onClick={() => this.onClick(item.value)} value={item.value} disabled={this.props.disabled}>
                                 {item.text}
                             </BsToggleButton>;
                         return (element);
@@ -35,7 +35,15 @@ export class ToggleButtons extends Component {
         return (main);
     }   
     
-    onChange(eventKey){ 
-        this.props.onChange({target: {value: eventKey, name: this.props.name}});
-    }   
+    onChange(eventKey){
+        if (this.props.onChange){
+            this.props.onChange({target: {value: eventKey, name: this.props.name}});
+        }
+    }
+
+    onClick(eventKey){
+        if (this.props.onClick){
+            this.props.onClick({target: {value: eventKey, name: this.props.name}});
+        }
+    }
 }

@@ -65755,6 +65755,9 @@ var ToggleButtons = /*#__PURE__*/function (_Component) {
         var element = /*#__PURE__*/_react.default.createElement(_reactBootstrap.ToggleButton, {
           key: index,
           variant: _this2.props.defaultValue.includes(item.value) ? "primary" : "light",
+          onClick: function onClick() {
+            return _this2.onClick(item.value);
+          },
           value: item.value,
           disabled: _this2.props.disabled
         }, item.text);
@@ -65767,12 +65770,26 @@ var ToggleButtons = /*#__PURE__*/function (_Component) {
   }, {
     key: "onChange",
     value: function onChange(eventKey) {
-      this.props.onChange({
-        target: {
-          value: eventKey,
-          name: this.props.name
-        }
-      });
+      if (this.props.onChange) {
+        this.props.onChange({
+          target: {
+            value: eventKey,
+            name: this.props.name
+          }
+        });
+      }
+    }
+  }, {
+    key: "onClick",
+    value: function onClick(eventKey) {
+      if (this.props.onClick) {
+        this.props.onClick({
+          target: {
+            value: eventKey,
+            name: this.props.name
+          }
+        });
+      }
     }
   }]);
 
@@ -68894,7 +68911,7 @@ var AssignmentsView = /*#__PURE__*/function (_Component) {
         icon: _freeSolidSvgIcons.faPlus
       }))), /*#__PURE__*/_react.default.createElement("div", null, /*#__PURE__*/_react.default.createElement(_Components.ToggleButtons, {
         name: "completionState",
-        onChange: this.onCompletionStateChange,
+        onClick: this.onCompletionStateChange,
         type: "radio",
         defaultValue: this.state.activeTab,
         options: [{
@@ -69608,7 +69625,11 @@ var WorkPlanForm = /*#__PURE__*/function (_Component2) {
           className: "text-muted"
         }, "D\xE9but: ".concat(_Utils.UtilsDateTime.getDate(item.startDate), " (").concat(item.nbHoursPerWeek, " h/semaine)")), /*#__PURE__*/_react.default.createElement("div", {
           className: "text-muted"
-        }, "\xC9ch\xE9ance: ".concat(_Utils.UtilsDateTime.getDate(item.endDate)))), /*#__PURE__*/_react.default.createElement("div", null, item.completionState == 2 && /*#__PURE__*/_react.default.createElement("span", {
+        }, "\xC9ch\xE9ance: ".concat(_Utils.UtilsDateTime.getDate(item.endDate)))), /*#__PURE__*/_react.default.createElement("div", null, item.completionState == 0 && /*#__PURE__*/_react.default.createElement("span", {
+          className: "badge bg-warning"
+        }, "En cours"), item.completionState == 1 && /*#__PURE__*/_react.default.createElement("span", {
+          className: "badge bg-success"
+        }, "Compl\xE9t\xE9"), item.completionState == 2 && /*#__PURE__*/_react.default.createElement("span", {
           className: "badge bg-danger"
         }, "Apprenant en retard")), /*#__PURE__*/_react.default.createElement("div", {
           className: "p-2 text-muted",

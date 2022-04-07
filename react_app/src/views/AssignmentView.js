@@ -69,11 +69,11 @@ export class AssignmentsView extends Component{
                         <Button variant='outline-primary' className='rounded-circle' title='Créer un plan de travail.' onClick={this.onAdd}><FontAwesomeIcon icon={faPlus}/></Button>
                     </div>
                     <div>
-                        <ToggleButtons name="completionState" onChange={this.onCompletionStateChange} type="radio"  defaultValue={this.state.activeTab} options={[
-                            {value: "ongoing", text: <span><FontAwesomeIcon icon={faSyncAlt}  />{" En cours"}</span>}, 
-                            {value: "archive", text:  <span><FontAwesomeIcon icon={faArchive}  />{" Archivés"}</span>}, 
-                            {value: "template", text: <span><FontAwesomeIcon icon={faBookmark}  />{" Gabarits"}</span>},
-                            {value: "manager", text: <span><FontAwesomeIcon icon={faChalkboardTeacher}  />{" Gestionnaire"}</span>},
+                        <ToggleButtons name="completionState" onClick={this.onCompletionStateChange} type="radio" defaultValue={this.state.activeTab} options={[
+                            {value: "ongoing", text: <span><FontAwesomeIcon icon={faSyncAlt} />{" En cours"}</span>}, 
+                            {value: "archive", text:  <span><FontAwesomeIcon icon={faArchive} />{" Archivés"}</span>}, 
+                            {value: "template", text: <span><FontAwesomeIcon icon={faBookmark} />{" Gabarits"}</span>},
+                            {value: "manager", text: <span><FontAwesomeIcon icon={faChalkboardTeacher} />{" Gestionnaire"}</span>},
                             ]}/>
                     </div>
                 </div> 
@@ -445,6 +445,8 @@ class WorkPlanForm extends Component{
                                                         <div className='text-muted'>{`Échéance: ${UtilsDateTime.getDate(item.endDate)}`}</div>
                                                     </div>
                                                     <div>
+                                                        {item.completionState == 0 && <span className='badge bg-warning'>{`En cours`}</span>}
+                                                        {item.completionState == 1 && <span className='badge bg-success'>{`Complété`}</span>}
                                                         {item.completionState == 2 && <span className='badge bg-danger'>{`Apprenant en retard`}</span>}
                                                     </div>
                                                     <div className="p-2 text-muted" style={{alignItems: 'center', display: 'flex', justifyContent: 'flex-end'}}>

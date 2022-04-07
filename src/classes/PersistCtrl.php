@@ -211,7 +211,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         left join {$this->prefix}course_categories as t5 on t4.category = t5.id
         left join (".$this->getAdminRolesStmt($userId, array(RECITWORKPLAN_ASSIGN_CAPABILITY, RECITWORKPLAN_MANAGE_CAPABILITY)).") as tblRoles on (t4.category = tblRoles.instanceid and tblRoles.contextlevel = 40) or (t4.id = tblRoles.instanceid and tblRoles.contextlevel = 50)
         where t1.id =$templateId
-        order by t4.id, t2.slot asc";
+        order by t4.id, t2.slot asc";//--left join for templates with no activities, otherwise it'd return null
 
         $rst = $this->mysqlConn->execSQLAndGetObjects($query);
 
