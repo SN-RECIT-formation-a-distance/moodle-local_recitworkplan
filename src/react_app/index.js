@@ -65782,7 +65782,8 @@ var ToggleButtons = /*#__PURE__*/function (_Component) {
   }, {
     key: "onClick",
     value: function onClick(eventKey, e) {
-      if (this.props.onClick && e.target.tagName.toUpperCase() == 'INPUT') {
+      if (this.props.onClick) {
+        e.preventDefault();
         this.props.onClick({
           target: {
             value: eventKey,

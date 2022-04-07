@@ -42,7 +42,8 @@ export class ToggleButtons extends Component {
     }
 
     onClick(eventKey, e){
-        if (this.props.onClick && e.target.tagName.toUpperCase() == 'INPUT'){
+        if (this.props.onClick){
+            e.preventDefault();
             this.props.onClick({target: {value: eventKey, name: this.props.name}});
         }
     }
