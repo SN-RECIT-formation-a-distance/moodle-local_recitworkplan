@@ -112,8 +112,13 @@ export class AssignmentsView extends Component{
                                             {workPlan.stats && workPlan.stats.nbLateStudents > 0 && <span className='badge bg-danger'>{`${workPlan.stats.nbLateStudents} apprenants en retard`}</span>}
                                         </div>  
                                         {workPlan.stats && workPlan.stats.nbStudents > 0 && 
-                                            <div className="p-2 text-muted">
-                                                <span className='mr-5'>{"Achèvement"}</span><FontAwesomeIcon icon={faCheck}/><span className='ml-2'>{`${workPlan.stats.workPlanCompletion}/${workPlan.stats.nbStudents}`}</span>  
+                                            <div className="p-2 text-muted row">
+                                                <div className='col-md-6'>
+                                                    <span className='mr-5'>{"Achèvement"}</span><FontAwesomeIcon icon={faCheck}/><span className='ml-2'>{`${workPlan.stats.workPlanCompletion}/${workPlan.stats.nbStudents}`}</span>
+                                                </div>
+                                                <div className='col-md-6' style={{textAlign:'right'}}>
+                                                    {this.state.activeTab == 'manager' && <span><span style={{marginRight:'35px'}} dangerouslySetInnerHTML={{__html: workPlan.template.creator.avatar}}></span><br/>Propriétaire du plan de travail</span>}
+                                                </div>
                                             </div>
                                         }
                                     </Card.Body>
@@ -374,7 +379,7 @@ class WorkPlanForm extends Component{
                                             <div style={{backgroundColor: '#0f6fc5', width: `${progressValue}%`, height: '5px'}}>
                                                 
                                             </div>
-                                            <Card.Body className='grid-activity'>
+                                            <Card.Body className='grid-activity bg-light'>
                                                 <div>
                                                     <div className='h4'><strong><a href={item.cmUrl} target="_blank">{item.cmName}</a></strong></div>
                                                     <div className='h6 text-muted pl-3'>{`${item.categoryName}/${item.courseName}`}</div>
@@ -433,7 +438,7 @@ class WorkPlanForm extends Component{
                                             <div style={{backgroundColor: '#0f6fc5', width: `${progressValue}%`, height: '5px'}}>
                                                 
                                             </div>
-                                            <Card.Body style={{backgroundColor: "#f0f0f0"}}>
+                                            <Card.Body className='bg-light'>
                                                 <div className='grid-assignments'>
                                                     <div>
                                                         <span dangerouslySetInnerHTML={{__html: item.user.avatar}}></span>

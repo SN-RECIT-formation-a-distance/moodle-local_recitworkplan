@@ -796,14 +796,24 @@ class Template{
     public $followUps = array();
  
     public static function create($dbData){
+        global $DB, $OUTPUT;
         $result = new Template();
         $result->id = $dbData->templateid;
         $result->name = $dbData->templatename;
         $result->description = $dbData->templatedesc; 
         $result->communication_url = $dbData->communication_url;
-        $result->creatorId = $dbData->creatorid;
         $result->lastUpdate = $dbData->lastupdate;
         $result->state = $dbData->templatestate;
+        
+        if((isset($dbData->creatorid)) && ($dbData->creatorid != 0)){
+            $creator = $DB->get_record('user', array('id' => $dbData->creatorid));
+            $result->creator = new stdClass();
+            $result->creator->id = $dbData->creatorid;
+            $result->creator->firstName = $creator->firstname;
+            $result->creator->lastName = $creator->lastname;
+            $result->creator->url = (new \moodle_url('/user/profile.php', array('id' => $creator->id)))->out();
+            $result->creator->avatar = $OUTPUT->user_picture($creator, array('size'=> 50));
+        }
 
         return $result;
     }
@@ -907,7 +917,7 @@ class Assignment{
         }
         
         if((isset($dbData->assignorid)) && ($dbData->assignorid != 0)){
-            $assignor = $DB->get_record('user', array('id' => $dbData->assignorid));        
+            $assignor = $DB->get_record('user', array('id' => $dbData->assignorid));
             $result->assignor = new stdClass();
             $result->assignor->id = $dbData->assignorid;
             $result->assignor->firstName = $assignor->firstname;

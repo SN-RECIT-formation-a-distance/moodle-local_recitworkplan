@@ -69031,14 +69031,28 @@ var AssignmentsView = /*#__PURE__*/function (_Component) {
         }, workPlan.stats && workPlan.stats.nbLateStudents > 0 && /*#__PURE__*/_react.default.createElement("span", {
           className: "badge bg-danger"
         }, "".concat(workPlan.stats.nbLateStudents, " apprenants en retard"))), workPlan.stats && workPlan.stats.nbStudents > 0 && /*#__PURE__*/_react.default.createElement("div", {
-          className: "p-2 text-muted"
+          className: "p-2 text-muted row"
+        }, /*#__PURE__*/_react.default.createElement("div", {
+          className: "col-md-6"
         }, /*#__PURE__*/_react.default.createElement("span", {
           className: "mr-5"
         }, "Achèvement"), /*#__PURE__*/_react.default.createElement(_reactFontawesome.FontAwesomeIcon, {
           icon: _freeSolidSvgIcons.faCheck
         }), /*#__PURE__*/_react.default.createElement("span", {
           className: "ml-2"
-        }, "".concat(workPlan.stats.workPlanCompletion, "/").concat(workPlan.stats.nbStudents)))));
+        }, "".concat(workPlan.stats.workPlanCompletion, "/").concat(workPlan.stats.nbStudents))), /*#__PURE__*/_react.default.createElement("div", {
+          className: "col-md-6",
+          style: {
+            textAlign: 'right'
+          }
+        }, _this2.state.activeTab == 'manager' && /*#__PURE__*/_react.default.createElement("span", null, /*#__PURE__*/_react.default.createElement("span", {
+          style: {
+            marginRight: '35px'
+          },
+          dangerouslySetInnerHTML: {
+            __html: workPlan.template.creator.avatar
+          }
+        }), /*#__PURE__*/_react.default.createElement("br", null), "Propri\xE9taire du plan de travail")))));
 
         return card;
       })), /*#__PURE__*/_react.default.createElement(_Pagination.Pagination, {
@@ -69468,7 +69482,7 @@ var WorkPlanForm = /*#__PURE__*/function (_Component2) {
             height: '5px'
           }
         }), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Card.Body, {
-          className: "grid-activity"
+          className: "grid-activity bg-light"
         }, /*#__PURE__*/_react.default.createElement("div", null, /*#__PURE__*/_react.default.createElement("div", {
           className: "h4"
         }, /*#__PURE__*/_react.default.createElement("strong", null, /*#__PURE__*/_react.default.createElement("a", {
@@ -69606,9 +69620,7 @@ var WorkPlanForm = /*#__PURE__*/function (_Component2) {
             height: '5px'
           }
         }), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Card.Body, {
-          style: {
-            backgroundColor: "#f0f0f0"
-          }
+          className: "bg-light"
         }, /*#__PURE__*/_react.default.createElement("div", {
           className: "grid-assignments"
         }, /*#__PURE__*/_react.default.createElement("div", null, /*#__PURE__*/_react.default.createElement("span", {
