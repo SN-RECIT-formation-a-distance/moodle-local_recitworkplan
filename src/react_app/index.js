@@ -65755,8 +65755,8 @@ var ToggleButtons = /*#__PURE__*/function (_Component) {
         var element = /*#__PURE__*/_react.default.createElement(_reactBootstrap.ToggleButton, {
           key: index,
           variant: _this2.props.defaultValue.includes(item.value) ? "primary" : "light",
-          onClick: function onClick() {
-            return _this2.onClick(item.value);
+          onClick: function onClick(e) {
+            return _this2.onClick(item.value, e);
           },
           value: item.value,
           disabled: _this2.props.disabled
@@ -65781,8 +65781,8 @@ var ToggleButtons = /*#__PURE__*/function (_Component) {
     }
   }, {
     key: "onClick",
-    value: function onClick(eventKey) {
-      if (this.props.onClick) {
+    value: function onClick(eventKey, e) {
+      if (this.props.onClick && e.target.tagName.toUpperCase() == 'INPUT') {
         this.props.onClick({
           target: {
             value: eventKey,
