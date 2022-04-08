@@ -80,19 +80,17 @@ export class StudentTemplateTile extends Component {
  
     render() {
         if (!this.props.reportData) return null;
-        let progressValue = 0;
+        let progressValue = {text: '', value: 0};
         let progressText  = `0/${this.props.reportData.stats.nbActivities}`;
         if(this.props.reportData.stats.assignmentcompleted[`userid${this.state.assignment.user.id}`]){
             progressValue = WorkPlanUtils.getAssignmentProgress(this.props.reportData.template.activities, this.state.assignment);
             progressText = `${this.props.reportData.stats.assignmentcompleted[`userid${this.state.assignment.user.id}`]}/${this.props.reportData.stats.nbActivities}`;
         }
-        progressValue = (isNaN(progressValue) ? 0 : progressValue);
-        let rythmePercentage = this.getExpectedRhythmPercentage(this.props.reportData.template.activities);
         let rythmeColor = this.getProgressBarRythmColor();
 
         let main = 
         <Card className='rounded' style={{width:'100%'}}>
-            <div className={rythmeColor} style={{width: `${progressValue}%`, height: '5px', maxWidth: "100%"}}></div>
+            <div className={rythmeColor} title={progressValue.text} style={{width: `${progressValue.value}%`, height: '5px', maxWidth: "100%"}}></div>
             <Card.Body style={{backgroundColor: "#f0f0f0"}} >
                 <div className='mb-3'>
                     <div className='h4'>{this.props.reportData.template.name}</div>
@@ -114,7 +112,7 @@ export class StudentTemplateTile extends Component {
                         </div> 
                     }
                     <div >
-                        <span>{"Achèvement "}</span><FontAwesomeIcon icon={faCheck}/><span className='ml-2'>{progressText}</span>  
+                        <span title="Le nombre d'activités complétées / le nombre d'activités">{"Achèvement "}<FontAwesomeIcon icon={faCheck}/></span><span className='ml-2'>{progressText}</span>  
                     </div>
                 </div>
                 <div className='mt-3 d-flex align-items-center'>

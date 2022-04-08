@@ -505,6 +505,14 @@ export class WorkPlanUtils {
             }
         }
 
-        return hrCompleted / hrTotal * 100;
+        let value = Math.round(hrCompleted / hrTotal * 100,1);
+        value = (isNaN(value) ? 0 : value);
+
+        let result = {
+            value: value,
+            text: `${value}% (Le nombre d'heures des activités complétées / le nombre total d'heures prévues du plan de travail)`
+        };
+
+        return result;
     }
 }

@@ -114,10 +114,15 @@ export class AssignmentsView extends Component{
                                         {workPlan.stats && workPlan.stats.nbStudents > 0 && 
                                             <div className="p-2 text-muted row">
                                                 <div className='col-md-6'>
-                                                    <span className='mr-5'>{"Achèvement"}</span><FontAwesomeIcon icon={faCheck}/><span className='ml-2'>{`${workPlan.stats.workPlanCompletion}/${workPlan.stats.nbStudents}`}</span>
+                                                    <span title="Le nombre d'élèves qui ont complété le plan de travail / le nombre total d'élèves assigné au plan de travail">{"Achèvement "}<FontAwesomeIcon icon={faCheck}/></span><span className='ml-2'>{`${workPlan.stats.workPlanCompletion}/${workPlan.stats.nbStudents}`}</span>
                                                 </div>
                                                 <div className='col-md-6' style={{textAlign:'right'}}>
-                                                    {this.state.activeTab == 'manager' && <span><span style={{marginRight:'35px'}} dangerouslySetInnerHTML={{__html: workPlan.template.creator.avatar}}></span><br/>Propriétaire du plan de travail</span>}
+                                                    {this.state.activeTab == 'manager' && 
+                                                        <span>
+                                                            <div dangerouslySetInnerHTML={{__html: workPlan.template.creator.avatar}}></div>
+                                                            <span>Créateur</span>
+                                                        </span>
+                                                        }
                                                 </div>
                                             </div>
                                         }
@@ -372,11 +377,11 @@ class WorkPlanForm extends Component{
                                         progressText = `${this.state.data.stats.activitycompleted[`cmid${item.cmId}`]}/${this.state.data.stats.nbStudents}`;
                                     }
 
-                                    progressValue = (isNaN(progressValue) ? 0 : progressValue);
+                                    progressValue = (isNaN(progressValue) ? 0 : Math.round(progressValue,1));
                                     
                                     let card = 
                                         <Card key={index} className='rounded mt-2 mb-2'>
-                                            <div style={{backgroundColor: '#0f6fc5', width: `${progressValue}%`, height: '5px'}}>
+                                            <div title={`${progressValue}% (le nombre d'activités complètes / le nombre d'élèves)`} style={{backgroundColor: '#0f6fc5', width: `${progressValue}%`, height: '5px'}}>
                                                 
                                             </div>
                                             <Card.Body className='grid-activity bg-light'>
@@ -391,8 +396,8 @@ class WorkPlanForm extends Component{
                                                     })}
                                                 </div>
                                                 <div className="p-2 text-muted" style={{alignItems: 'center', display: 'flex'}}>
-                                                    <span className='mr-3'>{"Achèvement"}</span>
-                                                    <FontAwesomeIcon icon={faCheck}/><span className='ml-2 mr-3'>{progressText}</span>  
+                                                    <span title="Le nombre d'activités complètes / le nombre d'élèves" className='mr-3'>{"Achèvement "} <FontAwesomeIcon icon={faCheck}/></span>
+                                                    <span className='ml-2 mr-3'>{progressText}</span>  
                                                     <DropdownButton variant='outline-primary' title={<span><FontAwesomeIcon icon={faEllipsisV}  />{" "}</span>} id={`optionsActivity${item.id}`}>
                                                         <Dropdown.Item onClick={() => this.onShowActivities(true)}><FontAwesomeIcon icon={faPencilAlt}  />{" Modifier"}</Dropdown.Item>
                                                         <Dropdown.Item onClick={() => this.onDeleteActivity(item.id)}><FontAwesomeIcon icon={faTrashAlt}  />{" Supprimer"}</Dropdown.Item>
@@ -425,17 +430,16 @@ class WorkPlanForm extends Component{
 
                         <div>
                             {assignments.map((item, index) => {
-                                    let progressValue = 0;
+                                    let progressValue = {text: '', value: 0};
                                     let progressText  = `0/${this.state.data.stats.nbActivities}`;
                                     if(this.state.data.stats.assignmentcompleted[`userid${item.user.id}`]){
                                         progressValue = WorkPlanUtils.getAssignmentProgress(this.state.data.template.activities, item);
                                         progressText = `${this.state.data.stats.assignmentcompleted[`userid${item.user.id}`]}/${this.state.data.stats.nbActivities}`;
                                     }
-                                    progressValue = (isNaN(progressValue) ? 0 : progressValue);
 
                                     let card = 
                                         <Card key={index} className='rounded mt-2 mb-2'>
-                                            <div style={{backgroundColor: '#0f6fc5', width: `${progressValue}%`, height: '5px'}}>
+                                            <div title={`${progressValue.text}`} style={{backgroundColor: '#0f6fc5', width: `${progressValue.value}%`, height: '5px'}}>
                                                 
                                             </div>
                                             <Card.Body className='bg-light'>
@@ -455,8 +459,8 @@ class WorkPlanForm extends Component{
                                                         {item.completionState == 2 && <span className='badge bg-danger'>{`Apprenant en retard`}</span>}
                                                     </div>
                                                     <div className="p-2 text-muted" style={{alignItems: 'center', display: 'flex', justifyContent: 'flex-end'}}>
-                                                        <span className='mr-3'>{"Achèvement"}</span>
-                                                        <FontAwesomeIcon icon={faCheck}/><span className='ml-2 mr-3'>{progressText}</span>  
+                                                        <span title="Le nombre d'affectations complétées / le nombre d'activités" className='mr-3'>{"Achèvement "}<FontAwesomeIcon icon={faCheck}/></span>
+                                                        <span className='ml-2 mr-3'>{progressText}</span>  
                                                         <DropdownButton className='mr-3'variant='outline-primary' title={<span><FontAwesomeIcon icon={faEllipsisV}  />{" "}</span>} id={`optionsAssignments${item.id}`}>
                                                             <Dropdown.Item onClick={() => this.setState({editAssignmentId:item.id})}><FontAwesomeIcon icon={faPencilAlt}  />{" Modifier"}</Dropdown.Item>
                                                             <Dropdown.Item onClick={() => this.onDeleteAssignment(item.id)}><FontAwesomeIcon icon={faTrashAlt}  />{" Supprimer"}</Dropdown.Item>
