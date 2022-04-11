@@ -82,9 +82,9 @@ export class StudentTemplateTile extends Component {
         if (!this.props.reportData) return null;
         let progressValue = {text: '', value: 0};
         let progressText  = `0/${this.props.reportData.stats.nbActivities}`;
-        if(this.props.reportData.stats.assignmentcompleted[`userid${this.state.assignment.user.id}`]){
+        if(this.props.reportData.stats.assignmentcompleted[`${this.state.assignment.user.id}`]){
             progressValue = WorkPlanUtils.getAssignmentProgress(this.props.reportData.template.activities, this.state.assignment);
-            progressText = `${this.props.reportData.stats.assignmentcompleted[`userid${this.state.assignment.user.id}`]}/${this.props.reportData.stats.nbActivities}`;
+            progressText = `${this.props.reportData.stats.assignmentcompleted[`${this.state.assignment.user.id}`]}/${this.props.reportData.stats.nbActivities}`;
         }
         let rythmeColor = this.getProgressBarRythmColor();
 

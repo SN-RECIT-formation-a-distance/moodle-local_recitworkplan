@@ -404,23 +404,19 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
     }
 
     protected function getWorkPlanStats($templateId){
-        $query = "select count(distinct cmid) as nbActivities, count(DISTINCT userid) as nbStudents, 
-        coalesce(group_concat(if(activitycompletionstate = 1, concat('cmid',cmid), null)),0) activitycompleted, 
-        coalesce(group_concat(if(activitycompletionstate = 1, concat('userid',userid), null)),0) assignmentcompleted
+        $query = "select count(distinct cmid) as nbActivities, count(DISTINCT userid) as nbStudents
             from workplans where templateid = $templateId group by templateid";
 
         $result = $this->mysqlConn->execSQLAndGetObject($query);
         $stats = new stdClass();
         $stats->templateid = $templateId;
+        $stats->activitycompleted = array();
+        $stats->assignmentcompleted = array();
 
         if (!$result){
-            $stats->activitycompleted = 0;
-            $stats->assignmentcompleted = 0;
             $stats->nbActivities = 0;
             $stats->nbStudents = 0;
         }else{
-            $stats->activitycompleted = array_count_values(explode(",", $result->activitycompleted));
-            $stats->assignmentcompleted = array_count_values(explode(",", $result->assignmentcompleted));
             $stats->nbActivities = $result->nbActivities;
             $stats->nbStudents = $result->nbStudents;
         }
@@ -428,12 +424,30 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         $query = "SELECT COUNT(DISTINCT userid) as count FROM workplans WHERE wpcompletionstate = 3 AND templateid=$templateId";
 
         $rst = $this->mysqlConn->execSQLAndGetObject($query);
-        $stats->workPlanCompletion = $rst->count;
+        if ($rst){
+            $stats->workPlanCompletion = $rst->count;
+        }else{
+            $stats->workPlanCompletion = 0;
+        }
 
         $query = "SELECT COUNT(DISTINCT userid) as count FROM workplans WHERE wpcompletionstate = 2 AND templateid=$templateId";
 
         $rst = $this->mysqlConn->execSQLAndGetObject($query);
         $stats->nbLateStudents = $rst->count;
+
+        $query = "select count(userid) as count, cmid from workplans where activitycompletionstate in (1,2,3) and templateid = $templateId group by cmid";
+
+        $rst = $this->mysqlConn->execSQLAndGetObjects($query);
+        foreach($rst as $r){
+            $stats->activitycompleted[$r->cmid] = $r->count;
+        }
+        
+        $query = "select userid, count(cmid) as count from workplans where activitycompletionstate in (1,2,3) and templateid = $templateId group by userid";
+
+        $rst = $this->mysqlConn->execSQLAndGetObjects($query);
+        foreach($rst as $r){
+            $stats->assignmentcompleted[$r->userid] = $r->count;
+        }
 
         return $stats;
     }
@@ -591,9 +605,9 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
             $total_count = $item->total_count;
         }  
 
-        foreach($workPlanList as $item){
+        foreach($workPlanList as $templateId => $item){
             $item->setAssignmentsEndDate();       
-            $item->stats = $this->getWorkPlanStats($item->template->id);
+            $item->stats = $this->getWorkPlanStats($templateId);
         }
 
         $pagination = new Pagination();
@@ -943,7 +957,7 @@ class Assignment{
     public function addUserActivity($dbData){
         /**
          * Whether or not the user has completed the activity. 
-         * Available states: 0 = not completed if there's no row in this table, that also counts as 0 1 = completed 2 = completed, show passed 3 = completed, show failed
+         * Available states: 0 = not completed if there's no row in this table, that also counts as 0 = not completed, 1 = completed (passed or failed), 2 = completed (passed graded), 3 = completed (failed graded)
          */
         $item = new stdClass();
         $item->completionState = (isset($dbData->activitycompletionstate) ? $dbData->activitycompletionstate : 0);

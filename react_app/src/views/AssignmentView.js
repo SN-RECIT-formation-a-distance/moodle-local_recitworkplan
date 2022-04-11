@@ -294,12 +294,12 @@ class WorkPlanForm extends Component{
             }
             if (this.state.sortAssignment == 'progress'){
                 let progressValueA = 0;
-                if(this.state.data.stats.assignmentcompleted[`userid${a.user.id}`]){
-                    progressValueA = this.state.data.stats.assignmentcompleted[`userid${a.user.id}`]/this.state.data.stats.nbActivities * 100;
+                if(this.state.data.stats.assignmentcompleted[`${a.user.id}`]){
+                    progressValueA = this.state.data.stats.assignmentcompleted[`${a.user.id}`]/this.state.data.stats.nbActivities * 100;
                 }
                 let progressValueB = 0;
-                if(this.state.data.stats.assignmentcompleted[`userid${b.user.id}`]){
-                    progressValueB = this.state.data.stats.assignmentcompleted[`userid${b.user.id}`]/this.state.data.stats.nbActivities * 100;
+                if(this.state.data.stats.assignmentcompleted[`${b.user.id}`]){
+                    progressValueB = this.state.data.stats.assignmentcompleted[`${b.user.id}`]/this.state.data.stats.nbActivities * 100;
                 }
                 if (progressValueA > progressValueB){
                     return -1;
@@ -372,9 +372,9 @@ class WorkPlanForm extends Component{
                             {activityList.map((item, index) => {
                                     let progressValue = 0;
                                     let progressText  = `0/${this.state.data.stats.nbStudents}`;
-                                    if(this.state.data.stats.activitycompleted[`cmid${item.cmId}`]){
-                                        progressValue = this.state.data.stats.activitycompleted[`cmid${item.cmId}`]/this.state.data.stats.nbStudents * 100;
-                                        progressText = `${this.state.data.stats.activitycompleted[`cmid${item.cmId}`]}/${this.state.data.stats.nbStudents}`;
+                                    if(this.state.data.stats.activitycompleted[`${item.cmId}`]){
+                                        progressValue = this.state.data.stats.activitycompleted[`${item.cmId}`]/this.state.data.stats.nbStudents * 100;
+                                        progressText = `${this.state.data.stats.activitycompleted[`${item.cmId}`]}/${this.state.data.stats.nbStudents}`;
                                     }
 
                                     progressValue = (isNaN(progressValue) ? 0 : Math.round(progressValue,1));
@@ -432,9 +432,9 @@ class WorkPlanForm extends Component{
                             {assignments.map((item, index) => {
                                     let progressValue = {text: '', value: 0};
                                     let progressText  = `0/${this.state.data.stats.nbActivities}`;
-                                    if(this.state.data.stats.assignmentcompleted[`userid${item.user.id}`]){
+                                    if(this.state.data.stats.assignmentcompleted[`${item.user.id}`]){
                                         progressValue = WorkPlanUtils.getAssignmentProgress(this.state.data.template.activities, item);
-                                        progressText = `${this.state.data.stats.assignmentcompleted[`userid${item.user.id}`]}/${this.state.data.stats.nbActivities}`;
+                                        progressText = `${this.state.data.stats.assignmentcompleted[`${item.user.id}`]}/${this.state.data.stats.nbActivities}`;
                                     }
 
                                     let card = 
