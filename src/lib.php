@@ -16,7 +16,9 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once(dirname(__FILE__)."/classes/PersistCtrl.php");
+if (isset($CFG)){
+    require_once(dirname(__FILE__)."/classes/PersistCtrl.php"); //Must be loaded here because $CFG is undefined when called via db/events.php
+}
 
 define('RECITWORKPLAN_ASSIGN_CAPABILITY', 'local/recitworkplan:assignworkplans');
 define('RECITWORKPLAN_FOLLOW_CAPABILITY', 'local/recitworkplan:followworkplans');
