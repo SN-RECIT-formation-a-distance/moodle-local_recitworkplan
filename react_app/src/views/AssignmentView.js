@@ -455,8 +455,9 @@ class WorkPlanForm extends Component{
                                                     </div>
                                                     <div>
                                                         {item.completionState == 0 && <span className='badge bg-warning'>{`En cours`}</span>}
-                                                        {item.completionState == 1 && <span className='badge bg-success'>{`Complété`}</span>}
+                                                        {item.completionState == 1 && <span className='badge bg-success'>{`Archivé`}</span>}
                                                         {item.completionState == 2 && <span className='badge bg-danger'>{`Apprenant en retard`}</span>}
+                                                        {item.completionState == 3 && <span className='badge bg-success'>{`Complété`}</span>}
                                                     </div>
                                                     <div className="p-2 text-muted" style={{alignItems: 'center', display: 'flex', justifyContent: 'flex-end'}}>
                                                         <span title="Le nombre d'affectations complétées / le nombre d'activités" className='mr-3'>{"Achèvement "}<FontAwesomeIcon icon={faCheck}/></span>
