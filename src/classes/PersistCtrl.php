@@ -284,9 +284,9 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
             $this->mysqlConn->beginTransaction();
 
             if (!is_numeric($state)){
-                $query = "insert into {$this->prefix}recit_wp_tpl (creatorid, name, description, communication_url, lastupdate, state) select creatorid, concat(name, ' (copie)'), description, communication_url, now(), state from {$this->prefix}recit_wp_tpl where id = $templateId";
+                $query = "insert into {$this->prefix}recit_wp_tpl (creatorid, name, description, communication_url, lastupdate, state) select creatorid, concat(name, ' (copie)'), description, communication_url,  " . time() . ", state from {$this->prefix}recit_wp_tpl where id = $templateId";
             }else{
-                $query = "insert into {$this->prefix}recit_wp_tpl (creatorid, name, description, communication_url, lastupdate, state) select {$this->signedUser->id}, concat(name, ' (copie)'), description, communication_url, now(), $state from {$this->prefix}recit_wp_tpl where id = $templateId";
+                $query = "insert into {$this->prefix}recit_wp_tpl (creatorid, name, description, communication_url, lastupdate, state) select {$this->signedUser->id}, concat(name, ' (copie)'), description, communication_url, " . time() . ", $state from {$this->prefix}recit_wp_tpl where id = $templateId";
             }
             $this->mysqlConn->execSQL($query);
             $newTemplateId = $this->mysqlConn->getLastInsertId("{$this->prefix}recit_wp_tpl", "id");
@@ -684,9 +684,17 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
 
     public function setAssignmentCompletionState($userId, $cmId){
         try{		
-            $query = "select assignmentId, templateid,  (case when nbIncompleteAct = 0 then 3 when now() > enddate and nbIncompleteAct > 0 then 2 else 0 end) as completionstate, nbIncompleteAct, startdate, enddate, cmids FROM
-            (select t1.id as assignmentId, t1.templateid, from_unixtime(any_value(t1.startdate)) as startdate, date_add(from_unixtime(any_value(t1.startdate)), interval (sum(t2.nb_hours_completion) / any_value(t1.nb_hours_per_week)) week) as enddate, sum(if(coalesce(t3.completionstate,0) = 0, 1, 0)) as nbIncompleteAct,
-             group_concat(DISTINCT t2.cmid) as cmids
+            $query = "select assignmentId, templateid,  
+            (case 
+                when nbIncompleteAct = 0 then 3 
+                when nb_hours_per_week > 0 and now() > enddate and nbIncompleteAct > 0 then 2 
+                else 0 end) as completionstate, 
+            nbIncompleteAct, startdate, enddate, cmids 
+            FROM
+            (select t1.id as assignmentId, t1.templateid, from_unixtime(min(t1.startdate)) as startdate, 
+            date_add(from_unixtime(min(t1.startdate)), interval greatest(1, sum(t2.nb_hours_completion) / min(t1.nb_hours_per_week)) week) as enddate, 
+            sum(if(coalesce(t3.completionstate,0) = 0, 1, 0)) as nbIncompleteAct,
+            group_concat(DISTINCT t2.cmid) as cmids, t1.nb_hours_per_week
             from mdl_recit_wp_tpl_assign as t1 
             inner join mdl_recit_wp_tpl_act as t2 on t1.templateid = t2.templateid 
             left join mdl_course_modules_completion as t3 on t2.cmid = t3.coursemoduleid and t1.userid = t3.userid
@@ -710,9 +718,15 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
 
     public function setTplAssignmentCompletionState($tplId){
         try{		
-            $query = "select assignmentId, templateid,  (case when nbIncompleteAct = 0 then 3 when now() > enddate and nbIncompleteAct > 0 then 2 else 0 end) as completionstate, nbIncompleteAct, startdate, enddate, cmids FROM
-            (select t1.id as assignmentId, t1.templateid, from_unixtime(any_value(t1.startdate)) as startdate, date_add(from_unixtime(any_value(t1.startdate)), interval (sum(t2.nb_hours_completion) / any_value(t1.nb_hours_per_week)) week) as enddate, sum(if(coalesce(t3.completionstate,0) = 0, 1, 0)) as nbIncompleteAct,
-             group_concat(DISTINCT t2.cmid) as cmids
+            $query = "select assignmentId, templateid,  
+            (case 
+                when nbIncompleteAct = 0 then 3 
+                when nb_hours_per_week > 0 and now() > enddate and nbIncompleteAct > 0 then 2 
+                else 0 end) as completionstate, nbIncompleteAct, startdate, enddate, cmids FROM
+            (select t1.id as assignmentId, t1.templateid, from_unixtime(min(t1.startdate)) as startdate, 
+            date_add(from_unixtime(min(t1.startdate)), 
+            interval greatest(1, sum(t2.nb_hours_completion) / min(t1.nb_hours_per_week)) week) as enddate, sum(if(coalesce(t3.completionstate,0) = 0, 1, 0)) as nbIncompleteAct,
+             group_concat(DISTINCT t2.cmid) as cmids, t1.nb_hours_per_week
             from mdl_recit_wp_tpl_assign as t1 
             inner join mdl_recit_wp_tpl_act as t2 on t1.templateid = t2.templateid 
             left join mdl_course_modules_completion as t3 on t2.cmid = t3.coursemoduleid and t1.userid = t3.userid
