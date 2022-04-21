@@ -12,6 +12,21 @@ export class Modal extends Component{
         width: '75%'
     };
 
+    constructor(props){
+        super(props);
+
+        this.tmp = "";
+    }
+
+    componentDidMount(){
+        this.tmp =  document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+    }
+    
+    componentWillUnmount(){
+        document.body.style.overflow = this.tmp;
+    }
+
     render(){
         let main = 
             <div style={{position: "fixed", top: 0, backgroundColor: "rgba(0,0,0,0.5)", left: 0, bottom: 0, right: 0, zIndex: 1040, overflowX: 'hidden', overflowY: 'auto'}}>

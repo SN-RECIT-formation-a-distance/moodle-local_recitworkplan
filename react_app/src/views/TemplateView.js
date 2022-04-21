@@ -307,44 +307,130 @@ export class ActivityPicker extends Component{
     }
 }
 
-export class ModalTemplateForm extends Component{
+export class WorkPlanTemplateView extends Component{
     static defaultProps = {        
         data: null,
-        onDataChange: null,
+        onSave: null,
+    };
+
+    constructor(props){
+        super(props);
+
+        this.onSave = this.onSave.bind(this);
+
+        this.state = {editModal: false};
+    }
+
+    componentDidUpdate(prevProps) {
+        if(this.props.data.template.id === 0){
+          this.setState({editModal: true});
+        }
+    }
+
+    render(){
+        if(this.state.data === null){ return null;}
+
+        let template = this.props.data.template;
+        let data = this.props.data;
+
+        let nbHoursCompletionTotal = 0;
+        let catList = "";
+        let categories = [];
+        for (let act of template.activities){
+            if (!categories.includes(act.categoryName)){
+                categories.push(act.categoryName);
+                catList = catList + act.categoryName + ", ";
+            }
+            nbHoursCompletionTotal = nbHoursCompletionTotal + parseFloat(act.nbHoursCompletion);
+        }
+        catList = catList.substring(0,catList.length-2);
+
+        let main =  
+            <>
+                <Card>
+                    <Card.Body>
+                        <div className='h4 mb-4'>Description <Button title="Éditer" variant="outline-primary" className='rounded-circle' onClick={() => this.setState({editModal:true})}><FontAwesomeIcon icon={faPencilAlt}/></Button></div>
+                        <Row className='m-2'>
+                            <Col className='text-muted' sm={2}>Nom</Col>
+                            <Col sm={10} className='bg-light border border-secondary p-2 rounded'>{data.template.name}</Col>
+                        </Row>
+                        <Row className='m-2'>
+                            <Col className='text-muted' sm={2}>Description</Col>
+                            <Col sm={10} className='bg-light border border-secondary p-2 rounded'>{data.template.description}</Col>
+                        </Row>
+                        <Row className='m-2'>
+                            <Col className='text-muted' sm={2}>URL de communication</Col>
+                            <Col sm={10} className='bg-light border border-secondary p-2 rounded'><a target="_blank" href={data.template.communication_url}>{data.template.communication_url}</a></Col>
+                        </Row>             
+                        <Row className='m-2'>
+                            <Col className='text-muted' sm={2}>Temps à consacrer</Col>
+                            <Col sm={10} className='bg-light border border-secondary p-2 rounded'>{`${nbHoursCompletionTotal} heures`}</Col>
+                        </Row> 
+                        <Row className='m-2'>
+                            <Col className='text-muted' sm={2}>Catégories de cours</Col>
+                            <Col sm={10} className=' bg-light border border-secondary p-2 rounded'>
+                                {catList}
+                            </Col>
+                        </Row> 
+                    </Card.Body>
+                </Card>
+                {this.state.editModal && <ModalTemplateForm data={data} onClose={() => this.setState({editModal:false})} onSave={this.onSave}/>}
+            </>      
+            
+        return (main);
+    }
+
+    onSave(template){
+        this.setState({editModal:false}, () => this.props.onSave(template));
+    }
+}
+
+class ModalTemplateForm extends Component{
+    static defaultProps = {        
+        data: null,
         onClose: null,
         onSave: null
     };
 
     constructor(props){
         super(props);
+
+        this.onDataChange = this.onDataChange.bind(this);
+        this.onSave = this.onSave.bind(this);
+
+        this.state = {data: JsNx.clone(this.props.data)}
     }
 
     render(){
+        let data = this.state.data;
+
+        if(data === null){ return null;}
+
         let modalBody = 
             <Form>
                 <div className='h3 mb-4'>Description</div>
                 <Form.Group as={Row} >
                     <Form.Label column sm="2">{"Nom"}</Form.Label>
                     <Col sm="10">
-                        <Form.Control type="text" value={this.props.data.template.name} name="name" onChange={this.props.onDataChange} />
+                        <Form.Control type="text" value={data.template.name} name="name" onChange={this.onDataChange} />
                     </Col>
                 </Form.Group>
                 <Form.Group as={Row}>
                     <Form.Label column sm="2">{"Description"}</Form.Label>
                     <Col sm="10">
-                        <Form.Control as="textarea" rows={4} className='w-100' value={this.props.data.template.description} name="description" onChange={this.props.onDataChange} />
+                        <Form.Control as="textarea" rows={4} className='w-100' value={data.template.description} name="description" onChange={this.onDataChange} />
                     </Col>
                 </Form.Group>
                 <Form.Group as={Row}>
                     <Form.Label column sm="2">{"URL de communication"}</Form.Label>
                     <Col sm="10">
-                        <Form.Control type="text" className='w-100' value={this.props.data.template.communication_url} name="communication_url" onChange={this.props.onDataChange} />
+                        <Form.Control type="text" className='w-100' value={data.template.communication_url} name="communication_url" onChange={this.onDataChange} />
                     </Col>
                 </Form.Group>
                 <Form.Group as={Row}>
                     <Form.Label column sm="2">{""}</Form.Label>
                     <Col sm="10">
-                        <Form.Check type="checkbox" label="Enregistrer en tant que gabarit" rows={4} className='w-100' disabled={this.props.data.assignments.length > 1} checked={this.props.data.template.state == 1} name="state" onChange={this.props.onDataChange} />
+                        <Form.Check type="checkbox" label="Enregistrer en tant que gabarit" rows={4} className='w-100' disabled={data.assignments.length > 1} checked={data.template.state == 1} name="state" onChange={this.onDataChange} />
                     </Col>
                 </Form.Group>
             </Form>;
@@ -352,9 +438,38 @@ export class ModalTemplateForm extends Component{
         let modalFooter = 
             <ButtonGroup>
                     <Button variant='secondary' onClick={this.props.onClose}>Annuler</Button>
-                    <Button variant='success' className='ml-2' onClick={() => {this.props.onSave(this.props.data);}}>Enregistrer</Button>
+                    <Button variant='success' className='ml-2' onClick={this.onSave}>Enregistrer</Button>
             </ButtonGroup>;
 
         return <Modal title="Modifier gabarit" body={modalBody} onClose={this.props.onClose} footer={modalFooter}/>
+    }
+
+    onDataChange(event){
+        let data = this.state.data;
+
+        if(data.template[event.target.name] !== event.target.value){
+            //Exception for state/checkbox
+            if (event.target.name === 'state'){
+                data.template[event.target.name] = event.target.checked ? 1 : 0;
+            }
+            else{
+                data.template[event.target.name] = event.target.value
+            }
+            
+            this.setState({data:data});
+        }
+    }
+
+    onSave(){
+        let that = this;
+        let callback = function(result){
+            if(!result.success){
+                $glVars.feedback.showError($glVars.i18n.tags.appName, result.msg);
+                return;
+            }
+            that.props.onSave(result.data);            
+        }
+        
+        $glVars.webApi.saveTemplate(this.state.data.template, callback);
     }
 }

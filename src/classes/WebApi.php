@@ -220,18 +220,6 @@ class WebApi extends recitcommon\MoodleApi
         }
     }
 
-    /*public function deleteTemplate($request){
-        try{
-            $this->canUserAccess('a');
-            $templateId = intval($request['templateId']);
-            $this->ctrl->deleteTemplate($templateId);
-            return new WebApiResult(true);
-        }
-        catch(Exception $ex){
-            return new WebApiResult(false, false, $ex->GetMessage());
-        }
-    }*/
-
     public function cloneTemplate($request){
         try{
             $this->canUserAccess('a');

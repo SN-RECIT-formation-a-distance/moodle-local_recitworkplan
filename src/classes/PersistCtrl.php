@@ -238,7 +238,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
 
     public function saveTemplate($data){
         try{	
-            $result = $data->id;
+            $result = $data;
             $fields = array("name", "description", "communication_url", "lastupdate", "state");
             $values = array($data->name, $data->description, $data->communication_url, time(), $data->state);
 
@@ -249,7 +249,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
                 $query = $this->mysqlConn->prepareStmt("insertorupdate", "{$this->prefix}recit_wp_tpl", $fields, $values);
                 $this->mysqlConn->execSQL($query);
 
-                $result = $this->mysqlConn->getLastInsertId("{$this->prefix}recit_wp_tpl", "id");
+                $result->id = $this->mysqlConn->getLastInsertId("{$this->prefix}recit_wp_tpl", "id");
             }
             else{
                 $query = $this->mysqlConn->prepareStmt("update", "{$this->prefix}recit_wp_tpl", $fields, $values, array("id"), array($data->id));

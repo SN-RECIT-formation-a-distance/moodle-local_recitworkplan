@@ -1,14 +1,6 @@
 import React, { Component } from 'react';
-import { ButtonGroup, Card, Tabs, Tab, Button, Form, DropdownButton, Dropdown, Col, Row, Table, Badge, Collapse} from 'react-bootstrap';
-import { faPencilAlt,  faPlus, faTrashAlt, faCopy, faCheck, faArrowRight, faArrowLeft, faEllipsisV, faArrowCircleDown, faArrowCircleUp, faMinus, faArchive, faUser} from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {ComboBoxPlus, FeedbackCtrl, Modal, ToggleButtons } from '../libs/components/Components';
-import {$glVars} from '../common/common';
-import { JsNx, UtilsString, UtilsDateTime } from '../libs/utils/Utils';
-import { Pagination } from '../libs/components/Pagination';
-import {ActivityPicker, ModalTemplateForm} from './TemplateView';
-import { DateInput } from '../libs/components/DateTime';
-
+import { Card} from 'react-bootstrap';
+import { JsNx } from '../libs/utils/Utils';
 
 export class UserActivityList extends Component{
     static defaultProps = {        

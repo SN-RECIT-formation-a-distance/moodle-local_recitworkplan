@@ -6,11 +6,11 @@ import {ComboBoxPlus, FeedbackCtrl, Modal, ToggleButtons } from '../libs/compone
 import {$glVars} from '../common/common';
 import { JsNx, UtilsString, UtilsDateTime, WorkPlanUtils } from '../libs/utils/Utils';
 import { Pagination } from '../libs/components/Pagination';
-import {ActivityPicker, ModalTemplateForm} from './TemplateView';
+import {ActivityPicker, WorkPlanTemplateView} from './TemplateView';
 import { DateInput } from '../libs/components/DateTime';
 import { UserActivityList } from './Components';
 
-export class AssignmentsView extends Component{
+export class WorkPlanListView extends Component{
     static defaultProps = {        
     };
 
@@ -136,7 +136,7 @@ export class AssignmentsView extends Component{
                 <Pagination pagination={this.state.pagination} onChangePage={(p) => this.changePage(p)}/>                
             </div>;
 
-        let form = <WorkPlanForm templateId={this.state.templateId} activeTab={this.state.editTab} onClose={this.onClose}/>;
+        let form = <WorkPlanView templateId={this.state.templateId} activeTab={this.state.editTab} onClose={this.onClose}/>;
 
 
         return (this.state.templateId >= 0 ? form : main);
@@ -211,7 +211,7 @@ export class AssignmentsView extends Component{
     }
 }
 
-class WorkPlanForm extends Component{
+class WorkPlanView extends Component{
     static defaultProps = {        
         templateId: 0,
         activeTab: 'activities',
@@ -225,22 +225,12 @@ class WorkPlanForm extends Component{
         this.getDataResult = this.getDataResult.bind(this);
         this.getData = this.getData.bind(this);
         this.onSaveTemplate = this.onSaveTemplate.bind(this); 
-        this.onDataChange = this.onDataChange.bind(this);
-        this.onShowActivities = this.onShowActivities.bind(this);
-        this.onShowAssignments = this.onShowAssignments.bind(this);
-        this.onDeleteActivity = this.onDeleteActivity.bind(this);
-        this.onDeleteAssignment = this.onDeleteAssignment.bind(this);
-        this.onSearch = this.onSearch.bind(this);
-        this.onFilterChange = this.onFilterChange.bind(this);
 
-        this.state = {tab: this.props.activeTab, data: null, queryStr: "", detail: -1, showActivities: false, showAssignments: false, filter: {late:false}, editModal: false, editAssignmentId: -1, sortAssignment: 0};
+        this.state = {tab: this.props.activeTab, data: null};
     }
 
     componentDidMount(){
         this.getData(this.props.templateId);
-        if (this.props.templateId == 0){
-            this.setState({editModal:true})
-        }
     }
 
     componentDidUpdate(prevProps) {
@@ -264,15 +254,62 @@ class WorkPlanForm extends Component{
     render(){
         if(this.state.data === null){ return null;}
 
-        let activityList = this.state.data.template.activities;
-        let assignments = this.state.data.assignments;
+        let main =  
+            <div>                
+                <div className='d-flex mb-4' style={{alignItems: "center"}}>
+                    <Button title="Revenir" onClick={this.props.onClose} className='rounded-circle' variant='outline-primary'><FontAwesomeIcon icon={faArrowLeft}/></Button>
+                    <span className="h1 ml-3">Plan de travail</span>
+                </div>
+
+                <WorkPlanTemplateView data={this.state.data} onSave={this.onSaveTemplate} />
+                    
+                <Tabs id="workPlanTabs" className="mt-3 bg-light" variant="pills" fill  activeKey={this.state.tab} onSelect={this.onTabChange}>
+                    <Tab eventKey="activities" title="Activités">
+                       <WorkPlanActivitiesView data={this.state.data} onRefresh={() => this.getData(this.state.data.template.id)}/>
+                    </Tab>
+                    <Tab eventKey="assignments" title="Affectations" disabled={this.state.data.template.state == 1}>
+                        <WorkPlanAssignmentsView data={this.state.data} onRefresh={() => this.getData(this.state.data.template.id)}/>
+                    </Tab>
+                </Tabs>  
+            </div>
+            
+        return (main);
+    }
+    
+    onTabChange(k){
+        this.setState({tab: k});
+    }
+
+    onSaveTemplate(template){
+        let data = this.state.data;
+        data.template = template;
+        this.setState({data: data});
+    }
+}
+
+class WorkPlanAssignmentsView extends Component{
+    static defaultProps = {        
+        data: [],
+        onRefresh: null
+    };
+
+    constructor(props){
+        super(props);
+
+        this.onShowAssignments = this.onShowAssignments.bind(this);
+        this.onDeleteAssignment = this.onDeleteAssignment.bind(this);
+        this.onSearch = this.onSearch.bind(this);
+        this.onFilterChange = this.onFilterChange.bind(this);
+
+        this.state = {queryStr: "", detail: -1, showAssignments: false, filter: {late:false}, editAssignmentId: -1, sortAssignment: 0};
+    }
+
+    render(){
+        let data = this.props.data;
+        let assignments = data.assignments;
+
         let regexp = UtilsString.getRegExp(this.state.queryStr);
 
-        if(this.state.queryStr.length > 0){
-            activityList = activityList.filter((item) => {
-                return ((item.cmName.search(regexp) >= 0) || (item.categoryName.search(regexp) >= 0) || (item.courseName.search(regexp) >= 0));
-            })
-        }
         assignments = assignments.filter((item) =>{
             if (this.state.filter.late && item.completionState != 2) return false;
             if(this.state.queryStr.length > 0){
@@ -294,12 +331,12 @@ class WorkPlanForm extends Component{
             }
             if (this.state.sortAssignment == 'progress'){
                 let progressValueA = 0;
-                if(this.state.data.stats.assignmentcompleted[`${a.user.id}`]){
-                    progressValueA = this.state.data.stats.assignmentcompleted[`${a.user.id}`]/this.state.data.stats.nbActivities * 100;
+                if(data.stats.assignmentcompleted[`${a.user.id}`]){
+                    progressValueA = data.stats.assignmentcompleted[`${a.user.id}`]/data.stats.nbActivities * 100;
                 }
                 let progressValueB = 0;
-                if(this.state.data.stats.assignmentcompleted[`${b.user.id}`]){
-                    progressValueB = this.state.data.stats.assignmentcompleted[`${b.user.id}`]/this.state.data.stats.nbActivities * 100;
+                if(data.stats.assignmentcompleted[`${b.user.id}`]){
+                    progressValueB = data.stats.assignmentcompleted[`${b.user.id}`]/data.stats.nbActivities * 100;
                 }
                 if (progressValueA > progressValueB){
                     return -1;
@@ -311,199 +348,91 @@ class WorkPlanForm extends Component{
             return 0;
         });
 
-        let nbHoursCompletionTotal = 0;
-        let catList = "";
-        let categories = [];
-        for (let act of activityList){
-            if (!categories.includes(act.categoryName)){
-                categories.push(act.categoryName);
-                catList = catList + act.categoryName + ", ";
-            }
-            nbHoursCompletionTotal = nbHoursCompletionTotal + parseFloat(act.nbHoursCompletion);
-        }
-        catList = catList.substring(0,catList.length-2);
-
-        let body =  
-            <div>                
-                <div className='d-flex mb-4' style={{alignItems: "center"}}>
-                    <Button title="Revenir" onClick={this.props.onClose} className='rounded-circle' variant='outline-primary'><FontAwesomeIcon icon={faArrowLeft}/></Button>
-                    <span className="h1 ml-3">Plan de travail</span>
+        let main =  
+            <>                
+                <div className='d-flex d-block-mobile' style={{justifyContent: "space-between", alignItems: "center"}}>
+                    <div className='d-flex' style={{alignItems: "center"}}>
+                        <span className='h2 mr-3'>Affectations</span>
+                        <Button variant='outline-primary' className='rounded-circle' title='Attribuer un plan de travail.' onClick={() => this.onShowAssignments(true)} ><FontAwesomeIcon icon={faPlus}/></Button>
+                    </div>
+                    <div className='d-flex align-items-center d-block-mobile w-100-mobile' style={{width: "60%", justifyContent: "space-between"}}>
+                        Filtrer par <Form.Control className='rounded w-100-mobile' style={{display:'inline',width:'200px',marginRight:'10px'}} onChange={this.onSearch} type="search" value={this.state.queryStr} name='queryStr' placeholder="Nom, groupe..."/>
+                        Trier par <select type="select" className='form-control rounded' style={{width:'115px',}} onChange={(e) => this.setState({sortAssignment:e.target.value})}>
+                            <option value="lastname">Nom</option>
+                            <option value="firstname">Prénom</option>
+                            <option value="progress">Progrès</option>
+                            <option value="enddate">Date d'échéance</option>
+                        </select>
+                        <Form.Check style={{display:'inline',marginLeft:'10px'}} type="checkbox" onChange={this.onFilterChange} value={this.state.filter.late} name="late" label="Afficher seulement les élèves en retard"/>
+                    </div>
                 </div>
-                <Card>
-                    <Card.Body>
-                        <div className='h4 mb-4'>Description <Button title="Éditer" variant="outline-primary" className='rounded-circle' onClick={() => this.setState({editModal:true})}><FontAwesomeIcon icon={faPencilAlt}/></Button></div>
-                        <Row className='m-2'>
-                            <Col className='text-muted' sm={2}>Nom</Col>
-                            <Col sm={10} className='border border-secondary p-2 rounded'>{this.state.data.template.name}</Col>
-                        </Row>
-                        <Row className='m-2'>
-                            <Col className='text-muted' sm={2}>Description</Col>
-                            <Col sm={10} className='border border-secondary p-2 rounded'>{this.state.data.template.description}</Col>
-                        </Row>
-                        <Row className='m-2'>
-                            <Col className='text-muted' sm={2}>URL de communication</Col>
-                            <Col sm={10} className='border border-secondary p-2 rounded'><a target="_blank" href={this.state.data.template.communication_url}>{this.state.data.template.communication_url}</a></Col>
-                        </Row>             
-                        <Row className='m-2'>
-                            <Col className='text-muted' sm={2}>Temps à consacrer</Col>
-                            <Col sm={10} className='border border-secondary p-2 rounded'>{`${nbHoursCompletionTotal} heures`}</Col>
-                        </Row> 
-                        <Row className='m-2'>
-                            <Col className='text-muted' sm={2}>Catégories de cours</Col>
-                            <Col sm={10} className='border border-secondary p-2 rounded'>
-                                {catList}
-                            </Col>
-                        </Row> 
-                    </Card.Body>
-                </Card>
-                    
-                <Tabs id="workPlanTabs" className="mt-3 bg-light" variant="pills" fill  activeKey={this.state.tab} onSelect={this.onTabChange}>
-                    <Tab eventKey="activities" title="Activités">
-                        <div className='d-flex' style={{justifyContent: "space-between", alignItems: "center"}}>
-                            <div className='d-flex' style={{alignItems: "center"}}>
-                                <span className='h2 mr-3'>Activités</span>
-                                <Button variant='outline-primary' className='rounded-circle' title='Ajouter des activités.' onClick={() => this.onShowActivities(true)} ><FontAwesomeIcon icon={faPlus}/></Button>
-                            </div>
-                            <div>
-                                Filtrer par <Form.Control style={{width: '300px', display: 'inline-block'}} className='rounded' onChange={this.onSearch} type="search" value={this.state.queryStr} name='queryStr' placeholder="Catégories, cours..."/>
-                            </div>
-                        </div> 
-                        <div>
-                            {activityList.map((item, index) => {
-                                    let progressValue = 0;
-                                    let progressText  = `0/${this.state.data.stats.nbStudents}`;
-                                    if(this.state.data.stats.activitycompleted[`${item.cmId}`]){
-                                        progressValue = this.state.data.stats.activitycompleted[`${item.cmId}`]/this.state.data.stats.nbStudents * 100;
-                                        progressText = `${this.state.data.stats.activitycompleted[`${item.cmId}`]}/${this.state.data.stats.nbStudents}`;
-                                    }
 
-                                    progressValue = (isNaN(progressValue) ? 0 : Math.round(progressValue,1));
-                                    
-                                    let card = 
-                                        <Card key={index} className='rounded mt-2 mb-2'>
-                                            <div title={`${progressValue}% (le nombre d'activités complètes / le nombre d'élèves)`} style={{backgroundColor: '#0f6fc5', width: `${progressValue}%`, height: '5px'}}>
-                                                
+                <div>
+                    {assignments.map((item, index) => {
+                            let progressValue = {text: '', value: 0};
+                            let progressText  = `0/${data.stats.nbActivities}`;
+                            if(data.stats.assignmentcompleted[`${item.user.id}`]){
+                                progressValue = WorkPlanUtils.getAssignmentProgress(data.template.activities, item);
+                                progressText = `${data.stats.assignmentcompleted[`${item.user.id}`]}/${data.stats.nbActivities}`;
+                            }
+
+                            let card = 
+                                <Card key={index} className='rounded mt-2 mb-2'>
+                                    <div title={`${progressValue.text}`} style={{backgroundColor: '#0f6fc5', width: `${progressValue.value}%`, height: '5px'}}>
+                                        
+                                    </div>
+                                    <Card.Body className='bg-light'>
+                                        <div className='grid-assignments'>
+                                            <div>
+                                                <span dangerouslySetInnerHTML={{__html: item.user.avatar}}></span>
                                             </div>
-                                            <Card.Body className='grid-activity bg-light'>
-                                                <div>
-                                                    <div className='h4'><strong><a href={item.cmUrl} target="_blank">{item.cmName}</a></strong></div>
-                                                    <div className='h6 text-muted pl-3'>{`${item.categoryName}/${item.courseName}`}</div>
-                                                    <div className='h6 text-muted pl-3'>{`${item.nbHoursCompletion} heures`}</div>
-                                                </div>
-                                                <div className="m-3 p-2">
-                                                    {this.state.data.template.followUps.map((followUps, index2) => {
-                                                        return <Button key={index2} variant={followUps.variant}>{followUps.desc}</Button>;
-                                                    })}
-                                                </div>
-                                                <div className="p-2 text-muted" style={{alignItems: 'center', display: 'flex'}}>
-                                                    <span title="Le nombre d'activités complètes / le nombre d'élèves" className='mr-3'>{"Achèvement "} <FontAwesomeIcon icon={faCheck}/></span>
-                                                    <span className='ml-2 mr-3'>{progressText}</span>  
-                                                    <DropdownButton variant='outline-primary' title={<span><FontAwesomeIcon icon={faEllipsisV}  />{" "}</span>} id={`optionsActivity${item.id}`}>
-                                                        <Dropdown.Item onClick={() => this.onShowActivities(true)}><FontAwesomeIcon icon={faPencilAlt}  />{" Modifier"}</Dropdown.Item>
-                                                        <Dropdown.Item onClick={() => this.onDeleteActivity(item.id)}><FontAwesomeIcon icon={faTrashAlt}  />{" Supprimer"}</Dropdown.Item>
-                                                    </DropdownButton>
-                                                </div>
-                                            </Card.Body>
-                                        </Card>
-                                    return (card);                                     
-                                }
-                            )}
-                        </div>
-                    </Tab>
-                    <Tab eventKey="assignments" title="Affectations" disabled={this.state.data.template.state == 1}>
-                        <div className='d-flex d-block-mobile' style={{justifyContent: "space-between", alignItems: "center"}}>
-                            <div className='d-flex' style={{alignItems: "center"}}>
-                                <span className='h2 mr-3'>Affectations</span>
-                                <Button variant='outline-primary' className='rounded-circle' title='Attribuer un plan de travail.' onClick={() => this.onShowAssignments(true)} ><FontAwesomeIcon icon={faPlus}/></Button>
-                            </div>
-                            <div className='d-flex align-items-center d-block-mobile w-100-mobile' style={{width: "60%", justifyContent: "space-between"}}>
-                                Filtrer par <Form.Control className='rounded' className='w-100-mobile' style={{display:'inline',width:'200px',marginRight:'10px'}} onChange={this.onSearch} type="search" value={this.state.queryStr} name='queryStr' placeholder="Nom, groupe..."/>
-                                Trier par <select type="select" className='form-control rounded' style={{width:'115px',}} onChange={(e) => this.setState({sortAssignment:e.target.value})}>
-                                    <option value="lastname">Nom</option>
-                                    <option value="firstname">Prénom</option>
-                                    <option value="progress">Progrès</option>
-                                    <option value="enddate">Date d'échéance</option>
-                                </select>
-                                <Form.Check style={{display:'inline',marginLeft:'10px'}} type="checkbox" onChange={this.onFilterChange} value={this.state.filter.late} name="late" label="Afficher seulement les élèves en retard"/>
-                            </div>
-                        </div>
-
-                        <div>
-                            {assignments.map((item, index) => {
-                                    let progressValue = {text: '', value: 0};
-                                    let progressText  = `0/${this.state.data.stats.nbActivities}`;
-                                    if(this.state.data.stats.assignmentcompleted[`${item.user.id}`]){
-                                        progressValue = WorkPlanUtils.getAssignmentProgress(this.state.data.template.activities, item);
-                                        progressText = `${this.state.data.stats.assignmentcompleted[`${item.user.id}`]}/${this.state.data.stats.nbActivities}`;
-                                    }
-
-                                    let card = 
-                                        <Card key={index} className='rounded mt-2 mb-2'>
-                                            <div title={`${progressValue.text}`} style={{backgroundColor: '#0f6fc5', width: `${progressValue.value}%`, height: '5px'}}>
-                                                
+                                            <div>
+                                                <strong>{item.user.firstName}</strong><span  className='ml-3 text-muted'>Groupe:</span><span className='text-muted'>{` ${item.user.groupList}`}</span>
+                                                <div className='text-muted'>Dernière connexion: {item.user.lastAccess}</div>
+                                                <div className='text-muted'>{`Début: ${UtilsDateTime.getDate(item.startDate)} (${item.nbHoursPerWeek} h/semaine)`}</div>
+                                                <div className='text-muted'>{`Échéance: ${UtilsDateTime.getDate(item.endDate)}`}</div>
                                             </div>
-                                            <Card.Body className='bg-light'>
-                                                <div className='grid-assignments'>
-                                                    <div>
-                                                        <span dangerouslySetInnerHTML={{__html: item.user.avatar}}></span>
-                                                    </div>
-                                                    <div>
-                                                        <strong>{item.user.firstName}</strong><span  className='ml-3 text-muted'>Groupe:</span><span className='text-muted'>{` ${item.user.groupList}`}</span>
-                                                        <div className='text-muted'>Dernière connexion: {item.user.lastAccess}</div>
-                                                        <div className='text-muted'>{`Début: ${UtilsDateTime.getDate(item.startDate)} (${item.nbHoursPerWeek} h/semaine)`}</div>
-                                                        <div className='text-muted'>{`Échéance: ${UtilsDateTime.getDate(item.endDate)}`}</div>
-                                                    </div>
-                                                    <div>
-                                                        {item.completionState == 0 && <span className='badge bg-warning'>{`En cours`}</span>}
-                                                        {item.completionState == 1 && <span className='badge bg-success'>{`Archivé`}</span>}
-                                                        {item.completionState == 2 && <span className='badge bg-danger'>{`Apprenant en retard`}</span>}
-                                                        {item.completionState == 3 && <span className='badge bg-success'>{`Complété`}</span>}
-                                                    </div>
-                                                    <div className="p-2 text-muted" style={{alignItems: 'center', display: 'flex', justifyContent: 'flex-end'}}>
-                                                        <span title="Le nombre d'affectations complétées / le nombre d'activités" className='mr-3'>{"Achèvement "}<FontAwesomeIcon icon={faCheck}/></span>
-                                                        <span className='ml-2 mr-3'>{progressText}</span>  
-                                                        <DropdownButton className='mr-3'variant='outline-primary' title={<span><FontAwesomeIcon icon={faEllipsisV}  />{" "}</span>} id={`optionsAssignments${item.id}`}>
-                                                            <Dropdown.Item onClick={() => this.setState({editAssignmentId:item.id})}><FontAwesomeIcon icon={faPencilAlt}  />{" Modifier"}</Dropdown.Item>
-                                                            <Dropdown.Item onClick={() => this.onDeleteAssignment(item.id)}><FontAwesomeIcon icon={faTrashAlt}  />{" Supprimer"}</Dropdown.Item>
-                                                        </DropdownButton>
-                                                    </div>
-                                                </div>
-                                                <div className='mt-3 d-flex align-items-center'>
-                                                    <strong>{"Activités"}</strong>
-                                                    <Button variant='link'  onClick={() => this.onDetail(this.state.detail == item.id ? -1 : item.id)}><FontAwesomeIcon icon={this.state.detail == item.id ? faChevronUp : faChevronDown}/></Button>
-                                                </div>  
-                                                {this.state.detail == item.id && 
-                                                    <div style={{width:'100%'}}>
-                                                        {this.state.data.template.activities.map((act, index) => {
-                                                                return (<UserActivityList user={item.user} data={act} key={index}/>);   
-                                                            }
-                                                        )}
-                                                </div>}
-                                            </Card.Body>
-                                        </Card>
-                                    return (card);                                     
-                                }
-                            )}
-                        </div>
-                    </Tab>
-                </Tabs>  
-                {this.state.showActivities && <ActivityPicker templateId={this.state.data.template.id} onClose={(refresh) => this.onShowActivities(false, refresh)}/>}
-                {this.state.showAssignments && <ModalAssignmentPicker data={this.state.data} onClose={(refresh) => this.onShowAssignments(false, refresh)}/>}
-                {this.state.editAssignmentId > 1 && <ModalAssignmentForm assignmentId={this.state.editAssignmentId} data={this.state.data} onClose={(refresh) => this.onShowAssignments(false, refresh)}/>}
-                {this.state.editModal && <ModalTemplateForm data={this.state.data} onClose={() => this.setState({editModal:false})} onDataChange={this.onDataChange} onSave={this.onSaveTemplate}/>}
-            </div>
+                                            <div>
+                                                {item.completionState == 0 && <span className='badge bg-success'>{`En cours`}</span>}
+                                                {item.completionState == 1 && <span className='badge bg-secondary'>{`Archivé`}</span>}
+                                                {item.completionState == 2 && <span className='badge bg-danger'>{`Apprenant en retard`}</span>}
+                                                {item.completionState == 3 && <span className='badge bg-success'>{`Complété`}</span>}
+                                            </div>
+                                            <div className="p-2 text-muted" style={{alignItems: 'center', display: 'flex', justifyContent: 'flex-end'}}>
+                                                <span title="Le nombre d'affectations complétées / le nombre d'activités" className='mr-3'>{"Achèvement "}<FontAwesomeIcon icon={faCheck}/></span>
+                                                <span className='ml-2 mr-3'>{progressText}</span>  
+                                                <DropdownButton className='mr-3'variant='outline-primary' title={<span><FontAwesomeIcon icon={faEllipsisV}  />{" "}</span>} id={`optionsAssignments${item.id}`}>
+                                                    <Dropdown.Item onClick={() => this.setState({editAssignmentId:item.id})}><FontAwesomeIcon icon={faPencilAlt}  />{" Modifier"}</Dropdown.Item>
+                                                    <Dropdown.Item onClick={() => this.onDeleteAssignment(item.id)}><FontAwesomeIcon icon={faTrashAlt}  />{" Supprimer"}</Dropdown.Item>
+                                                </DropdownButton>
+                                            </div>
+                                        </div>
+                                        <div className='mt-3 d-flex align-items-center'>
+                                            <strong>{"Activités"}</strong>
+                                            <Button variant='link'  onClick={() => this.onDetail(this.state.detail == item.id ? -1 : item.id)}><FontAwesomeIcon icon={this.state.detail == item.id ? faChevronUp : faChevronDown}/></Button>
+                                        </div>  
+                                        {this.state.detail == item.id && 
+                                            <div style={{width:'100%'}}>
+                                                {data.template.activities.map((act, index) => {
+                                                        return (<UserActivityList user={item.user} data={act} key={index}/>);   
+                                                    }
+                                                )}
+                                        </div>}
+                                    </Card.Body>
+                                </Card>
+                            return (card);                                     
+                        }
+                    )}
+                </div>
+                {this.state.showAssignments && <ModalAssignmentPicker data={data} onClose={(refresh) => this.onShowAssignments(false, refresh)}/>}
+                {this.state.editAssignmentId > 1 && <ModalAssignmentForm assignmentId={this.state.editAssignmentId} data={data} onClose={(refresh) => this.onShowAssignments(false, refresh)}/>}
+            </>
             
-        let main = body;
-
         return (main);
     }
     
     onDetail(id){
         this.setState({detail:id});
-    }
-
-    onTabChange(k){
-        this.setState({tab: k});
     }
 
     onFilterChange(e){
@@ -516,70 +445,10 @@ class WorkPlanForm extends Component{
         this.setState({filter:filter});
     }
 
-    onDataChange(event){
-        let data = this.state.data;
-
-        if(data.template[event.target.name] !== event.target.value){
-            //Exception for state/checkbox
-            if (event.target.name === 'state'){
-                data.template[event.target.name] = event.target.checked ? 1 : 0;
-            }
-            else{
-                data.template[event.target.name] = event.target.value
-            }
-            
-            this.setState({data:data});
-        }
-    }
-
-    onSaveTemplate(){
-        let that = this;
-        let callback = function(result){
-            if(!result.success){
-                $glVars.feedback.showError($glVars.i18n.tags.appName, result.msg);
-                return;
-            }
-
-            let data = that.state.data;
-            if(data.template.id === 0){
-                data.template.id = result.data;                
-            }
-            that.setState({data: data, editModal: false});
-        }
-        /*if (typeof this.state.data.template.state === 'undefined'){
-            this.state.data.template.state = 0;
-        }*/
-        $glVars.webApi.saveTemplate(this.state.data.template, callback);
-    }
-
-    onShowActivities(value, refresh){
-        refresh = (typeof refresh === 'undefined' ? false : refresh);
-        let callback = (refresh ? () => this.getData(this.state.data.template.id) : null);
-        this.setState({showActivities: value}, callback);
-    }
-
     onShowAssignments(value, refresh){
         refresh = (typeof refresh === 'undefined' ? false : refresh);
-        let callback = (refresh ? () => this.getData(this.state.data.template.id) : null);
+        let callback = (refresh ? this.props.onRefresh : null);
         this.setState({showAssignments: value, editAssignmentId: -1}, callback);
-    }
-
-    onDeleteActivity(tplActId){
-        let that = this;
-        let callback = function(result){
-            if(!result.success){
-                $glVars.feedback.showError($glVars.i18n.tags.appName, result.msg);
-                return;
-            }
-
-            let data = that.state.data;
-            JsNx.removeItem(data.template.activities, 'id', tplActId);
-            that.setState({data: data});
-        }
-
-        if(window.confirm($glVars.i18n.tags.msgConfirmDeletion)){
-            $glVars.webApi.deleteTplAct(this.state.data.template.id, tplActId, callback);
-        }
     }
 
     onDeleteAssignment(assignmentId){
@@ -590,13 +459,127 @@ class WorkPlanForm extends Component{
                 return;
             }
 
-            let data = that.state.data;
-            JsNx.removeItem(data.assignments, 'id', assignmentId);
-            that.setState({data: data});
+            that.props.onRefresh();
         }
 
         if(window.confirm($glVars.i18n.tags.msgConfirmDeletion)){
             $glVars.webApi.deleteAssignment(assignmentId, callback);
+        }
+    }
+
+    onSearch(event){
+        this.setState({queryStr: event.target.value});
+    }
+}
+
+class WorkPlanActivitiesView extends Component{
+    static defaultProps = {        
+        data: [],
+        onRefresh: null
+    };
+
+    constructor(props){
+        super(props);
+
+        this.onSearch = this.onSearch.bind(this);
+        this.onShowActivities = this.onShowActivities.bind(this);
+        this.onDeleteActivity = this.onDeleteActivity.bind(this);
+
+        this.state = {queryStr: "", showActivities: false};
+    }
+
+    render(){
+        if(this.props.data === null){return null;}
+
+        let activityList = this.props.data.template.activities;
+        let stats = this.props.data.stats;
+        let template = this.props.data.template
+
+        let regexp = UtilsString.getRegExp(this.state.queryStr);
+
+        if(this.state.queryStr.length > 0){
+            activityList = activityList.filter((item) => {
+                return ((item.cmName.search(regexp) >= 0) || (item.categoryName.search(regexp) >= 0) || (item.courseName.search(regexp) >= 0));
+            })
+        }
+        
+        let main =  
+            <>                
+                <div className='d-flex' style={{justifyContent: "space-between", alignItems: "center"}}>
+                    <div className='d-flex' style={{alignItems: "center"}}>
+                        <span className='h2 mr-3'>Activités</span>
+                        <Button variant='outline-primary' className='rounded-circle' title='Ajouter des activités.' onClick={() => this.onShowActivities(true)} ><FontAwesomeIcon icon={faPlus}/></Button>
+                    </div>
+                    <div>
+                        Filtrer par <Form.Control style={{width: '300px', display: 'inline-block'}} className='rounded' onChange={this.onSearch} type="search" value={this.state.queryStr} name='queryStr' placeholder="Catégories, cours..."/>
+                    </div>
+                </div> 
+                <div>
+                    {activityList.map((item, index) => {
+                            let progressValue = 0;
+                            let progressText  = `0/${stats.nbStudents}`;
+                            if(stats.activitycompleted[`${item.cmId}`]){
+                                progressValue = stats.activitycompleted[`${item.cmId}`]/stats.nbStudents * 100;
+                                progressText = `${stats.activitycompleted[`${item.cmId}`]}/${stats.nbStudents}`;
+                            }
+
+                            progressValue = (isNaN(progressValue) ? 0 : Math.round(progressValue,1));
+                            
+                            let card = 
+                                <Card key={index} className='rounded mt-2 mb-2'>
+                                    <div title={`${progressValue}% (le nombre d'activités complètes / le nombre d'élèves)`} style={{backgroundColor: '#0f6fc5', width: `${progressValue}%`, height: '5px'}}>
+                                        
+                                    </div>
+                                    <Card.Body className='grid-activity bg-light'>
+                                        <div>
+                                            <div className='h4'><strong><a href={item.cmUrl} target="_blank">{item.cmName}</a></strong></div>
+                                            <div className='h6 text-muted pl-3'>{`${item.categoryName}/${item.courseName}`}</div>
+                                            <div className='h6 text-muted pl-3'>{`${item.nbHoursCompletion} heures`}</div>
+                                        </div>
+                                        <div className="m-3 p-2">
+                                            {template.followUps.map((followUps, index2) => {
+                                                return <Button key={index2} variant={followUps.variant}>{followUps.desc}</Button>;
+                                            })}
+                                        </div>
+                                        <div className="p-2 text-muted" style={{alignItems: 'center', display: 'flex'}}>
+                                            <span title="Le nombre d'activités complètes / le nombre d'élèves" className='mr-3'>{"Achèvement "} <FontAwesomeIcon icon={faCheck}/></span>
+                                            <span className='ml-2 mr-3'>{progressText}</span>  
+                                            <DropdownButton variant='outline-primary' title={<span><FontAwesomeIcon icon={faEllipsisV}  />{" "}</span>} id={`optionsActivity${item.id}`}>
+                                                <Dropdown.Item onClick={() => this.onShowActivities(true)}><FontAwesomeIcon icon={faPencilAlt}  />{" Modifier"}</Dropdown.Item>
+                                                <Dropdown.Item onClick={() => this.onDeleteActivity(item.id)}><FontAwesomeIcon icon={faTrashAlt}  />{" Supprimer"}</Dropdown.Item>
+                                            </DropdownButton>
+                                        </div>
+                                    </Card.Body>
+                                </Card>
+                            return (card);                                     
+                        }
+                    )}
+                </div>
+                {this.state.showActivities && <ActivityPicker templateId={template.id} onClose={(refresh) => this.onShowActivities(false, refresh)}/>}
+            </>                                                   
+            
+        return (main);
+    }
+
+    onShowActivities(value, refresh){
+        refresh = (typeof refresh === 'undefined' ? false : refresh);
+        let callback = (refresh ? this.props.onRefresh : null);
+        this.setState({showActivities: value}, callback);
+    }
+
+    onDeleteActivity(tplActId){
+        let that = this;
+        let callback = function(result){
+            if(!result.success){
+                $glVars.feedback.showError($glVars.i18n.tags.appName, result.msg);
+                return;
+            }
+
+            that.props.onRefresh();
+        }
+
+        if(window.confirm($glVars.i18n.tags.msgConfirmDeletion)){
+            $glVars.webApi.deleteTplAct(this.props.data.template.id, tplActId, callback);
         }
     }
 
@@ -873,10 +856,12 @@ class ModalAssignmentForm extends Component{
                 break
             }
         }
-        if (!assignment.comment) assignment.comment = '';
-        this.state = {data: props.data, flags: {dataChanged: false}, assignment:assignment, index:index};
-    }
+        if (!assignment.comment){
+            assignment.comment = '';
+        }
 
+        this.state = {data: props.data, flags: {dataChanged: false}, assignment: assignment, index:index};
+    }
 
     render(){
         if(this.state.data === null){ return null; }
