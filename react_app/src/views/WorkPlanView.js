@@ -531,6 +531,8 @@ class WorkPlanActivitiesView extends Component{
                                 progressText = `${stats.activitycompleted[`${item.cmId}`]}/${stats.nbStudents}`;
                             }
 
+                            let actStats = this.getActivityStats(item);
+
                             progressValue = (isNaN(progressValue) ? 0 : Math.round(progressValue,1));
                             
                             let card = 
@@ -548,9 +550,11 @@ class WorkPlanActivitiesView extends Component{
                                             {template.followUps.map((followUps, index2) => {
                                                 return <Button key={index2} variant={followUps.variant}>{followUps.desc}</Button>;
                                             })}
+                                            {actStats.nbAwaitingGrade > 0 && <span className='badge bg-warning'>{actStats.nbAwaitingGrade} travaux à corriger</span>}
+                                            {actStats.nbFails > 0 && <span className='badge bg-warning'>{actStats.nbFails} risques d'échec</span>}
                                         </div>
                                         <div className="p-2 text-muted" style={{alignItems: 'center', display: 'flex'}}>
-                                            <span title="Le nombre d'activités complètes / le nombre d'élèves" className='mr-3'>{"Achèvement "} <FontAwesomeIcon icon={faCheck}/></span>
+                                            <span title="Le nombre d'activités complètés / le nombre d'élèves" className='mr-3'>{"Achèvement "} <FontAwesomeIcon icon={faCheck}/></span>
                                             <span className='ml-2 mr-3'>{progressText}</span>  
                                             <DropdownButton variant='outline-primary' title={<span><FontAwesomeIcon icon={faEllipsisV}  />{" "}</span>} id={`optionsActivity${item.id}`}>
                                                 <Dropdown.Item onClick={() => this.onShowActivities(true)}><FontAwesomeIcon icon={faPencilAlt}  />{" Modifier"}</Dropdown.Item>
@@ -567,6 +571,24 @@ class WorkPlanActivitiesView extends Component{
             </>                                                   
             
         return (main);
+    }
+
+    getActivityStats(activity){
+        let nbAwaitingGrade = 0;
+        let nbFails = 0;
+        for (let assignment of this.props.data.assignments){
+            for (let act of assignment.user.activities){
+                if (act.cmId == activity.cmId){
+                    if (act.followup == 1){
+                        nbAwaitingGrade++;
+                    }
+                    if (act.completionState == 3){
+                        nbFails++;
+                    }
+                }
+            }
+        }
+        return {nbAwaitingGrade:nbAwaitingGrade, nbFails:nbFails};
     }
 
     onShowActivities(value, refresh){
