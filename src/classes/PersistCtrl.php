@@ -682,8 +682,17 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         }  
     }
 
-    public function setAssignmentCompletionState($userId, $cmId){
+    public function setAssignmentCompletionState($userId, $cmId, $tplId = 0){
         try{		
+            if($tplId > 0){
+                $whereStmt1 = "t1.templateid = $tplId";
+                $whereStmt2 = "1";
+            }
+            else{
+                $whereStmt1 = "t1.userid = $userId";
+                $whereStmt2 = "find_in_set($cmId, cmids) > 0";
+            }
+
             $query = "select assignmentId, templateid,  
             (case 
                 when nbIncompleteAct = 0 then 3 
@@ -698,40 +707,9 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
             from mdl_recit_wp_tpl_assign as t1 
             inner join mdl_recit_wp_tpl_act as t2 on t1.templateid = t2.templateid 
             left join mdl_course_modules_completion as t3 on t2.cmid = t3.coursemoduleid and t1.userid = t3.userid
-            where t1.userid = $userId
+            where $whereStmt1
             group by t1.userid, t1.id) as tab
-            where find_in_set($cmId, cmids) > 0";
-           
-            $obj = $this->mysqlConn->execSQLAndGetObject($query);
-
-            if(!empty($obj)){
-                $query = $this->mysqlConn->prepareStmt("update", "{$this->prefix}recit_wp_tpl_assign", array('completionstate'), array($obj->completionstate), array("id"), array($obj->assignmentId));
-                $this->mysqlConn->execSQL($query);
-            }
-
-            return true;
-        }
-        catch(\Exception $ex){
-            throw $ex;
-        }
-    }
-
-    public function setTplAssignmentCompletionState($tplId){
-        try{		
-            $query = "select assignmentId, templateid,  
-            (case 
-                when nbIncompleteAct = 0 then 3 
-                when nb_hours_per_week > 0 and now() > enddate and nbIncompleteAct > 0 then 2 
-                else 0 end) as completionstate, nbIncompleteAct, startdate, enddate, cmids FROM
-            (select t1.id as assignmentId, t1.templateid, from_unixtime(min(t1.startdate)) as startdate, 
-            date_add(from_unixtime(min(t1.startdate)), 
-            interval greatest(1, sum(t2.nb_hours_completion) / min(t1.nb_hours_per_week)) week) as enddate, sum(if(coalesce(t3.completionstate,0) = 0, 1, 0)) as nbIncompleteAct,
-             group_concat(DISTINCT t2.cmid) as cmids, t1.nb_hours_per_week
-            from mdl_recit_wp_tpl_assign as t1 
-            inner join mdl_recit_wp_tpl_act as t2 on t1.templateid = t2.templateid 
-            left join mdl_course_modules_completion as t3 on t2.cmid = t3.coursemoduleid and t1.userid = t3.userid
-            where t1.templateid = $tplId
-            group by t1.userid, t1.id) as tab";
+            where $whereStmt2";
            
             $rst = $this->mysqlConn->execSQLAndGetObjects($query);
 
@@ -748,7 +726,6 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
             throw $ex;
         }
     }
-    
 
     public function addCalendarEvent($templateId, $userId){
         global $CFG;
@@ -806,7 +783,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
 
     public function processWorkPlan($tplId){
         $this->recalculateCalendarEvents($tplId);
-        $this->setTplAssignmentCompletionState($tplId);
+        $this->setAssignmentCompletionState(0, 0, $tplId);
     }
 }
 

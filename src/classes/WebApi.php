@@ -25,7 +25,6 @@ require_once(dirname(__FILE__).'../../../../config.php');
 require_once "$CFG->dirroot/local/recitcommon/php/WebApi.php";
 require_once "$CFG->dirroot/local/recitcommon/php/Utils.php";
 require_once dirname(__FILE__).'/PersistCtrl.php';
-require_once "$CFG->dirroot/local/recitcommon/php/ReportDiagTag.php";
 
 use recitcommon;
 use recitcommon\WebApiResult;
