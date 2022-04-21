@@ -383,6 +383,12 @@ class WorkPlanAssignmentsView extends Component{
                                 progressValue = WorkPlanUtils.getAssignmentProgress(data.template.activities, item);
                                 progressText = `${data.stats.assignmentcompleted[`${item.user.id}`]}/${data.stats.nbActivities}`;
                             }
+                            
+                            let nbHoursCompletionTotal = 0;
+                            for (let act of this.props.data.template.activities){
+                                nbHoursCompletionTotal = nbHoursCompletionTotal + parseFloat(act.nbHoursCompletion);
+                            }
+                            let nbWeeks = Math.ceil(nbHoursCompletionTotal / item.nbHoursPerWeek);
 
                             let card = 
                                 <Card key={index} className='rounded mt-2 mb-2'>
@@ -398,6 +404,7 @@ class WorkPlanAssignmentsView extends Component{
                                                 <strong>{item.user.firstName}</strong><span  className='ml-3 text-muted'>Groupe:</span><span className='text-muted'>{` ${item.user.groupList}`}</span>
                                                 <div className='text-muted'>Dernière connexion: {item.user.lastAccess}</div>
                                                 <div className='text-muted'>{`Début: ${UtilsDateTime.getDate(item.startDate)} (${item.nbHoursPerWeek} h/semaine)`}</div>
+                                                <div className='text-muted'>{`Durée: ${nbWeeks} semaines`}</div>
                                                 <div className='text-muted'>{`Échéance: ${UtilsDateTime.getDate(item.endDate)}`}</div>
                                             </div>
                                             <div>
