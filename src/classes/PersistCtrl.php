@@ -497,8 +497,8 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
     public function getWorkPlan($userId, $templateId){
         $query = "select t1.id, t1.nb_hours_per_week as nbhoursperweek, from_unixtime(t1.startdate) as startdate, t1.completionstate as wpcompletionstate, t2.id as templateid, t2.creatorid, t2.name as templatename, t2.state as templatestate, t7.fullname as coursename, t7.id as courseid,
         t2.description as templatedesc, from_unixtime(t2.lastupdate) as lastupdate, t3.cmid, t3.nb_hours_completion as nb_hours_completion, count(*) OVER() AS total_count,
-        t6.completionstate as activitycompletionstate, t1.assignorid, t8.name as categoryname, t3.id as tpl_act_id, t1.comment as comment, t2.communication_url as communication_url, fup.followup, t3.slot,
-        users.userid, users.firstname, users.lastname, users.lastaccess, users.grouplist
+        t6.completionstate as activitycompletionstate, t1.assignorid, assignor.picture as assignorpicture, assignor.imagealt as assignorimagealt, assignor.email as assignoremail, assignor.firstname as assignorfirstname, assignor.lastname as assignorlastname, t8.name as categoryname, t3.id as tpl_act_id, t1.comment as comment, t2.communication_url as communication_url, fup.followup, t3.slot,
+        t1.userid, users.firstname, users.lastname, users.picture, users.imagealt, users.email, FROM_UNIXTIME(users.lastaccess) as lastaccess, g.grouplist
         from {$this->prefix}recit_wp_tpl as t2
         left join {$this->prefix}recit_wp_tpl_assign as t1 on t1.templateid = t2.id
         left join {$this->prefix}recit_wp_tpl_act as t3 on t3.templateid = t2.id
@@ -506,14 +506,15 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         left join (".$this->getWorkFollowUpStmt($templateId).") as fup on t3.cmid = fup.cmId and t1.userid = fup.userid
         left join {$this->prefix}course as t7 on t7.id = t5.course
         left join {$this->prefix}course_categories as t8 on t7.category = t8.id
-        left join (select t4.id as userid, t4.firstname, t4.lastname, from_unixtime(t4.lastaccess) as lastaccess, group_concat(t10.name) as grouplist, t10.courseid
-            from {$this->prefix}user as t4
-            left join {$this->prefix}groups_members as t9 on t4.id = t9.userid 
-            left join {$this->prefix}groups as t10 on t9.groupid = t10.id 
-            group by t4.id, t10.courseid) as users on users.userid = t1.userid and (users.courseid = t5.course or users.courseid is null)
-        left join {$this->prefix}course_modules_completion as t6 on t5.id = t6.coursemoduleid and t6.userid = users.userid 
+        left join {$this->prefix}user as users on users.id = t1.userid
+        left join {$this->prefix}user as assignor on t1.assignorid = assignor.id
+        left join (select t9.userid as userid, group_concat(t10.name) as grouplist, t10.courseid
+            from {$this->prefix}groups_members t9
+            left join {$this->prefix}groups as t10 on t9.groupid = t10.id
+            group by t9.userid, t10.courseid) as g on g.userid = t1.userid and g.courseid = t5.course
+        left join {$this->prefix}course_modules_completion as t6 on t5.id = t6.coursemoduleid and t6.userid = users.id 
         inner join (".$this->getAdminRolesStmt($userId, array(RECITWORKPLAN_ASSIGN_CAPABILITY, RECITWORKPLAN_MANAGE_CAPABILITY)).") as tblRoles on (t7.category = tblRoles.instanceid and tblRoles.contextlevel = 40) or (t5.course = tblRoles.instanceid and tblRoles.contextlevel = 50)
-        where  t2.id = $templateId
+        where t2.id = $templateId
         order by t7.id asc, users.firstname asc, users.lastname asc, t3.slot ";
 
         $this->createTmpWorkPlanTable($query);
@@ -572,12 +573,13 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         }
         
         $query = "select t1.id, t1.nb_hours_per_week as nbhoursperweek, from_unixtime(t1.startdate) as startdate, t1.completionstate as wpcompletionstate, t2.id as templateid, t2.creatorid as creatorid, t2.name as templatename, t7.fullname as coursename, t7.id as courseid,
-        t2.description as templatedesc, t2.communication_url as communication_url, from_unixtime(t2.lastupdate) as lastupdate, t3.cmid, t3.nb_hours_completion as nb_hours_completion, t4.id as userid, t4.firstname, t4.lastname, count(*) OVER() AS total_count,
-        t6.completionstate as activitycompletionstate, t1.assignorid, t8.name as categoryname, t3.id as tpl_act_id, t2.state as templatestate, t1.comment as comment
+        t2.description as templatedesc, t2.communication_url as communication_url, from_unixtime(t2.lastupdate) as lastupdate, t3.cmid, t3.nb_hours_completion as nb_hours_completion, t4.id as userid, t4.picture, t4.imagealt, t4.email, t4.firstname, t4.lastname, count(*) OVER() AS total_count,
+        t6.completionstate as activitycompletionstate, t1.assignorid, assignor.picture as assignorpicture, assignor.imagealt as assignorimagealt, assignor.email as assignoremail, assignor.firstname as assignorfirstname, assignor.lastname as assignorlastname, t8.name as categoryname, t3.id as tpl_act_id, t2.state as templatestate, t1.comment as comment
         from {$this->prefix}recit_wp_tpl as t2
         left join {$this->prefix}recit_wp_tpl_assign as t1 on t1.templateid = t2.id
         left join {$this->prefix}recit_wp_tpl_act as t3 on t3.templateid = t2.id
         left join {$this->prefix}user as t4 on t1.userid = t4.id
+        left join {$this->prefix}user as assignor on t1.assignorid = assignor.id
         left join {$this->prefix}course_modules as t5 on t3.cmid = t5.id
         left join {$this->prefix}course as t7 on t7.id = t5.course
         left join {$this->prefix}course_categories as t8 on t7.category = t8.id
@@ -910,7 +912,14 @@ class Assignment{
         $result->templateId = $dbData->templateid;
       
         if((isset($dbData->userid)) && ($dbData->userid != 0)){
-            $user = $DB->get_record('user', array('id' => $dbData->userid));
+            $user = new stdClass();
+            $user->id = $dbData->userid;
+            $user->firstname = $dbData->firstname;
+            $user->lastname = $dbData->lastname;
+            $user->picture = $dbData->picture;
+            $user->imagealt = $dbData->imagealt;
+            $user->email = $dbData->email;
+            
             $result->user = new stdClass();
             $result->user->id = $dbData->userid;
             $result->user->firstName = $dbData->firstname;
@@ -918,20 +927,26 @@ class Assignment{
             $result->user->groupList = (isset($dbData->grouplist) ? $dbData->grouplist : ''); 
             $result->user->lastAccess = (isset($dbData->lastaccess) ? $dbData->lastaccess : ''); 
             $result->user->avatar = $OUTPUT->user_picture($user, array('size'=> 50));
+            // $result->user->url = (new \moodle_url('/user/profile.php', array('id' => $result->user->id)))->out();
             $result->user->activities = array();
         }
         
         if((isset($dbData->assignorid)) && ($dbData->assignorid != 0)){
-            $assignor = $DB->get_record('user', array('id' => $dbData->assignorid));
+            $user = new stdClass();
+            $user->id = $dbData->assignorid;
+            $user->firstname = $dbData->assignorfirstname;
+            $user->lastname = $dbData->assignorlastname;
+            $user->picture = $dbData->assignorpicture;
+            $user->imagealt = $dbData->assignorimagealt;
+            $user->email = $dbData->assignoremail;
             $result->assignor = new stdClass();
             $result->assignor->id = $dbData->assignorid;
-            $result->assignor->firstName = $assignor->firstname;
-            $result->assignor->lastName = $assignor->lastname;
-            $result->assignor->url = (new \moodle_url('/user/profile.php', array('id' => $assignor->id)))->out();
-            $result->assignor->avatar = $OUTPUT->user_picture($assignor, array('size'=> 50));
+            $result->assignor->firstName = $user->firstname;
+            $result->assignor->lastName = $user->lastname;
+            $result->assignor->url = (new \moodle_url('/user/profile.php', array('id' => $user->id)))->out();
+            $result->assignor->avatar = $OUTPUT->user_picture($user, array('size'=> 50));
         }
 
-        // $result->userUrl = (new \moodle_url('/user/profile.php', array('id' => $result->userId)))->out();
 
         $result->startDate = $dbData->startdate;
         if (is_string($dbData->startdate)){
