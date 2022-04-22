@@ -229,7 +229,7 @@ export class ActivityPicker extends Component{
         }
 
         if(window.confirm($glVars.i18n.tags.msgConfirmDeletion)){
-            $glVars.webApi.deleteTplAct(tplActId, callback);
+            $glVars.webApi.deleteTplAct(this.state.data.id, tplActId, callback);
         }
     }
 
@@ -319,11 +319,14 @@ export class WorkPlanTemplateView extends Component{
         this.onSave = this.onSave.bind(this);
 
         this.state = {editModal: false};
+        if (this.props.data.template.id === 0){
+            this.state.editModal = true;
+        }
     }
 
     componentDidUpdate(prevProps) {
-        if(this.props.data.template.id === 0){
-          this.setState({editModal: true});
+        if (prevProps.data.template.id != this.props.data.template.id && this.props.data.template.id === 0){
+            this.setState({editModal: true});
         }
     }
 
