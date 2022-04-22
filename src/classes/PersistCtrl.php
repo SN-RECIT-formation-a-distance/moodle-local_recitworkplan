@@ -497,7 +497,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
     public function getWorkPlan($userId, $templateId){
         $query = "select t1.id, t1.nb_hours_per_week as nbhoursperweek, from_unixtime(t1.startdate) as startdate, t1.completionstate as wpcompletionstate, t2.id as templateid, t2.creatorid, t2.name as templatename, t2.state as templatestate, t7.fullname as coursename, t7.id as courseid,
         t2.description as templatedesc, from_unixtime(t2.lastupdate) as lastupdate, t3.cmid, t3.nb_hours_completion as nb_hours_completion, count(*) OVER() AS total_count,
-        t6.completionstate as activitycompletionstate, t1.assignorid, t8.name as categoryname, t3.id as tpl_act_id, t1.comment as comment, t2.communication_url as communication_url, fup.followup,
+        t6.completionstate as activitycompletionstate, t1.assignorid, t8.name as categoryname, t3.id as tpl_act_id, t1.comment as comment, t2.communication_url as communication_url, fup.followup, t3.slot,
         users.userid, users.firstname, users.lastname, users.lastaccess, users.grouplist
         from {$this->prefix}recit_wp_tpl as t2
         left join {$this->prefix}recit_wp_tpl_assign as t1 on t1.templateid = t2.id
@@ -583,7 +583,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         left join {$this->prefix}course_categories as t8 on t7.category = t8.id
         left join {$this->prefix}course_modules_completion as t6 on t5.id = t6.coursemoduleid and t6.userid = t4.id
         $innerJoinSmt
-        where $where";
+        where $where order by t3.slot";
 
         if ($limit > 0){
             $offsetsql = $offset * $limit;
