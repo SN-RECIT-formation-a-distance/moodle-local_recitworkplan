@@ -435,14 +435,14 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         $rst = $this->mysqlConn->execSQLAndGetObject($query);
         $stats->nbLateStudents = $rst->count;
 
-        $query = "select count(userid) as count, cmid from workplans where activitycompletionstate in (1,2,3) and templateid = $templateId group by cmid";
+        $query = "select count(distinct userid) as count, cmid from workplans where activitycompletionstate in (1,2,3) and templateid = $templateId group by cmid";
 
         $rst = $this->mysqlConn->execSQLAndGetObjects($query);
         foreach($rst as $r){
             $stats->activitycompleted[$r->cmid] = $r->count;
         }
         
-        $query = "select userid, count(cmid) as count from workplans where activitycompletionstate in (1,2,3) and templateid = $templateId group by userid";
+        $query = "select userid, count(distinct cmid) as count from workplans where activitycompletionstate in (1,2,3) and templateid = $templateId group by userid";
 
         $rst = $this->mysqlConn->execSQLAndGetObjects($query);
         foreach($rst as $r){
@@ -497,8 +497,8 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
     public function getWorkPlan($userId, $templateId){
         $query = "select t1.id, t1.nb_hours_per_week as nbhoursperweek, from_unixtime(t1.startdate) as startdate, t1.completionstate as wpcompletionstate, t2.id as templateid, t2.creatorid, t2.name as templatename, t2.state as templatestate, t7.fullname as coursename, t7.id as courseid,
         t2.description as templatedesc, from_unixtime(t2.lastupdate) as lastupdate, t3.cmid, t3.nb_hours_completion as nb_hours_completion, count(*) OVER() AS total_count,
-        t6.completionstate as activitycompletionstate, t1.assignorid, assignor.picture as assignorpicture, assignor.imagealt as assignorimagealt, assignor.email as assignoremail, assignor.firstname as assignorfirstname, assignor.lastname as assignorlastname, t8.name as categoryname, t3.id as tpl_act_id, t1.comment as comment, t2.communication_url as communication_url, fup.followup, t3.slot,
-        t1.userid, users.firstname, users.lastname, users.picture, users.imagealt, users.email, FROM_UNIXTIME(users.lastaccess) as lastaccess, g.grouplist
+        t6.completionstate as activitycompletionstate, t1.assignorid, assignor.picture as assignorpicture, assignor.imagealt as assignorimagealt, assignor.email as assignoremail, assignor.alternatename as assignoralternatename, assignor.firstname as assignorfirstname, assignor.lastname as assignorlastname, assignor.lastnamephonetic as assignorlastnamephonetic, assignor.firstnamephonetic as assignorfirstnamephonetic, t8.name as categoryname, t3.id as tpl_act_id, t1.comment as comment, t2.communication_url as communication_url, fup.followup, t3.slot,
+        t1.userid, users.firstname, users.lastname, users.picture, users.imagealt, users.email, users.firstnamephonetic, users.lastnamephonetic, users.alternatename, FROM_UNIXTIME(users.lastaccess) as lastaccess, g.grouplist
         from {$this->prefix}recit_wp_tpl as t2
         left join {$this->prefix}recit_wp_tpl_assign as t1 on t1.templateid = t2.id
         left join {$this->prefix}recit_wp_tpl_act as t3 on t3.templateid = t2.id
@@ -573,8 +573,8 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         }
         
         $query = "select t1.id, t1.nb_hours_per_week as nbhoursperweek, from_unixtime(t1.startdate) as startdate, t1.completionstate as wpcompletionstate, t2.id as templateid, t2.creatorid as creatorid, t2.name as templatename, t7.fullname as coursename, t7.id as courseid,
-        t2.description as templatedesc, t2.communication_url as communication_url, from_unixtime(t2.lastupdate) as lastupdate, t3.cmid, t3.nb_hours_completion as nb_hours_completion, t4.id as userid, t4.picture, t4.imagealt, t4.email, t4.firstname, t4.lastname, count(*) OVER() AS total_count,
-        t6.completionstate as activitycompletionstate, t1.assignorid, assignor.picture as assignorpicture, assignor.imagealt as assignorimagealt, assignor.email as assignoremail, assignor.firstname as assignorfirstname, assignor.lastname as assignorlastname, t8.name as categoryname, t3.id as tpl_act_id, t2.state as templatestate, t1.comment as comment
+        t2.description as templatedesc, t2.communication_url as communication_url, from_unixtime(t2.lastupdate) as lastupdate, t3.cmid, t3.nb_hours_completion as nb_hours_completion, t4.id as userid, t4.picture, t4.imagealt, t4.email, t4.firstname, t4.alternatename, t4.lastname, t4.firstnamephonetic, t4.lastnamephonetic, count(*) OVER() AS total_count,
+        t6.completionstate as activitycompletionstate, t1.assignorid, assignor.picture as assignorpicture, assignor.imagealt as assignorimagealt, assignor.firstnamephonetic as assignorfirstnamephonetic, assignor.alternatename as assignoralternatename, assignor.lastnamephonetic as assignorlastnamephonetic, assignor.email as assignoremail, assignor.firstname as assignorfirstname, assignor.lastname as assignorlastname, t8.name as categoryname, t3.id as tpl_act_id, t2.state as templatestate, t1.comment as comment
         from {$this->prefix}recit_wp_tpl as t2
         left join {$this->prefix}recit_wp_tpl_assign as t1 on t1.templateid = t2.id
         left join {$this->prefix}recit_wp_tpl_act as t3 on t3.templateid = t2.id
@@ -916,8 +916,12 @@ class Assignment{
             $user->id = $dbData->userid;
             $user->firstname = $dbData->firstname;
             $user->lastname = $dbData->lastname;
+            $user->alternatename = $dbData->alternatename;
+            $user->middlename = $dbData->alternatename;
             $user->picture = $dbData->picture;
             $user->imagealt = $dbData->imagealt;
+            $user->firstnamephonetic = $dbData->firstnamephonetic;
+            $user->lastnamephonetic = $dbData->lastnamephonetic;
             $user->email = $dbData->email;
             
             $result->user = new stdClass();
@@ -935,6 +939,10 @@ class Assignment{
             $user = new stdClass();
             $user->id = $dbData->assignorid;
             $user->firstname = $dbData->assignorfirstname;
+            $user->firstnamephonetic = $dbData->assignorfirstnamephonetic;
+            $user->lastnamephonetic = $dbData->assignorlastnamephonetic;
+            $user->alternatename = $dbData->assignoralternatename;
+            $user->middlename = $dbData->assignoralternatename;
             $user->lastname = $dbData->assignorlastname;
             $user->picture = $dbData->assignorpicture;
             $user->imagealt = $dbData->assignorimagealt;
