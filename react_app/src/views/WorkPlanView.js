@@ -273,7 +273,7 @@ class WorkPlanView extends Component{
                     
                 <Tabs id="workPlanTabs" className="mt-3 bg-light" variant="pills" fill  activeKey={this.state.tab} onSelect={this.onTabChange}>
                     <Tab eventKey="activities" title="Activités">
-                       <WorkPlanActivitiesView data={this.state.data} onRefresh={() => this.getData(this.state.data.template.id)}/>
+                       <WorkPlanActivitiesView data={this.state.data} onClose={this.props.onClose} onRefresh={() => this.getData(this.state.data.template.id)}/>
                     </Tab>
                     <Tab eventKey="assignments" title="Affectations" disabled={this.state.data.template.state == 1}>
                         <WorkPlanAssignmentsView data={this.state.data} onRefresh={() => this.getData(this.state.data.template.id)}/>
@@ -490,7 +490,8 @@ class WorkPlanAssignmentsView extends Component{
 class WorkPlanActivitiesView extends Component{
     static defaultProps = {        
         data: [],
-        onRefresh: null
+        onRefresh: null,
+        onClose: null,
     };
 
     constructor(props){
@@ -615,8 +616,14 @@ class WorkPlanActivitiesView extends Component{
             that.props.onRefresh();
         }
 
-        if(window.confirm($glVars.i18n.tags.msgConfirmDeletion)){
-            $glVars.webApi.deleteTplAct(this.props.data.template.id, tplActId, callback);
+        if (this.props.data.template.activities.length > 1){
+            if(window.confirm($glVars.i18n.tags.msgConfirmDeletion)){
+                $glVars.webApi.deleteTplAct(this.props.data.template.id, tplActId, callback);
+            }
+        }else{
+            if(window.confirm('Ce plan de travail ne lui restera plus d\'activité donc le plan sera supprimé. Êtes-vous sûre de vouloir supprimer ce plan de travail?')){
+                $glVars.webApi.deleteWorkPlan(this.props.data.template.id, () => this.props.onClose());
+            }
         }
     }
 
