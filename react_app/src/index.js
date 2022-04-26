@@ -13,13 +13,15 @@ import {AdminView} from "./views/WorkPlanView";
 import {$glVars} from "./common/common";
 import "./css/style.scss";
 import { StudentView } from './views/StudentView';
+import { AdminBlockView, StudentBlockView } from './views/BlockView';
 
 export * from "./common/i18n";
  
 class App extends Component {
     static defaultProps = {
         signedUser: null,
-        mode: 'a'
+        mode: 'a',
+        workPlanId: 0
     };
 
     constructor(props) {
@@ -43,10 +45,20 @@ class App extends Component {
         $glVars.feedback.removeObserver("App");        
     }
 
-    render() {       
+    render() {
+        let view = null;
+        if (this.state.mode  === 'a'){
+            view = <AdminView workPlanId={this.props.workPlanId}/>;
+        }else if (this.state.mode  === 's'){
+            view =<StudentView/>;
+        }else if (this.state.mode  === 'sb'){
+            view =<StudentBlockView/>;
+        }else if (this.state.mode  === 'ab'){
+            view =<AdminBlockView/>;
+        }
         let main =
             <div>
-                {this.state.mode  === 'a' ? <AdminView/> : <StudentView/>}
+                {view}
                 {$glVars.feedback.msg.map((item, index) => {  
                     return (<VisualFeedback key={index} id={index} msg={item.msg} type={item.type} title={item.title} timeout={item.timeout}/>);                                    
                 })}
@@ -65,6 +77,6 @@ document.addEventListener('DOMContentLoaded', function(){
     let domContainer = document.getElementById('recit_workplan');
     if (domContainer){
         let signedUser = {userId: domContainer.getAttribute('data-user-id')};
-        ReactDOM.render(<App signedUser={signedUser} mode={domContainer.getAttribute('data-mode')}/>, domContainer);
+        ReactDOM.render(<App signedUser={signedUser} mode={domContainer.getAttribute('data-mode')} workPlanId={domContainer.getAttribute('data-workplanid')}/>, domContainer);
     }
 }, false);

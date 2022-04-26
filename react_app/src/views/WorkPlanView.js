@@ -11,15 +11,21 @@ import { UserActivityList } from './Components';
 import { ModalAssignmentPicker, ModalAssignmentForm } from './AssignmentView';
 
 export class AdminView extends Component {
+
+    static defaultProps = {
+        workPlanId: 0
+    }
     render() {       
-        let main = <WorkPlanListView />;
+        let main = <WorkPlanListView workPlanId={this.props.workPlanId} />;
 
         return (main);
     }
 }
 
-class WorkPlanListView extends Component{
-    static defaultProps = {        
+export class WorkPlanListView extends Component{
+    static defaultProps = {
+        isBlock: false,
+        workPlanId: 0
     };
 
     constructor(props){
@@ -34,6 +40,9 @@ class WorkPlanListView extends Component{
         this.onCopy = this.onCopy.bind(this);
 
         this.state = {dataProvider: [], templateId: -1, activeTab: 'ongoing', pagination: {current_page: 1, count: 0, item_per_page: 25}, editTab: 'activities'};
+        if (props.workPlanId > 0){
+            this.state.templateId = props.workPlanId;
+        }
     }
 
     componentDidMount(){
@@ -53,7 +62,7 @@ class WorkPlanListView extends Component{
         let pagination = this.state.pagination;
         pagination.current_page = parseInt(result.data.current_offset) + 1; 
         pagination.count = parseInt(result.data.total_count);
-        this.setState({dataProvider: result.data.items, templateId: -1, pagination: pagination}); 
+        this.setState({dataProvider: result.data.items, pagination: pagination}); 
     }
 
     changePage(page){
@@ -72,18 +81,7 @@ class WorkPlanListView extends Component{
         let main = 
             <div>
                 <div className='d-flex d-block-mobile' style={{justifyContent: "space-between"}}>
-                    <div className='d-flex' style={{alignItems: "center"}}>
-                        <span className='h1 mr-3'>Plans de travail</span>
-                        <Button variant='outline-primary' className='rounded-circle' title='Créer un plan de travail.' onClick={this.onAdd}><FontAwesomeIcon icon={faPlus}/></Button>
-                    </div>
-                    <div>
-                        <ToggleButtons name="completionState" onClick={this.onCompletionStateChange} type="radio" defaultValue={this.state.activeTab} options={[
-                            {value: "ongoing", text: <span><FontAwesomeIcon icon={faSyncAlt} />{" En cours"}</span>}, 
-                            {value: "archive", text:  <span><FontAwesomeIcon icon={faArchive} />{" Archivés"}</span>}, 
-                            {value: "template", text: <span><FontAwesomeIcon icon={faBookmark} />{" Gabarits"}</span>},
-                            {value: "manager", text: <span><FontAwesomeIcon icon={faChalkboardTeacher} />{" Gestionnaire"}</span>},
-                            ]}/>
-                    </div>
+                    {this.renderHeader()}
                 </div> 
 
                 <div className='grid-3'>
@@ -101,20 +99,13 @@ class WorkPlanListView extends Component{
                                     </div>
                                     <Card.Body style={{backgroundColor: "#f0f0f0"}}>
                                         <div className='d-flex' style={{justifyContent: 'space-between'}}>
-                                            <a href='#' onClick={() => this.onEdit(workPlan.template.id, 'activities')} className='h3'>{workPlan.template.name}</a>
-                                            <DropdownButton variant='outline-primary' title={<span><FontAwesomeIcon icon={faEllipsisV}  />{" "}</span>} id={`optionsWorkPlan${workPlan.template.id}`}>
-                                                <Dropdown.Item onClick={() => this.onCopy(workPlan.template.id)}><FontAwesomeIcon icon={faCopy}  />{" Copier"}</Dropdown.Item>
-                                                {workPlan.template.state == 1 && <Dropdown.Item onClick={() => this.onCopy(workPlan.template.id, 0)}><FontAwesomeIcon icon={faBookmark}  />{" Utiliser ce gabarit"}</Dropdown.Item>}
-                                                {workPlan.template.state != 1 && <Dropdown.Item onClick={() => this.onCopy(workPlan.template.id, 1)}><FontAwesomeIcon icon={faBookmark}  />{" Enregistrer en tant que gabarit"}</Dropdown.Item>}
-                                                <Dropdown.Item onClick={() => this.onDelete(workPlan.template.id)}><FontAwesomeIcon icon={faTrashAlt}  />{" Supprimer"}</Dropdown.Item>
-                                                {workPlan.assignments.length > 0 && JsNx.getItem(workPlan.assignments, 'completionState', 1, null) === null &&  <Dropdown.Item onClick={() => this.onArchive(workPlan)}><FontAwesomeIcon icon={faArchive}  />{" Archiver"}</Dropdown.Item>}
-                                            </DropdownButton>
+                                            {this.renderTitle(workPlan)}
                                         </div>
                                         <div className="m-2 p-2">
                                             {workPlan.assignments.map((assignment, index2) => {
                                                 return <span key={index2} style={{marginLeft: '-15px'}} dangerouslySetInnerHTML={{__html: assignment.user.avatar}}></span>;
                                             })}
-                                            {workPlan.template.state != 1 && <Button variant='outline-primary' className='rounded-circle' title='Attribuer un plan de travail.' onClick={() => this.onEdit(workPlan.template.id, 'assignments')}><FontAwesomeIcon icon={faPlus}/></Button>}
+                                            {!this.props.isBlock && workPlan.template.state != 1 && <Button variant='outline-primary' className='rounded-circle' title='Attribuer un plan de travail.' onClick={() => this.onEdit(workPlan.template.id, 'assignments')}><FontAwesomeIcon icon={faPlus}/></Button>}
                                         </div>
                                         <div className="m-3 p-2">
                                             {workPlan.stats && workPlan.stats.nbLateStudents > 0 && <span className='badge bg-danger'>{`${workPlan.stats.nbLateStudents} apprenants en retard`}</span>}
@@ -148,6 +139,34 @@ class WorkPlanListView extends Component{
 
 
         return (this.state.templateId >= 0 ? form : main);
+    }
+
+    renderHeader(){
+        return <><div className='d-flex' style={{alignItems: "center"}}>
+            {!this.props.isBlock && <span className='h1 mr-3'>Plans de travail</span>}
+            {!this.props.isBlock && <Button variant='outline-primary' className='rounded-circle' title='Créer un plan de travail.' onClick={this.onAdd}><FontAwesomeIcon icon={faPlus}/></Button>}
+        </div>
+        <div>
+        {!this.props.isBlock && <ToggleButtons name="completionState" onClick={this.onCompletionStateChange} type="radio" defaultValue={this.state.activeTab} options={[
+                {value: "ongoing", text: <span><FontAwesomeIcon icon={faSyncAlt} />{" En cours"}</span>}, 
+                {value: "archive", text:  <span><FontAwesomeIcon icon={faArchive} />{" Archivés"}</span>}, 
+                {value: "template", text: <span><FontAwesomeIcon icon={faBookmark} />{" Gabarits"}</span>},
+                {value: "manager", text: <span><FontAwesomeIcon icon={faChalkboardTeacher} />{" Gestionnaire"}</span>},
+                ]}/>}
+        </div></>;
+    }
+
+    renderTitle(workPlan){
+        return <>
+        {!this.props.isBlock && <a href='#' onClick={() => this.onEdit(workPlan.template.id, 'activities')} className='h3'>{workPlan.template.name}</a>}
+        {this.props.isBlock && <a href='#' href={$glVars.recitWorkPlanUrl + '?id=' + workPlan.template.id} className='h3'>{workPlan.template.name}</a>}
+        {!this.props.isBlock && <DropdownButton variant='outline-primary' title={<span><FontAwesomeIcon icon={faEllipsisV}  />{" "}</span>} id={`optionsWorkPlan${workPlan.template.id}`}>
+            <Dropdown.Item onClick={() => this.onCopy(workPlan.template.id)}><FontAwesomeIcon icon={faCopy}  />{" Copier"}</Dropdown.Item>
+            {workPlan.template.state == 1 && <Dropdown.Item onClick={() => this.onCopy(workPlan.template.id, 0)}><FontAwesomeIcon icon={faBookmark}  />{" Utiliser ce gabarit"}</Dropdown.Item>}
+            {workPlan.template.state != 1 && <Dropdown.Item onClick={() => this.onCopy(workPlan.template.id, 1)}><FontAwesomeIcon icon={faBookmark}  />{" Enregistrer en tant que gabarit"}</Dropdown.Item>}
+            <Dropdown.Item onClick={() => this.onDelete(workPlan.template.id)}><FontAwesomeIcon icon={faTrashAlt}  />{" Supprimer"}</Dropdown.Item>
+            {workPlan.assignments.length > 0 && JsNx.getItem(workPlan.assignments, 'completionState', 1, null) === null &&  <Dropdown.Item onClick={() => this.onArchive(workPlan)}><FontAwesomeIcon icon={faArchive}  />{" Archiver"}</Dropdown.Item>}
+        </DropdownButton>}</>;
     }
 
     onAdd(){
