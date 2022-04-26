@@ -361,6 +361,10 @@ export class WorkPlanTemplateView extends Component{
                             <Col className='text-muted' sm={2}>Description</Col>
                             <Col sm={10} className='bg-light border border-secondary p-2 rounded'>{data.template.description}</Col>
                         </Row>
+                        {data.template.collaborator && <Row className='m-2'>
+                            <Col className='text-muted' sm={2}>Collaborateur</Col>
+                            <Col sm={10} className='bg-light border border-secondary p-2 rounded'>{data.template.collaborator.firstName} {data.template.collaborator.lastName}</Col>
+                        </Row>}
                         <Row className='m-2'>
                             <Col className='text-muted' sm={2}>URL de communication</Col>
                             <Col sm={10} className='bg-light border border-secondary p-2 rounded'><a target="_blank" href={data.template.communication_url}>{data.template.communication_url}</a></Col>
@@ -401,7 +405,13 @@ class ModalTemplateForm extends Component{
         this.onDataChange = this.onDataChange.bind(this);
         this.onSave = this.onSave.bind(this);
 
-        this.state = {data: JsNx.clone(this.props.data)}
+        this.state = {data: JsNx.clone(this.props.data), teachers: []}
+    }
+
+    componentDidMount(){
+        $glVars.webApi.getTeacherList(this.state.data.template.id, (result) => {
+            this.setState({teachers:result.data})
+        })
     }
 
     render(){
@@ -411,7 +421,7 @@ class ModalTemplateForm extends Component{
 
         let modalBody = 
             <Form>
-                <div className='h3 mb-4'>Description</div>
+                <div className='h3 mb-4'>Modifier</div>
                 <Form.Group as={Row} >
                     <Form.Label column sm="2">{"Nom"}</Form.Label>
                     <Col sm="10">
@@ -428,6 +438,18 @@ class ModalTemplateForm extends Component{
                     <Form.Label column sm="2">{"URL de communication"}</Form.Label>
                     <Col sm="10">
                         <Form.Control type="text" className='w-100' value={data.template.communication_url || ''} name="communication_url" onChange={this.onDataChange} />
+                    </Col>
+                </Form.Group>
+                <Form.Group as={Row}>
+                    <Form.Label column sm="2">{"Collaborateur"}</Form.Label>
+                    <Col sm="10">
+                        <select className='w-100 form-control' name="collaboratorid" value={data.template.collaboratorid} onChange={this.onDataChange}>
+                            <option value="0"></option>
+                            
+                            {this.state.teachers.map((item, index) => {
+                                return <option value={item.userId} key={index}>{item.firstName} {item.lastName}</option>
+                            })}
+                        </select>
                     </Col>
                 </Form.Group>
                 <Form.Group as={Row}>

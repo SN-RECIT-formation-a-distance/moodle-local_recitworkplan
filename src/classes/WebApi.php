@@ -123,7 +123,24 @@ class WebApi extends recitcommon\MoodleApi
 
             $templateId = intval($request['templateId']);
 
-            $result = $this->ctrl->getStudentList($templateId);
+            $result = $this->ctrl->getUserList($templateId, RECITWORKPLAN_FOLLOW_CAPABILITY);
+
+            $this->prepareJson($result);
+            
+            return new WebApiResult(true, $result);
+        }
+        catch(Exception $ex){
+            return new WebApiResult(false, false, $ex->GetMessage());
+        }
+    }
+
+    public function getTeacherList($request){
+        try{
+            $this->canUserAccess('a');
+
+            $templateId = intval($request['templateId']);
+
+            $result = $this->ctrl->getUserList($templateId, RECITWORKPLAN_ASSIGN_CAPABILITY);
 
             $this->prepareJson($result);
             

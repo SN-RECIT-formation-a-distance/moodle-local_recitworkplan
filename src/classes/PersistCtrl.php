@@ -239,8 +239,8 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
     public function saveTemplate($data){
         try{	
             $result = $data;
-            $fields = array("name", "description", "communication_url", "lastupdate", "state");
-            $values = array($data->name, $data->description, $data->communication_url, time(), $data->state);
+            $fields = array("name", "description", "communication_url", "collaboratorid", "lastupdate", "state");
+            $values = array($data->name, $data->description, $data->communication_url, $data->collaboratorid, time(), $data->state);
 
             if($data->id == 0){
                 $fields[] = "creatorid";
@@ -351,7 +351,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         }  
     }
 
-    public function getStudentList($templateId){
+    public function getUserList($templateId, $cap){
         global $DB, $OUTPUT;
 
         $result = array();
@@ -378,7 +378,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         group by t1.id
         order by firstname, lastname asc";
 
-        $rst = $DB->get_records_sql($query, [RECITWORKPLAN_FOLLOW_CAPABILITY]);
+        $rst = $DB->get_records_sql($query, [$cap]);
 
         
 		foreach($rst as $item){
@@ -498,7 +498,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
     public function getWorkPlan($userId, $templateId){
         $query = "select t1.id, t1.nb_hours_per_week as nbhoursperweek, from_unixtime(t1.startdate) as startdate, t1.completionstate as wpcompletionstate, t2.id as templateid, t2.creatorid, t2.name as templatename, t2.state as templatestate, t7.fullname as coursename, t7.id as courseid,
         t2.description as templatedesc, from_unixtime(t2.lastupdate) as lastupdate, t3.cmid, t3.nb_hours_completion as nb_hours_completion, count(*) OVER() AS total_count,
-        t6.completionstate as activitycompletionstate, t1.assignorid, assignor.picture as assignorpicture, assignor.imagealt as assignorimagealt, assignor.email as assignoremail, assignor.alternatename as assignoralternatename, assignor.firstname as assignorfirstname, assignor.lastname as assignorlastname, assignor.lastnamephonetic as assignorlastnamephonetic, assignor.firstnamephonetic as assignorfirstnamephonetic, t8.name as categoryname, t3.id as tpl_act_id, t1.comment as comment, t2.communication_url as communication_url, fup.followup, t3.slot,
+        t6.completionstate as activitycompletionstate, t1.assignorid, t2.collaboratorid, collaborator.firstname as collaboratorfirstname, collaborator.lastname as collaboratorlastname, assignor.picture as assignorpicture, assignor.imagealt as assignorimagealt, assignor.email as assignoremail, assignor.alternatename as assignoralternatename, assignor.firstname as assignorfirstname, assignor.lastname as assignorlastname, assignor.lastnamephonetic as assignorlastnamephonetic, assignor.firstnamephonetic as assignorfirstnamephonetic, t8.name as categoryname, t3.id as tpl_act_id, t1.comment as comment, t2.communication_url as communication_url, fup.followup, t3.slot,
         t1.userid, users.firstname, users.lastname, users.picture, users.imagealt, users.email, users.firstnamephonetic, users.lastnamephonetic, users.alternatename, FROM_UNIXTIME(users.lastaccess) as lastaccess, g.grouplist
         from {$this->prefix}recit_wp_tpl as t2
         left join {$this->prefix}recit_wp_tpl_assign as t1 on t1.templateid = t2.id
@@ -509,6 +509,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         left join {$this->prefix}course_categories as t8 on t7.category = t8.id
         left join {$this->prefix}user as users on users.id = t1.userid
         left join {$this->prefix}user as assignor on t1.assignorid = assignor.id
+        left join {$this->prefix}user as collaborator on t2.collaboratorid = collaborator.id
         left join (select t9.userid as userid, group_concat(t10.name) as grouplist, t10.courseid
             from {$this->prefix}groups_members t9
             left join {$this->prefix}groups as t10 on t9.groupid = t10.id
@@ -575,12 +576,13 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         
         $query = "select t1.id, t1.nb_hours_per_week as nbhoursperweek, from_unixtime(t1.startdate) as startdate, t1.completionstate as wpcompletionstate, t2.id as templateid, t2.creatorid as creatorid, t2.name as templatename, t7.fullname as coursename, t7.id as courseid,
         t2.description as templatedesc, t2.communication_url as communication_url, from_unixtime(t2.lastupdate) as lastupdate, t3.cmid, t3.nb_hours_completion as nb_hours_completion, t4.id as userid, t4.picture, t4.imagealt, t4.email, t4.firstname, t4.alternatename, t4.lastname, t4.firstnamephonetic, t4.lastnamephonetic, count(*) OVER() AS total_count,
-        t6.completionstate as activitycompletionstate, t1.assignorid, assignor.picture as assignorpicture, assignor.imagealt as assignorimagealt, assignor.firstnamephonetic as assignorfirstnamephonetic, assignor.alternatename as assignoralternatename, assignor.lastnamephonetic as assignorlastnamephonetic, assignor.email as assignoremail, assignor.firstname as assignorfirstname, assignor.lastname as assignorlastname, t8.name as categoryname, t3.id as tpl_act_id, t2.state as templatestate, t1.comment as comment
+        t6.completionstate as activitycompletionstate, t1.assignorid, t2.collaboratorid, collaborator.firstname as collaboratorfirstname, collaborator.lastname as collaboratorlastname, assignor.picture as assignorpicture, assignor.imagealt as assignorimagealt, assignor.firstnamephonetic as assignorfirstnamephonetic, assignor.alternatename as assignoralternatename, assignor.lastnamephonetic as assignorlastnamephonetic, assignor.email as assignoremail, assignor.firstname as assignorfirstname, assignor.lastname as assignorlastname, t8.name as categoryname, t3.id as tpl_act_id, t2.state as templatestate, t1.comment as comment
         from {$this->prefix}recit_wp_tpl as t2
         left join {$this->prefix}recit_wp_tpl_assign as t1 on t1.templateid = t2.id
         left join {$this->prefix}recit_wp_tpl_act as t3 on t3.templateid = t2.id
         left join {$this->prefix}user as t4 on t1.userid = t4.id
         left join {$this->prefix}user as assignor on t1.assignorid = assignor.id
+        left join {$this->prefix}user as collaborator on t2.collaboratorid = collaborator.id
         left join {$this->prefix}course_modules as t5 on t3.cmid = t5.id
         left join {$this->prefix}course as t7 on t7.id = t5.course
         left join {$this->prefix}course_categories as t8 on t7.category = t8.id
@@ -821,6 +823,17 @@ class Template{
             $result->creator->lastName = $creator->lastname;
             $result->creator->url = (new \moodle_url('/user/profile.php', array('id' => $creator->id)))->out();
             $result->creator->avatar = $OUTPUT->user_picture($creator, array('size'=> 50));
+        }
+
+        if((isset($dbData->collaboratorid)) && ($dbData->collaboratorid != 0)){
+            $user = new stdClass();
+            $user->id = $dbData->collaboratorid;
+            $user->firstname = $dbData->collaboratorfirstname;
+            $user->lastname = $dbData->collaboratorlastname;
+            $result->collaborator = new stdClass();
+            $result->collaboratorid = $dbData->collaboratorid;
+            $result->collaborator->firstName = $user->firstname;
+            $result->collaborator->lastName = $user->lastname;
         }
 
         return $result;

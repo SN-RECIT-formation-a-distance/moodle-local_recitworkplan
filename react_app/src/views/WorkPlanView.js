@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { Card, Tabs, Tab, Button, Form, DropdownButton, Dropdown, ButtonGroup} from 'react-bootstrap';
-import { faPencilAlt,  faPlus, faTrashAlt, faCopy, faCheck, faArrowLeft, faEllipsisV, faSyncAlt, faBookmark, faChevronUp, faChevronDown, faArchive, faUser, faChalkboardTeacher, faRedoAlt, faRedo} from '@fortawesome/free-solid-svg-icons';
+import { faPencilAlt,  faPlus, faTrashAlt, faCopy, faCheck, faArrowLeft, faEllipsisV, faSyncAlt, faBookmark, faChevronUp, faChevronDown, faArchive, faUser, faChalkboardTeacher, faRedoAlt, faRedo, faUserFriends} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { FeedbackCtrl, ToggleButtons } from '../libs/components/Components';
 import {$glVars} from '../common/common';
@@ -125,7 +125,7 @@ export class WorkPlanListView extends Component{
                                                     {this.state.activeTab == 'manager' && 
                                                         <span>
                                                             <div dangerouslySetInnerHTML={{__html: workPlan.template.creator.avatar}}></div>
-                                                            <span>Créateur</span>
+                                                            <span>Créateur {workPlan.template.collaborator && <FontAwesomeIcon icon={faUserFriends} title='Un collaborateur'/>} </span>
                                                         </span>
                                                         }
                                                 </div>
@@ -337,6 +337,7 @@ class WorkPlanView extends Component{
         let data = this.state.data;
         data.template = template;
         this.setState({data: data});
+        this.getData(template.id);
     }
 }
 

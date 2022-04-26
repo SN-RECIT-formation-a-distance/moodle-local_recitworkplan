@@ -48,6 +48,11 @@ export class AppWebApi extends WebApi
         this.post(this.gateway, data, onSuccess);
     } 
 
+    getTeacherList(templateId, onSuccess){
+        let data = {templateId: templateId, service: "getTeacherList"};
+        this.post(this.gateway, data, onSuccess);
+    } 
+
     saveTemplate(data, onSuccess){
         let that = this;
         let onSuccessTmp = function(result){     
