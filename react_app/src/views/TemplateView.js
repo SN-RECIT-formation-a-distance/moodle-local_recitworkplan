@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { Collapse, Row, Button, Form, FormGroup, InputGroup, FormControl, Col, Table, Badge, Card, ButtonGroup} from 'react-bootstrap';
 import { faPencilAlt,  faTrashAlt, faPlusSquare,  faSearch, faCopy, faSync, faMinus, faPlus, faArrowsAlt, faArrowRight} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {ComboBoxPlus, FeedbackCtrl, DataGrid, Modal, Pagination} from '../libs/components/Components';
+import {ComboBoxPlus, FeedbackCtrl, DataGrid, Modal, Pagination, ToggleButtons} from '../libs/components/Components';
 import {$glVars} from '../common/common';
 import { JsNx, UtilsString } from '../libs/utils/Utils';
 
@@ -427,13 +427,17 @@ class ModalTemplateForm extends Component{
                 <Form.Group as={Row}>
                     <Form.Label column sm="2">{"URL de communication"}</Form.Label>
                     <Col sm="10">
-                        <Form.Control type="text" className='w-100' value={data.template.communication_url} name="communication_url" onChange={this.onDataChange} />
+                        <Form.Control type="text" className='w-100' value={data.template.communication_url || ''} name="communication_url" onChange={this.onDataChange} />
                     </Col>
                 </Form.Group>
                 <Form.Group as={Row}>
-                    <Form.Label column sm="2">{""}</Form.Label>
+                    <Form.Label column sm="2">{"Enregistrer en tant que"}</Form.Label>
                     <Col sm="10">
-                        <Form.Check type="checkbox" label="Enregistrer en tant que gabarit" rows={4} className='w-100' disabled={data.assignments.length > 1} checked={data.template.state == 1} name="state" onChange={this.onDataChange} />
+                        <ToggleButtons name="state" defaultValue={[data.template.state]} onClick={this.onDataChange} disabled={data.assignments.length > 1}
+                                options={[
+                                    {value: 1, text:"Gabarit"},
+                                    {value: 0, text:"Plan de travail"}
+                                ]}/>
                     </Col>
                 </Form.Group>
             </Form>;
@@ -452,7 +456,7 @@ class ModalTemplateForm extends Component{
 
         if(data.template[event.target.name] !== event.target.value){
             //Exception for state/checkbox
-            if (event.target.name === 'state'){
+            if (event.target.name === 'sate'){
                 data.template[event.target.name] = event.target.checked ? 1 : 0;
             }
             else{

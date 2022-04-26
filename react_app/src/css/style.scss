@@ -8,13 +8,13 @@ fieldset{border: 1px solid #eee; border-radius: .5rem; padding: 1rem; }
 .grid-3 {
     display: grid;
     grid-gap: 1rem; 
-    grid-template-columns: auto auto auto;
+    grid-template-columns: 33% 33% 33%;
 }
 
 .grid-4 {
     display: grid;
     grid-gap: 1rem; 
-    grid-template-columns: auto auto auto auto;
+    grid-template-columns: 25% 25% 25% 25%;
 }
 
 .grid-assignments {
@@ -50,7 +50,7 @@ button.dropdown-toggle {
 
     .grid-3, .grid-4 {
         display: grid;
-        grid-template-columns: auto auto;
+        grid-template-columns: 50% 50%;
     }
 }
 

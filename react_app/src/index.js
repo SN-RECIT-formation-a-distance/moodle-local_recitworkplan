@@ -57,7 +57,7 @@ class App extends Component {
             view =<AdminBlockView/>;
         }
         let main =
-            <div>
+            <div style={{minHeight:'450px'}}>
                 {view}
                 {$glVars.feedback.msg.map((item, index) => {  
                     return (<VisualFeedback key={index} id={index} msg={item.msg} type={item.type} title={item.title} timeout={item.timeout}/>);                                    

@@ -177,8 +177,8 @@ export class WorkPlanListView extends Component{
             {workPlan.template.state != 1 && <Dropdown.Item onClick={() => this.onCopy(workPlan.template.id, 1)}><FontAwesomeIcon icon={faBookmark}  />{" Enregistrer en tant que gabarit"}</Dropdown.Item>}
             <Dropdown.Item onClick={() => this.onDelete(workPlan.template.id)}><FontAwesomeIcon icon={faTrashAlt}  />{" Supprimer"}</Dropdown.Item>
             {workPlan.assignments.length > 0 && JsNx.getItem(workPlan.assignments, 'completionState', 1, null) === null &&  <Dropdown.Item onClick={() => this.onArchive(workPlan)}><FontAwesomeIcon icon={faArchive}  />{" Archiver"}</Dropdown.Item>}
-        </DropdownButton>}
-            <Button onClick={() => this.getPlan(workPlan.template.id)} variant='outline-primary' title={lastUpdate}><FontAwesomeIcon icon={faRedo}/> </Button>
+            </DropdownButton>}
+            {workPlan.template.state != 1 && <Button onClick={() => this.getPlan(workPlan.template.id)} variant='outline-primary' title={lastUpdate}><FontAwesomeIcon icon={faRedo}/> </Button>}
         </ButtonGroup></>;
     }
 
@@ -310,7 +310,8 @@ class WorkPlanView extends Component{
             <div>                
                 <div className='d-flex mb-4' style={{alignItems: "center"}}>
                     <Button title="Revenir" onClick={this.props.onClose} className='rounded-circle' variant='outline-primary'><FontAwesomeIcon icon={faArrowLeft}/></Button>
-                    <span className="h1 ml-3">Plan de travail</span>
+                    <span className="h1 ml-3">Modifier le plan de travail</span>
+                    {this.state.data.template.state == 1 && <span className='badge bg-warning ml-2'>Gabarit <FontAwesomeIcon icon={faBookmark}/></span>}
                 </div>
 
                 <WorkPlanTemplateView data={this.state.data} onSave={this.onSaveTemplate} />
