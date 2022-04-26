@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
-import { Card, Tabs, Tab, Button, Form, DropdownButton, Dropdown} from 'react-bootstrap';
-import { faPencilAlt,  faPlus, faTrashAlt, faCopy, faCheck, faArrowLeft, faEllipsisV, faSyncAlt, faBookmark, faChevronUp, faChevronDown, faArchive, faUser, faChalkboardTeacher} from '@fortawesome/free-solid-svg-icons';
+import { Card, Tabs, Tab, Button, Form, DropdownButton, Dropdown, ButtonGroup} from 'react-bootstrap';
+import { faPencilAlt,  faPlus, faTrashAlt, faCopy, faCheck, faArrowLeft, faEllipsisV, faSyncAlt, faBookmark, faChevronUp, faChevronDown, faArchive, faUser, faChalkboardTeacher, faRedoAlt, faRedo} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { FeedbackCtrl, ToggleButtons } from '../libs/components/Components';
 import {$glVars} from '../common/common';
@@ -91,6 +91,7 @@ export class WorkPlanListView extends Component{
                             if(workPlan.stats){
                                 progress = workPlan.stats.workPlanCompletion/workPlan.stats.nbStudents * 100;
                             }
+                            let actStats = WorkPlanActivitiesView.getActivityStats(workPlan);
 
                             let card = 
                                 <Card key={index} className='rounded'>
@@ -109,6 +110,11 @@ export class WorkPlanListView extends Component{
                                         </div>
                                         <div className="m-3 p-2">
                                             {workPlan.stats && workPlan.stats.nbLateStudents > 0 && <span className='badge bg-danger'>{`${workPlan.stats.nbLateStudents} apprenants en retard`}</span>}
+                                            {actStats.nbAwaitingGrade > 0 && <span className='badge bg-warning m-2'>{actStats.nbAwaitingGrade} travaux à corriger</span>}
+                                            {actStats.nbFails > 0 && <span className='badge bg-warning m-2'>{actStats.nbFails} risques d'échec</span>}
+                                            {workPlan.template.followUps.map((followUps, index2) => {
+                                                return <Button key={index2} variant={followUps.variant}>{followUps.desc}</Button>;
+                                            })}
                                         </div>  
                                         {workPlan.stats && workPlan.stats.nbStudents > 0 && 
                                             <div className="p-2 text-muted row">
@@ -132,7 +138,7 @@ export class WorkPlanListView extends Component{
                     )}
                 </div>
 
-                <Pagination pagination={this.state.pagination} onChangePage={(p) => this.changePage(p)}/>                
+                {false && <Pagination pagination={this.state.pagination} onChangePage={(p) => this.changePage(p)}/>}                
             </div>;
 
         let form = <WorkPlanView templateId={this.state.templateId} activeTab={this.state.editTab} onClose={this.onClose}/>;
@@ -157,16 +163,35 @@ export class WorkPlanListView extends Component{
     }
 
     renderTitle(workPlan){
+        let lastUpdate = "";
+        if (workPlan.lastUpdate){
+            lastUpdate = "Dernière mise à jour: "+workPlan.lastUpdate;
+        }
         return <>
         {!this.props.isBlock && <a href='#' onClick={() => this.onEdit(workPlan.template.id, 'activities')} className='h3'>{workPlan.template.name}</a>}
         {this.props.isBlock && <a href='#' href={$glVars.recitWorkPlanUrl + '?id=' + workPlan.template.id} className='h3'>{workPlan.template.name}</a>}
-        {!this.props.isBlock && <DropdownButton variant='outline-primary' title={<span><FontAwesomeIcon icon={faEllipsisV}  />{" "}</span>} id={`optionsWorkPlan${workPlan.template.id}`}>
+        <ButtonGroup>
+            {!this.props.isBlock && <DropdownButton variant='outline-primary' title={<FontAwesomeIcon icon={faEllipsisV} />} id={`optionsWorkPlan${workPlan.template.id}`}>
             <Dropdown.Item onClick={() => this.onCopy(workPlan.template.id)}><FontAwesomeIcon icon={faCopy}  />{" Copier"}</Dropdown.Item>
             {workPlan.template.state == 1 && <Dropdown.Item onClick={() => this.onCopy(workPlan.template.id, 0)}><FontAwesomeIcon icon={faBookmark}  />{" Utiliser ce gabarit"}</Dropdown.Item>}
             {workPlan.template.state != 1 && <Dropdown.Item onClick={() => this.onCopy(workPlan.template.id, 1)}><FontAwesomeIcon icon={faBookmark}  />{" Enregistrer en tant que gabarit"}</Dropdown.Item>}
             <Dropdown.Item onClick={() => this.onDelete(workPlan.template.id)}><FontAwesomeIcon icon={faTrashAlt}  />{" Supprimer"}</Dropdown.Item>
             {workPlan.assignments.length > 0 && JsNx.getItem(workPlan.assignments, 'completionState', 1, null) === null &&  <Dropdown.Item onClick={() => this.onArchive(workPlan)}><FontAwesomeIcon icon={faArchive}  />{" Archiver"}</Dropdown.Item>}
-        </DropdownButton>}</>;
+        </DropdownButton>}
+            <Button onClick={() => this.getPlan(workPlan.template.id)} variant='outline-primary' title={lastUpdate}><FontAwesomeIcon icon={faRedo}/> </Button>
+        </ButtonGroup></>;
+    }
+
+    getPlan(templateId){
+        $glVars.webApi.getWorkPlanFormKit(templateId, (result) => {
+            let dataProvider = this.state.dataProvider;
+            for (let i in dataProvider){
+                if (dataProvider[i].id == templateId){
+                    dataProvider[i] = result.data.data;
+                    dataProvider[i].lastUpdate = new Date().toLocaleString();
+                }
+            }
+        });
     }
 
     onAdd(){
@@ -558,7 +583,7 @@ class WorkPlanActivitiesView extends Component{
                                 progressText = `${stats.activitycompleted[`${item.cmId}`]}/${stats.nbStudents}`;
                             }
 
-                            let actStats = this.getActivityStats(item);
+                            let actStats = WorkPlanActivitiesView.getActivityStats(this.props.data, item);
 
                             progressValue = (isNaN(progressValue) ? 0 : Math.round(progressValue,1));
                             
@@ -600,12 +625,12 @@ class WorkPlanActivitiesView extends Component{
         return (main);
     }
 
-    getActivityStats(activity){
+    static getActivityStats(workPlan, activity){
         let nbAwaitingGrade = 0;
         let nbFails = 0;
-        for (let assignment of this.props.data.assignments){
+        for (let assignment of workPlan.assignments){
             for (let act of assignment.user.activities){
-                if (act.cmId == activity.cmId){
+                if (!activity || act.cmId == activity.cmId){
                     if (act.followup == 1){
                         nbAwaitingGrade++;
                     }

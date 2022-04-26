@@ -469,12 +469,13 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         union
         (SELECT t3.id as cmId, t1.name as cmName, FROM_UNIXTIME(t1.timemodified) as timeModified, count(*) as nbItems, tuser.userid,
         2 as followup
-        FROM {$this->prefix}recitcahiercanada as t1
-        inner join {$this->prefix}recitcc_cm_notes as t2 on t1.id = t2.ccid
-        left join {$this->prefix}recitcc_user_notes as tuser on t2.id = tuser.cccmid
-        inner join {$this->prefix}course_modules as t3 on t1.id = t3.instance and t3.module = (select id from {$this->prefix}modules where name = 'recitcahiercanada') and t1.course = t3.course
+        FROM {$this->prefix}recitcahiertraces as t1
+        inner join {$this->prefix}recitct_groups as t2 on t1.id = t2.ctid
+        left join {$this->prefix}recitct_notes as t4 on t2.id = t4.gid
+        left join {$this->prefix}recitct_user_notes as tuser on t4.id = tuser.nid
+        inner join {$this->prefix}course_modules as t3 on t1.id = t3.instance and t3.module = (select id from {$this->prefix}modules where name = 'recitcahiertraces') and t1.course = t3.course
         where if(tuser.id > 0 and length(tuser.note) > 0 and (length(REGEXP_REPLACE(trim(coalesce(tuser.feedback, '')), '<[^>]*>+', '')) = 0), 1, 0) = 1 
-        and t3.id in (select cmid from {$this->prefix}recit_wp_tpl_act where templateid = $templateId) and t2.notifyteacher = 1
+        and t3.id in (select cmid from {$this->prefix}recit_wp_tpl_act where templateid = $templateId) and t4.notifyteacher = 1
         group by t3.id, t1.id, tuser.userid, t1.timemodified)
         union
         (select cmId, cmName, timeModified, count(*) as nbItems, userid, followup from 
