@@ -467,7 +467,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         where t3.id in (select cmid from {$this->prefix}recit_wp_tpl_act where templateid = $templateId) and tuser.status = 'submitted' and (coalesce(t4.grade,0) <= 0 or tuser.timemodified > coalesce(t4.timemodified,0))
         group by t3.id, t1.id, tuser.userid, tuser.timemodified)
         union
-        (SELECT t3.id as cmId, t1.name as cmName, FROM_UNIXTIME(t1.timemodified) as timeModified, count(*) as nbItems, tuser.userid,
+        (SELECT t3.id as cmId, CONVERT(t1.name USING utf8) as cmName, FROM_UNIXTIME(t1.timemodified) as timeModified, count(*) as nbItems, tuser.userid,
         2 as followup
         FROM {$this->prefix}recitcahiertraces as t1
         inner join {$this->prefix}recitct_groups as t2 on t1.id = t2.ctid
