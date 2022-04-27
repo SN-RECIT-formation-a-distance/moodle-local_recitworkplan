@@ -240,7 +240,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         try{	
             $result = $data;
             $fields = array("name", "description", "communication_url", "collaboratorid", "lastupdate", "state");
-            $values = array($data->name, $data->description, $data->communication_url, $data->collaboratorid, time(), $data->state);
+            $values = array($data->name, $data->description, $data->communicationUrl, $data->collaborator->id, time(), $data->state);
 
             if($data->id == 0){
                 $fields[] = "creatorid";
@@ -360,7 +360,9 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
             return $result;
         }
 
-        $query = "select t1.id, t1.firstname, t1.lastname, t1.picture, group_concat(t10.name) as grouplist
+        $query = "select t1.id, t1.firstname, t1.lastname, t1.picture, 
+        t1.firstnamephonetic, t1.lastnamephonetic, t1.middlename, t1.alternatename, t1.imagealt, t1.email,
+        group_concat(t10.name) as grouplist
         from {user} as t1
         inner join {user_enrolments} as t2 on t1.id = t2.userid
         inner join {enrol} as t3 on t2.enrolid = t3.id
@@ -496,9 +498,13 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
     }
 
     public function getWorkPlan($userId, $templateId){
-        $query = "select t1.id, t1.nb_hours_per_week as nbhoursperweek, from_unixtime(t1.startdate) as startdate, t1.completionstate as wpcompletionstate, t2.id as templateid, t2.creatorid, t2.name as templatename, t2.state as templatestate, t7.fullname as coursename, t7.id as courseid,
-        t2.description as templatedesc, from_unixtime(t2.lastupdate) as lastupdate, t3.cmid, t3.nb_hours_completion as nb_hours_completion, count(*) OVER() AS total_count,
-        t6.completionstate as activitycompletionstate, t1.assignorid, t2.collaboratorid, collaborator.firstname as collaboratorfirstname, collaborator.lastname as collaboratorlastname, assignor.picture as assignorpicture, assignor.imagealt as assignorimagealt, assignor.email as assignoremail, assignor.alternatename as assignoralternatename, assignor.firstname as assignorfirstname, assignor.lastname as assignorlastname, assignor.lastnamephonetic as assignorlastnamephonetic, assignor.firstnamephonetic as assignorfirstnamephonetic, t8.name as categoryname, t3.id as tpl_act_id, t1.comment as comment, t2.communication_url as communication_url, fup.followup, t3.slot,
+        $query = "select t1.id, t1.nb_hours_per_week as nbhoursperweek, from_unixtime(t1.startdate) as startdate, 
+        t1.completionstate as wpcompletionstate, t2.id as templateid, t2.creatorid, t2.name as templatename, t2.state as templatestate, 
+        t7.fullname as coursename, t7.id as courseid, t2.description as templatedesc, from_unixtime(t2.lastupdate) as lastupdate, t3.cmid,
+        t3.nb_hours_completion as nb_hours_completion, count(*) OVER() AS total_count, t6.completionstate as activitycompletionstate, 
+        t1.assignorid, t2.collaboratorid, collaborator.firstname as collaboratorfirstname, collaborator.lastname as collaboratorlastname, 
+        assignor.picture as assignorpicture, assignor.imagealt as assignorimagealt, assignor.email as assignoremail, assignor.alternatename as assignoralternatename, assignor.firstname as assignorfirstname, assignor.lastname as assignorlastname, assignor.lastnamephonetic as assignorlastnamephonetic, assignor.firstnamephonetic as assignorfirstnamephonetic, 
+        t8.name as categoryname, t3.id as tpl_act_id, t1.comment as comment, t2.communication_url as communication_url, fup.followup, t3.slot,
         t1.userid, users.firstname, users.lastname, users.picture, users.imagealt, users.email, users.firstnamephonetic, users.lastnamephonetic, users.alternatename, FROM_UNIXTIME(users.lastaccess) as lastaccess, g.grouplist
         from {$this->prefix}recit_wp_tpl as t2
         left join {$this->prefix}recit_wp_tpl_assign as t1 on t1.templateid = t2.id
@@ -564,7 +570,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
             $capabilities[] = RECITWORKPLAN_FOLLOW_CAPABILITY;
             $innerJoinSmt = "inner join (".$this->getAdminRolesStmt($userId, $capabilities).") as tblRoles on (t5.course = tblRoles.instanceid and tblRoles.contextlevel = 50)";
         }else if (in_array($state, array('ongoing','archive'))){
-            $wheretmp .= "where creatorid = $userId";
+            $wheretmp .= "where creatorid = $userId or collaboratorid = $userId";
             $capabilities[] = RECITWORKPLAN_ASSIGN_CAPABILITY;
             $capabilities[] = RECITWORKPLAN_MANAGE_CAPABILITY;
             $innerJoinSmt = "inner join (".$this->getAdminRolesStmt($userId, $capabilities).") as tblRoles on (t5.course = tblRoles.instanceid and tblRoles.contextlevel = 50)";
@@ -574,9 +580,14 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
             $where = "(t1.completionstate in (0,2,3))";
         }
         
-        $query = "select t1.id, t1.nb_hours_per_week as nbhoursperweek, from_unixtime(t1.startdate) as startdate, t1.completionstate as wpcompletionstate, t2.id as templateid, t2.creatorid as creatorid, t2.name as templatename, t7.fullname as coursename, t7.id as courseid,
-        t2.description as templatedesc, t2.communication_url as communication_url, from_unixtime(t2.lastupdate) as lastupdate, t3.cmid, t3.nb_hours_completion as nb_hours_completion, t4.id as userid, t4.picture, t4.imagealt, t4.email, t4.firstname, t4.alternatename, t4.lastname, t4.firstnamephonetic, t4.lastnamephonetic, count(*) OVER() AS total_count,
-        t6.completionstate as activitycompletionstate, t1.assignorid, t2.collaboratorid, collaborator.firstname as collaboratorfirstname, collaborator.lastname as collaboratorlastname, assignor.picture as assignorpicture, assignor.imagealt as assignorimagealt, assignor.firstnamephonetic as assignorfirstnamephonetic, assignor.alternatename as assignoralternatename, assignor.lastnamephonetic as assignorlastnamephonetic, assignor.email as assignoremail, assignor.firstname as assignorfirstname, assignor.lastname as assignorlastname, t8.name as categoryname, t3.id as tpl_act_id, t2.state as templatestate, t1.comment as comment
+        $query = "select t1.id, t1.nb_hours_per_week as nbhoursperweek, from_unixtime(t1.startdate) as startdate, 
+        t1.completionstate as wpcompletionstate, t2.id as templateid, t2.creatorid as creatorid, t2.name as templatename, 
+        t7.fullname as coursename, t7.id as courseid, t2.description as templatedesc, t2.communication_url as communication_url, 
+        from_unixtime(t2.lastupdate) as lastupdate, t3.cmid, t3.nb_hours_completion as nb_hours_completion, count(*) OVER() AS total_count,
+        t4.id as userid, t4.picture, t4.imagealt, t4.email, t4.firstname, t4.alternatename, t4.lastname, t4.firstnamephonetic, t4.lastnamephonetic, 
+        t1.assignorid, assignor.picture as assignorpicture, assignor.imagealt as assignorimagealt, assignor.firstnamephonetic as assignorfirstnamephonetic, assignor.alternatename as assignoralternatename, assignor.lastnamephonetic as assignorlastnamephonetic, assignor.email as assignoremail, assignor.firstname as assignorfirstname, assignor.lastname as assignorlastname, 
+        t2.collaboratorid, collaborator.firstname as collaboratorfirstname, collaborator.lastname as collaboratorlastname, 
+        t6.completionstate as activitycompletionstate, t8.name as categoryname, t3.id as tpl_act_id, t2.state as templatestate, t1.comment as comment
         from {$this->prefix}recit_wp_tpl as t2
         left join {$this->prefix}recit_wp_tpl_assign as t1 on t1.templateid = t2.id
         left join {$this->prefix}recit_wp_tpl_act as t3 on t3.templateid = t2.id
@@ -796,8 +807,9 @@ class Template{
     public $id = 0;
     public $name = "";
     public $description = "";
-    public $communication_url = "";
+    public $communicationUrl = "";
     public $creatorId = 0;
+    public $collaborator = null;
     public $state = 0;
     public $lastUpdate = null;
     //@array of TemplateActivity
@@ -811,7 +823,7 @@ class Template{
         $result->id = $dbData->templateid;
         $result->name = $dbData->templatename;
         $result->description = $dbData->templatedesc; 
-        $result->communication_url = $dbData->communication_url;
+        $result->communicationUrl = $dbData->communication_url;
         $result->lastUpdate = $dbData->lastupdate;
         $result->state = $dbData->templatestate;
         
@@ -825,15 +837,15 @@ class Template{
             $result->creator->avatar = $OUTPUT->user_picture($creator, array('size'=> 50));
         }
 
+        $result->collaborator = new stdClass();
+        $result->collaborator->id = 0;
+        $result->collaborator->firstName = '';
+        $result->collaborator->lastName = '';
+
         if((isset($dbData->collaboratorid)) && ($dbData->collaboratorid != 0)){
-            $user = new stdClass();
-            $user->id = $dbData->collaboratorid;
-            $user->firstname = $dbData->collaboratorfirstname;
-            $user->lastname = $dbData->collaboratorlastname;
-            $result->collaborator = new stdClass();
-            $result->collaboratorid = $dbData->collaboratorid;
-            $result->collaborator->firstName = $user->firstname;
-            $result->collaborator->lastName = $user->lastname;
+            $result->collaborator->id = $dbData->collaboratorid;
+            $result->collaborator->firstName = $dbData->collaboratorfirstname;
+            $result->collaborator->lastName =$dbData->collaboratorlastname;
         }
 
         return $result;

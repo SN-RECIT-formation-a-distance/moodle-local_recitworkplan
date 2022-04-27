@@ -122,12 +122,10 @@ export class WorkPlanListView extends Component{
                                                     <span title="Le nombre d'élèves qui ont complété le plan de travail / le nombre total d'élèves assigné au plan de travail">{"Achèvement "}<FontAwesomeIcon icon={faCheck}/></span><span className='ml-2'>{`${workPlan.stats.workPlanCompletion}/${workPlan.stats.nbStudents}`}</span>
                                                 </div>
                                                 <div className='col-md-6' style={{textAlign:'right'}}>
-                                                    {this.state.activeTab == 'manager' && 
-                                                        <span>
-                                                            <div dangerouslySetInnerHTML={{__html: workPlan.template.creator.avatar}}></div>
-                                                            <span>Créateur {workPlan.template.collaborator && <FontAwesomeIcon icon={faUserFriends} title='Un collaborateur'/>} </span>
-                                                        </span>
-                                                        }
+                                                    <span>
+                                                        <div dangerouslySetInnerHTML={{__html: workPlan.template.creator.avatar}}></div>
+                                                        <span>Créateur {workPlan.template.collaborator.id > 0 && <FontAwesomeIcon icon={faUserFriends} title={`Collaborateur: ${workPlan.template.collaborator.firstName} ${workPlan.template.collaborator.lastName}`}/>} </span>
+                                                    </span>
                                                 </div>
                                             </div>
                                         }
@@ -169,7 +167,7 @@ export class WorkPlanListView extends Component{
         }
         return <>
         {!this.props.isBlock && <a href='#' onClick={() => this.onEdit(workPlan.template.id, 'activities')} className='h3'>{workPlan.template.name}</a>}
-        {this.props.isBlock && <a href='#' href={$glVars.recitWorkPlanUrl + '?id=' + workPlan.template.id} className='h3'>{workPlan.template.name}</a>}
+        {this.props.isBlock && <a href={$glVars.recitWorkPlanUrl + '?id=' + workPlan.template.id} className='h3'>{workPlan.template.name}</a>}
         <ButtonGroup>
             {!this.props.isBlock && <DropdownButton variant='outline-primary' title={<FontAwesomeIcon icon={faEllipsisV} />} id={`optionsWorkPlan${workPlan.template.id}`}>
             <Dropdown.Item onClick={() => this.onCopy(workPlan.template.id)}><FontAwesomeIcon icon={faCopy}  />{" Copier"}</Dropdown.Item>
@@ -311,7 +309,7 @@ class WorkPlanView extends Component{
                 <div className='d-flex mb-4' style={{alignItems: "center"}}>
                     <Button title="Revenir" onClick={this.props.onClose} className='rounded-circle' variant='outline-primary'><FontAwesomeIcon icon={faArrowLeft}/></Button>
                     <span className="h1 ml-3">Modifier le plan de travail</span>
-                    {this.state.data.template.state == 1 && <span className='badge bg-warning ml-2'>Gabarit <FontAwesomeIcon icon={faBookmark}/></span>}
+                    {this.state.data.template.state == 1 && <span className='badge bg-warning ml-2'><FontAwesomeIcon icon={faBookmark}/> Gabarit</span>}
                 </div>
 
                 <WorkPlanTemplateView data={this.state.data} onSave={this.onSaveTemplate} />
@@ -434,7 +432,7 @@ class WorkPlanAssignmentsView extends Component{
                             for (let act of this.props.data.template.activities){
                                 nbHoursCompletionTotal = nbHoursCompletionTotal + parseFloat(act.nbHoursCompletion);
                             }
-                            let nbWeeks = Math.ceil(nbHoursCompletionTotal / item.nbHoursPerWeek);
+                            let txtDuration = (item.nbHoursPerWeek > 0 ? `${Math.ceil(nbHoursCompletionTotal / item.nbHoursPerWeek)} semaines` : '');
 
                             let card = 
                                 <Card key={index} className='rounded mt-2 mb-2'>
@@ -450,7 +448,7 @@ class WorkPlanAssignmentsView extends Component{
                                                 <strong>{item.user.firstName}</strong><span  className='ml-3 text-muted'>Groupe:</span><span className='text-muted'>{` ${item.user.groupList}`}</span>
                                                 <div className='text-muted'>Dernière connexion: {item.user.lastAccess}</div>
                                                 <div className='text-muted'>{`Début: ${UtilsDateTime.getDate(item.startDate)} (${item.nbHoursPerWeek} h/semaine)`}</div>
-                                                <div className='text-muted'>{`Durée: ${nbWeeks} semaines`}</div>
+                                                <div className='text-muted'>{`Durée: ${txtDuration}`}</div>
                                                 <div className='text-muted'>{`Échéance: ${UtilsDateTime.getDate(item.endDate)}`}</div>
                                             </div>
                                             <div>

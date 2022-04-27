@@ -437,13 +437,13 @@ class ModalTemplateForm extends Component{
                 <Form.Group as={Row}>
                     <Form.Label column sm="2">{"URL de communication"}</Form.Label>
                     <Col sm="10">
-                        <Form.Control type="text" className='w-100' value={data.template.communication_url || ''} name="communication_url" onChange={this.onDataChange} />
+                        <Form.Control type="text" className='w-100' value={data.template.communicationUrl || ''} name="communication_url" onChange={this.onDataChange} />
                     </Col>
                 </Form.Group>
                 <Form.Group as={Row}>
                     <Form.Label column sm="2">{"Collaborateur"}</Form.Label>
                     <Col sm="10">
-                        <select className='w-100 form-control' name="collaboratorid" value={data.template.collaboratorid} onChange={this.onDataChange}>
+                        <select className='w-100 form-control' name="collaborator.id" value={data.template.collaborator.id} onChange={this.onDataChange}>
                             <option value="0"></option>
                             
                             {this.state.teachers.map((item, index) => {
@@ -457,8 +457,8 @@ class ModalTemplateForm extends Component{
                     <Col sm="10">
                         <ToggleButtons name="state" defaultValue={[data.template.state]} onClick={this.onDataChange} disabled={data.assignments.length > 1}
                                 options={[
-                                    {value: 1, text:"Gabarit"},
-                                    {value: 0, text:"Plan de travail"}
+                                    {value: 0, text:"Plan de travail"},
+                                    {value: 1, text:"Gabarit"}
                                 ]}/>
                     </Col>
                 </Form.Group>
@@ -477,12 +477,11 @@ class ModalTemplateForm extends Component{
         let data = this.state.data;
 
         if(data.template[event.target.name] !== event.target.value){
-            //Exception for state/checkbox
-            if (event.target.name === 'sate'){
-                data.template[event.target.name] = event.target.checked ? 1 : 0;
+            if(event.target.name === 'collaborator.id'){
+                data.template.collaborator.id = event.target.value;
             }
             else{
-                data.template[event.target.name] = event.target.value
+                data.template[event.target.name] = event.target.value;
             }
             
             this.setState({data:data});
