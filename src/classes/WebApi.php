@@ -156,9 +156,15 @@ class WebApi extends recitcommon\MoodleApi
             $this->canUserAccess('a');
             $data = json_decode(json_encode($request['data']), FALSE);
             $result = array();
+
             foreach ($data as $item){
                 $result[] = $this->ctrl->saveAssignment($item);
             }
+
+            if(count($data) > 0){
+                $this->ctrl->processWorkPlan(current($data)->templateId);
+            }
+            
             return new WebApiResult(true, $result);
         }
         catch(Exception $ex){
