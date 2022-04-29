@@ -7,7 +7,7 @@ import {$glVars} from '../common/common';
 import { JsNx, UtilsString, UtilsDateTime, WorkPlanUtils } from '../libs/utils/Utils';
 import { Pagination } from '../libs/components/Pagination';
 import {ActivityPicker, WorkPlanTemplateView} from './TemplateView';
-import { UserActivityList } from './Components';
+import { UserActivityList, CustomCard, CustomHeader, CustomButton } from './Components';
 import { ModalAssignmentPicker, ModalAssignmentForm } from './AssignmentView';
 
 export class AdminView extends Component {
@@ -80,9 +80,7 @@ export class WorkPlanListView extends Component{
         
         let main = 
             <div>
-                <div className='d-flex d-block-mobile' style={{justifyContent: "space-between"}}>
-                    {this.renderHeader()}
-                </div> 
+                {this.renderHeader()}
 
                 <div className='grid-3'>
                     {dataProvider.map((workPlan, index) => {
@@ -94,43 +92,38 @@ export class WorkPlanListView extends Component{
                             let actStats = WorkPlanActivitiesView.getActivityStats(workPlan);
 
                             let card = 
-                                <Card key={index} className='rounded'>
-                                    <div style={{backgroundColor: '#0f6fc5', width: `${progress}%`, height: '5px', maxWidth: "100%"}}>
-                                         
+                                <CustomCard key={index} progressValue={`${progress}%`}>
+                                    <div className='d-flex' style={{justifyContent: 'space-between'}}>
+                                        {this.renderTitle(workPlan)}
                                     </div>
-                                    <Card.Body style={{backgroundColor: "#f0f0f0"}}>
-                                        <div className='d-flex' style={{justifyContent: 'space-between'}}>
-                                            {this.renderTitle(workPlan)}
-                                        </div>
-                                        <div className="m-2 p-2">
-                                            {workPlan.assignments.map((assignment, index2) => {
-                                                return <span key={index2} style={{marginLeft: '-15px'}} dangerouslySetInnerHTML={{__html: assignment.user.avatar}}></span>;
-                                            })}
-                                            {!this.props.isBlock && workPlan.template.state != 1 && <Button variant='outline-primary' className='rounded-circle' title='Attribuer un plan de travail.' onClick={() => this.onEdit(workPlan.template.id, 'assignments')}><FontAwesomeIcon icon={faPlus}/></Button>}
-                                        </div>
-                                        <div className="m-3 p-2">
-                                            {workPlan.stats && workPlan.stats.nbLateStudents > 0 && <span className='badge bg-danger'>{`${workPlan.stats.nbLateStudents} apprenants en retard`}</span>}
-                                            {actStats.nbAwaitingGrade > 0 && <span className='badge bg-warning m-2'>{actStats.nbAwaitingGrade} travaux à corriger</span>}
-                                            {actStats.nbFails > 0 && <span className='badge bg-warning m-2'>{actStats.nbFails} risques d'échec</span>}
-                                            {workPlan.template.followUps.map((followUps, index2) => {
-                                                return <Button key={index2} variant={followUps.variant}>{followUps.desc}</Button>;
-                                            })}
-                                        </div>  
-                                        {workPlan.stats && workPlan.stats.nbStudents > 0 && 
-                                            <div className="p-2 text-muted row">
-                                                <div className='col-md-6'>
-                                                    <span title="Le nombre d'élèves qui ont complété le plan de travail / le nombre total d'élèves assigné au plan de travail">{"Achèvement "}<FontAwesomeIcon icon={faCheck}/></span><span className='ml-2'>{`${workPlan.stats.workPlanCompletion}/${workPlan.stats.nbStudents}`}</span>
-                                                </div>
-                                                <div className='col-md-6' style={{textAlign:'right'}}>
-                                                    <span>
-                                                        <div dangerouslySetInnerHTML={{__html: workPlan.template.creator.avatar}}></div>
-                                                        <span>Créateur {workPlan.template.collaborator.id > 0 && <FontAwesomeIcon icon={faUserFriends} title={`Collaborateur: ${workPlan.template.collaborator.firstName} ${workPlan.template.collaborator.lastName}`}/>} </span>
-                                                    </span>
-                                                </div>
+                                    <div className="m-2 p-2">
+                                        {workPlan.assignments.map((assignment, index2) => {
+                                            return <span key={index2} style={{marginLeft: '-15px'}} dangerouslySetInnerHTML={{__html: assignment.user.avatar}}></span>;
+                                        })}
+                                        {!this.props.isBlock && workPlan.template.state != 1 && <Button variant='outline-primary' className='rounded-circle' title='Attribuer un plan de travail.' onClick={() => this.onEdit(workPlan.template.id, 'assignments')}><FontAwesomeIcon icon={faPlus}/></Button>}
+                                    </div>
+                                    <div className="m-3 p-2">
+                                        {workPlan.stats && workPlan.stats.nbLateStudents > 0 && <span className='badge bg-danger'>{`${workPlan.stats.nbLateStudents} apprenants en retard`}</span>}
+                                        {actStats.nbAwaitingGrade > 0 && <span className='badge bg-warning m-2'>{actStats.nbAwaitingGrade} travaux à corriger</span>}
+                                        {actStats.nbFails > 0 && <span className='badge bg-warning m-2'>{actStats.nbFails} risques d'échec</span>}
+                                        {workPlan.template.followUps.map((followUps, index2) => {
+                                            return <Button key={index2} variant={followUps.variant}>{followUps.desc}</Button>;
+                                        })}
+                                    </div>  
+                                    {workPlan.stats && workPlan.stats.nbStudents > 0 && 
+                                        <div className="p-2 text-muted row">
+                                            <div className='col-md-6'>
+                                                <span title="Le nombre d'élèves qui ont complété le plan de travail / le nombre total d'élèves assigné au plan de travail">{"Achèvement "}<FontAwesomeIcon icon={faCheck}/></span><span className='ml-2'>{`${workPlan.stats.workPlanCompletion}/${workPlan.stats.nbStudents}`}</span>
                                             </div>
-                                        }
-                                    </Card.Body>
-                                </Card>
+                                            <div className='col-md-6' style={{textAlign:'right'}}>
+                                                <span>
+                                                    <div dangerouslySetInnerHTML={{__html: workPlan.template.creator.avatar}}></div>
+                                                    <span>Créateur {workPlan.template.collaborator.id > 0 && <FontAwesomeIcon icon={faUserFriends} title={`Collaborateur: ${workPlan.template.collaborator.firstName} ${workPlan.template.collaborator.lastName}`}/>} </span>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    }
+                                </CustomCard>
                             return (card);                                     
                         }
                     )}
@@ -146,18 +139,21 @@ export class WorkPlanListView extends Component{
     }
 
     renderHeader(){
-        return <><div className='d-flex' style={{alignItems: "center"}}>
-            {!this.props.isBlock && <span className='h1 mr-3'>Plans de travail</span>}
-            {!this.props.isBlock && <Button variant='outline-primary' className='rounded-circle' title='Créer un plan de travail.' onClick={this.onAdd}><FontAwesomeIcon icon={faPlus}/></Button>}
-        </div>
-        <div>
-        {!this.props.isBlock && <ToggleButtons name="completionState" onClick={this.onCompletionStateChange} type="radio" defaultValue={this.state.activeTab} options={[
-                {value: "ongoing", text: <span><FontAwesomeIcon icon={faSyncAlt} />{" En cours"}</span>}, 
-                {value: "archive", text:  <span><FontAwesomeIcon icon={faArchive} />{" Archivés"}</span>}, 
-                {value: "template", text: <span><FontAwesomeIcon icon={faBookmark} />{" Gabarits"}</span>},
-                {value: "manager", text: <span><FontAwesomeIcon icon={faChalkboardTeacher} />{" Gestionnaire"}</span>},
-                ]}/>}
-        </div></>;
+        let result = null;
+
+        if(!this.props.isBlock){
+            result =
+            <CustomHeader title="Plans de travail" btnAfter={<CustomButton title='Créer un plan de travail.' onClick={this.onAdd} ><FontAwesomeIcon icon={faPlus}/></CustomButton>}>
+                <ToggleButtons name="completionState" onClick={this.onCompletionStateChange} type="radio" defaultValue={this.state.activeTab} options={[
+                        {value: "ongoing", text: <span><FontAwesomeIcon icon={faSyncAlt} />{" En cours"}</span>}, 
+                        {value: "archive", text:  <span><FontAwesomeIcon icon={faArchive} />{" Archivés"}</span>}, 
+                        {value: "template", text: <span><FontAwesomeIcon icon={faBookmark} />{" Gabarits"}</span>},
+                        {value: "manager", text: <span><FontAwesomeIcon icon={faChalkboardTeacher} />{" Gestionnaire"}</span>},
+                        ]}/>
+            </CustomHeader>; 
+        }
+
+        return result;
     }
 
     renderTitle(workPlan){
@@ -305,12 +301,10 @@ class WorkPlanView extends Component{
         if(this.state.data === null){ return null;}
 
         let main =  
-            <div>                
-                <div className='d-flex mb-4' style={{alignItems: "center"}}>
-                    <Button title="Revenir" onClick={this.props.onClose} className='rounded-circle' variant='outline-primary'><FontAwesomeIcon icon={faArrowLeft}/></Button>
-                    <span className="h1 ml-3">Modifier le plan de travail</span>
+            <div>   
+                <CustomHeader title="Modifier le plan de travail" btnBefore={<CustomButton title="Revenir" onClick={this.props.onClose}><FontAwesomeIcon icon={faArrowLeft}/></CustomButton>}>
                     {this.state.data.template.state == 1 && <span className='badge bg-warning ml-2'><FontAwesomeIcon icon={faBookmark}/> Gabarit</span>}
-                </div>
+                </CustomHeader>             
 
                 <WorkPlanTemplateView data={this.state.data} onSave={this.onSaveTemplate} />
                     
@@ -401,15 +395,11 @@ class WorkPlanAssignmentsView extends Component{
         });
 
         let main =  
-            <>                
-                <div className='d-flex d-block-mobile' style={{justifyContent: "space-between", alignItems: "center"}}>
-                    <div className='d-flex' style={{alignItems: "center"}}>
-                        <span className='h2 mr-3'>Affectations</span>
-                        <Button variant='outline-primary' className='rounded-circle' title='Attribuer un plan de travail.' onClick={() => this.onShowAssignments(true)} ><FontAwesomeIcon icon={faPlus}/></Button>
-                    </div>
-                    <div className='d-flex align-items-center d-block-mobile w-100-mobile' style={{width: "60%", justifyContent: "space-between"}}>
-                        Filtrer par <Form.Control className='rounded w-100-mobile' style={{display:'inline',width:'200px',marginRight:'10px'}} onChange={this.onSearch} type="search" value={this.state.queryStr} name='queryStr' placeholder="Nom, groupe..."/>
-                        Trier par <select type="select" className='form-control rounded' style={{width:'115px',}} onChange={(e) => this.setState({sortAssignment:e.target.value})}>
+            <>     
+                <CustomHeader title="Affectations" btnAfter={<CustomButton title='Attribuer un plan de travail.'  onClick={() => this.onShowAssignments(true)}><FontAwesomeIcon icon={faPlus}/></CustomButton>}>
+                    <div className='d-flex align-items-center d-block-mobile w-100-mobile' >
+                        Filtrer par <Form.Control className='rounded w-100-mobile' style={{display:'inline',width:'200px',marginRight:'10px', marginLeft:'10px'}} onChange={this.onSearch} type="search" value={this.state.queryStr} name='queryStr' placeholder="Nom, groupe..."/>
+                        Trier par <select type="select" className='form-control rounded' style={{width:'115px', marginLeft:'10px'}} onChange={(e) => this.setState({sortAssignment:e.target.value})}>
                             <option value="lastname">Nom</option>
                             <option value="firstname">Prénom</option>
                             <option value="progress">Progrès</option>
@@ -417,7 +407,7 @@ class WorkPlanAssignmentsView extends Component{
                         </select>
                         <Form.Check style={{display:'inline',marginLeft:'10px'}} type="checkbox" onChange={this.onFilterChange} value={this.state.filter.late} name="late" label="Afficher seulement les élèves en retard"/>
                     </div>
-                </div>
+                </CustomHeader>            
 
                 <div>
                     {assignments.map((item, index) => {
@@ -435,50 +425,46 @@ class WorkPlanAssignmentsView extends Component{
                             let txtDuration = (item.nbHoursPerWeek > 0 ? `${Math.ceil(nbHoursCompletionTotal / item.nbHoursPerWeek)} semaines` : '');
 
                             let card = 
-                                <Card key={index} className='rounded mt-2 mb-2'>
-                                    <div title={`${progressValue.text}`} style={{backgroundColor: '#0f6fc5', width: `${progressValue.value}%`, height: '5px'}}>
-                                        
-                                    </div>
-                                    <Card.Body className='bg-light'>
-                                        <div className='grid-assignments'>
-                                            <div>
-                                                <span dangerouslySetInnerHTML={{__html: item.user.avatar}}></span>
-                                            </div>
-                                            <div>
-                                                <strong>{item.user.firstName}</strong><span  className='ml-3 text-muted'>Groupe:</span><span className='text-muted'>{` ${item.user.groupList}`}</span>
-                                                <div className='text-muted'>Dernière connexion: {item.user.lastAccess}</div>
-                                                <div className='text-muted'>{`Début: ${UtilsDateTime.getDate(item.startDate)} (${item.nbHoursPerWeek} h/semaine)`}</div>
-                                                <div className='text-muted'>{`Durée: ${txtDuration}`}</div>
-                                                <div className='text-muted'>{`Échéance: ${UtilsDateTime.getDate(item.endDate)}`}</div>
-                                            </div>
-                                            <div>
-                                                {item.completionState == 0 && <span className='badge bg-success'>{`En cours`}</span>}
-                                                {item.completionState == 1 && <span className='badge bg-secondary'>{`Archivé`}</span>}
-                                                {item.completionState == 2 && <span className='badge bg-danger'>{`Apprenant en retard`}</span>}
-                                                {item.completionState == 3 && <span className='badge bg-success'>{`Complété`}</span>}
-                                            </div>
-                                            <div className="p-2 text-muted" style={{alignItems: 'center', display: 'flex', justifyContent: 'flex-end'}}>
-                                                <span title="Le nombre d'affectations complétées / le nombre d'activités" className='mr-3'>{"Achèvement "}<FontAwesomeIcon icon={faCheck}/></span>
-                                                <span className='ml-2 mr-3'>{progressText}</span>  
-                                                <DropdownButton className='mr-3'variant='outline-primary' title={<span><FontAwesomeIcon icon={faEllipsisV}  />{" "}</span>} id={`optionsAssignments${item.id}`}>
-                                                    <Dropdown.Item onClick={() => this.setState({editAssignment: item})}><FontAwesomeIcon icon={faPencilAlt}  />{" Modifier"}</Dropdown.Item>
-                                                    <Dropdown.Item onClick={() => this.onDeleteAssignment(item.id)}><FontAwesomeIcon icon={faTrashAlt}  />{" Supprimer"}</Dropdown.Item>
-                                                </DropdownButton>
-                                            </div>
+                                <CustomCard key={index} progressText={progressValue.text} progressValue={`${progressValue.value}%`}>
+                                    <div className='grid-assignments'>
+                                        <div>
+                                            <span dangerouslySetInnerHTML={{__html: item.user.avatar}}></span>
                                         </div>
-                                        <div className='mt-3 d-flex align-items-center'>
-                                            <strong>{"Activités"}</strong>
-                                            <Button variant='link'  onClick={() => this.onDetail(this.state.detail == item.id ? -1 : item.id)}><FontAwesomeIcon icon={this.state.detail == item.id ? faChevronUp : faChevronDown}/></Button>
-                                        </div>  
-                                        {this.state.detail == item.id && 
-                                            <div style={{width:'100%'}}>
-                                                {data.template.activities.map((act, index) => {
-                                                        return (<UserActivityList user={item.user} data={act} key={index}/>);   
-                                                    }
-                                                )}
-                                        </div>}
-                                    </Card.Body>
-                                </Card>
+                                        <div>
+                                            <strong>{item.user.firstName}</strong><span  className='ml-3 text-muted'>Groupe:</span><span className='text-muted'>{` ${item.user.groupList}`}</span>
+                                            <div className='text-muted'>Dernière connexion: {item.user.lastAccess}</div>
+                                            <div className='text-muted'>{`Début: ${UtilsDateTime.getDate(item.startDate)} (${item.nbHoursPerWeek} h/semaine)`}</div>
+                                            <div className='text-muted'>{`Durée: ${txtDuration}`}</div>
+                                            <div className='text-muted'>{`Échéance: ${UtilsDateTime.getDate(item.endDate)}`}</div>
+                                        </div>
+                                        <div>
+                                            {item.completionState == 0 && <span className='badge bg-success'>{`En cours`}</span>}
+                                            {item.completionState == 1 && <span className='badge bg-secondary'>{`Archivé`}</span>}
+                                            {item.completionState == 2 && <span className='badge bg-danger'>{`Apprenant en retard`}</span>}
+                                            {item.completionState == 3 && <span className='badge bg-success'>{`Complété`}</span>}
+                                        </div>
+                                        <div className="p-2 text-muted" style={{alignItems: 'center', display: 'flex', justifyContent: 'flex-end'}}>
+                                            <span title="Le nombre d'affectations complétées / le nombre d'activités" className='mr-3'>{"Achèvement "}<FontAwesomeIcon icon={faCheck}/></span>
+                                            <span className='ml-2 mr-3'>{progressText}</span>  
+                                            <DropdownButton className='mr-3'variant='outline-primary' title={<span><FontAwesomeIcon icon={faEllipsisV}  />{" "}</span>} id={`optionsAssignments${item.id}`}>
+                                                <Dropdown.Item onClick={() => this.setState({editAssignment: item})}><FontAwesomeIcon icon={faPencilAlt}  />{" Modifier"}</Dropdown.Item>
+                                                <Dropdown.Item onClick={() => this.onDeleteAssignment(item.id)}><FontAwesomeIcon icon={faTrashAlt}  />{" Supprimer"}</Dropdown.Item>
+                                            </DropdownButton>
+                                        </div>
+                                    </div>
+                                    <div className='mt-3 d-flex align-items-center'>
+                                        <strong>{"Activités"}</strong>
+                                        <Button variant='link'  onClick={() => this.onDetail(this.state.detail == item.id ? -1 : item.id)}><FontAwesomeIcon icon={this.state.detail == item.id ? faChevronUp : faChevronDown}/></Button>
+                                    </div>  
+                                    {this.state.detail == item.id && 
+                                        <div style={{width:'100%'}}>
+                                            {data.template.activities.map((act, index) => {
+                                                    return (<UserActivityList user={item.user} data={act} key={index}/>);   
+                                                }
+                                            )}
+                                    </div>}
+                                </CustomCard>
+
                             return (card);                                     
                         }
                     )}
@@ -564,16 +550,12 @@ class WorkPlanActivitiesView extends Component{
         }
         
         let main =  
-            <>                
-                <div className='d-flex' style={{justifyContent: "space-between", alignItems: "center"}}>
-                    <div className='d-flex' style={{alignItems: "center"}}>
-                        <span className='h2 mr-3'>Activités</span>
-                        <Button variant='outline-primary' className='rounded-circle' title='Ajouter des activités.' onClick={() => this.onShowActivities(true)} ><FontAwesomeIcon icon={faPlus}/></Button>
-                    </div>
+            <>      
+                <CustomHeader title="Activités" btnAfter={<CustomButton title='Ajouter des activités.'  onClick={() => this.onShowActivities(true)}><FontAwesomeIcon icon={faPlus}/></CustomButton>}>
                     <div>
                         Filtrer par <Form.Control style={{width: '300px', display: 'inline-block'}} className='rounded' onChange={this.onSearch} type="search" value={this.state.queryStr} name='queryStr' placeholder="Catégories, cours..."/>
                     </div>
-                </div> 
+                </CustomHeader>          
                 <div>
                     {activityList.map((item, index) => {
                             let progressValue = 0;
@@ -588,11 +570,8 @@ class WorkPlanActivitiesView extends Component{
                             progressValue = (isNaN(progressValue) ? 0 : Math.round(progressValue,1));
                             
                             let card = 
-                                <Card key={index} className='rounded mt-2 mb-2'>
-                                    <div title={`${progressValue}% (le nombre d'activités complètes / le nombre d'élèves)`} style={{backgroundColor: '#0f6fc5', width: `${progressValue}%`, height: '5px'}}>
-                                        
-                                    </div>
-                                    <Card.Body className='grid-activity bg-light'>
+                                <CustomCard key={index} progressText={`${progressValue}% (le nombre d'activités complètes / le nombre d'élèves)`} progressValue={`${progressValue}%`}>
+                                    <div className='d-flex align-items-center' style={{justifyContent: 'space-between'}}>
                                         <div>
                                             <div className='h4'><strong><a href={item.cmUrl} target="_blank">{item.cmName}</a></strong></div>
                                             <div className='h6 text-muted pl-3'>{`${item.categoryName}/${item.courseName}`}</div>
@@ -613,8 +592,10 @@ class WorkPlanActivitiesView extends Component{
                                                 <Dropdown.Item onClick={() => this.onDeleteActivity(item.id)}><FontAwesomeIcon icon={faTrashAlt}  />{" Supprimer"}</Dropdown.Item>
                                             </DropdownButton>
                                         </div>
-                                    </Card.Body>
-                                </Card>
+                                    </div>
+                                    
+                                </CustomCard>
+                               
                             return (card);                                     
                         }
                     )}

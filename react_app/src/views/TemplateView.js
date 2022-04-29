@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {ComboBoxPlus, FeedbackCtrl, DataGrid, Modal, Pagination, ToggleButtons} from '../libs/components/Components';
 import {$glVars} from '../common/common';
 import { JsNx, UtilsString } from '../libs/utils/Utils';
+import { CustomButton, CustomHeader } from './Components';
 
 
 export class ActivityPicker extends Component{
@@ -352,7 +353,7 @@ export class WorkPlanTemplateView extends Component{
             <>
                 <Card>
                     <Card.Body>
-                        <div className='h4 mb-4'>Description <Button title="Éditer" variant="outline-primary" className='rounded-circle' onClick={() => this.setState({editModal:true})}><FontAwesomeIcon icon={faPencilAlt}/></Button></div>
+                        <CustomHeader title="Description" btnAfter={<CustomButton title="Éditer" onClick={() => this.setState({editModal:true})}><FontAwesomeIcon icon={faPencilAlt}/></CustomButton>}/>
                         <Row className='m-2'>
                             <Col className='text-muted' sm={2}>Nom</Col>
                             <Col sm={10} className='bg-light border border-secondary p-2 rounded'>{data.template.name}</Col>
@@ -421,7 +422,6 @@ class ModalTemplateForm extends Component{
 
         let modalBody = 
             <Form>
-                <div className='h3 mb-4'>Modifier</div>
                 <Form.Group as={Row} >
                     <Form.Label column sm="2">{"Nom"}</Form.Label>
                     <Col sm="10">

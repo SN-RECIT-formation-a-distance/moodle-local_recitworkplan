@@ -814,8 +814,14 @@ class Template{
     public $lastUpdate = null;
     //@array of TemplateActivity
     public $activities = array();
-
     public $followUps = array();
+
+    public function __construct(){
+        $this->collaborator = new stdClass();
+        $this->collaborator->id = 0;
+        $this->collaborator->firstName = '';
+        $this->collaborator->lastName = '';
+    }
  
     public static function create($dbData){
         global $DB, $OUTPUT;
@@ -836,11 +842,6 @@ class Template{
             $result->creator->url = (new \moodle_url('/user/profile.php', array('id' => $creator->id)))->out();
             $result->creator->avatar = $OUTPUT->user_picture($creator, array('size'=> 50));
         }
-
-        $result->collaborator = new stdClass();
-        $result->collaborator->id = 0;
-        $result->collaborator->firstName = '';
-        $result->collaborator->lastName = '';
 
         if((isset($dbData->collaboratorid)) && ($dbData->collaboratorid != 0)){
             $result->collaborator->id = $dbData->collaboratorid;

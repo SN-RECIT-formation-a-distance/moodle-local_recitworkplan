@@ -1,13 +1,10 @@
 import React, { Component } from 'react';
-import {ButtonToolbar, Tabs, Tab, ButtonGroup, Button, Card, ToggleButton} from 'react-bootstrap';
-import {faPlus, faMinus, faSyncAlt, faArchive, faFileAlt, faSync, faFile, faCross, faCheck, faTimes, faBackward, faArrowCircleUp, faArrowCircleDown, faChevronUp, faChevronDown} from '@fortawesome/free-solid-svg-icons';
+import {Button, Card} from 'react-bootstrap';
+import { faSyncAlt, faArchive, faCheck, faChevronUp, faChevronDown} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {FeedbackCtrl, ToggleButtons} from '../libs/components/Components';
-import { TemplatesView } from './TemplateView';
-import { AssignmentsView } from './AssignmentView';
 import {$glVars} from '../common/common';
-import { Pagination } from '../libs/components/Pagination';
-import { UserActivityList } from './Components';
+import { UserActivityList, CustomCard } from './Components';
 import { UtilsDateTime, WorkPlanUtils } from '../libs/utils/Utils';
 import { ClickableElipsis } from '../libs/components/ClickableElipsis';
 
@@ -89,22 +86,20 @@ export class StudentTemplateTile extends Component {
         let rythmeColor = this.getProgressBarRythmColor();
 
         let main = 
-        <Card className='rounded' style={{width:'100%'}}>
-            <div className={rythmeColor} title={progressValue.text} style={{width: `${progressValue.value}%`, height: '5px', maxWidth: "100%"}}></div>
-            <Card.Body style={{backgroundColor: "#f0f0f0"}} >
+            <CustomCard progressColor={rythmeColor} progressText={progressValue.text} progressValue={`${progressValue.value}%`}>
                 <div className='mb-3'>
                     <div className='h4'>{this.props.reportData.template.name}</div>
                     <ClickableElipsis className='text-muted' text={this.props.reportData.template.description}/>
                 </div>
                 
-                <div style={{backgroundColor: "#f0f0f0", justifyContent: 'space-between', display: "flex", alignItems: "center"}}>
+                <div style={{ justifyContent: 'space-between', display: "flex", alignItems: "center"}}>
                     <div>
                         <div className='text-muted'>{`Échéance: ${UtilsDateTime.getDate(this.state.assignment.endDate)}`}</div>
                         <div className='text-muted'>{`Rythme: ${this.state.assignment.nbHoursPerWeek} (h/semaine)`}</div>
                     </div>
                     <div>
                         <div className='text-muted'>{`Attribué par `}<a href={this.state.assignment.assignor.url} target="_blank"><span dangerouslySetInnerHTML={{__html: this.state.assignment.assignor.avatar}}></span></a></div>
-                        {this.props.reportData.template.communication_url && this.props.reportData.template.communication_url.length > 0 && <div className='text-muted'><a href={this.props.reportData.template.communication_url} target="_blank">Contacter</a></div>}
+                        {this.props.reportData.template.communicationUrl && this.props.reportData.template.communicationUrl.length > 0 && <div className='text-muted'><a href={this.props.reportData.template.communicationUrl} target="_blank">Contacter</a></div>}
                     </div>
                     {this.state.assignment.completionState == 2 &&
                         <div>
@@ -125,9 +120,9 @@ export class StudentTemplateTile extends Component {
                                 return (<UserActivityList user={this.state.assignment.user} data={item} key={index}/>);                                     
                             }
                         )}
-                    </div>}
-            </Card.Body>
-        </Card>
+                </div>}
+            </CustomCard>
+      
         return main;
     }
 
@@ -151,14 +146,6 @@ export class StudentTemplateTile extends Component {
                 hoursWorked = hoursWorked + item.nbHoursCompletion;
             }
         }
-
-        /*
-                    <div className="col-md-4">
-                        <span style={{fontWeight:'bold'}}>Rythme attendu :</span> 
-                        <div className="progress" style={{height:'20px'}}>
-                            <div className={"progress-bar "+rythmeColor} role="progressbar" style={{width:rythmePercentage+'%'}} aria-valuenow={rythmePercentage} aria-valuemin="0" aria-valuemax="100">{rythmePercentage+'%'}</div>
-                        </div>
-                    </div>*/
 
         let percentage = Math.ceil(hoursWorked / hoursExpected);
         if (percentage > 100){
