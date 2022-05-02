@@ -7,7 +7,7 @@ import {$glVars} from '../common/common';
 import { JsNx, UtilsString, UtilsDateTime, WorkPlanUtils } from '../libs/utils/Utils';
 import { Pagination } from '../libs/components/Pagination';
 import {ActivityPicker, WorkPlanTemplateView} from './TemplateView';
-import { UserActivityList, CustomCard, CustomHeader, CustomButton } from './Components';
+import { UserActivityList, CustomCard, CustomHeader, CustomButton, CustomBadge, CustomBadgeCompletion, CustomFormControl } from './Components';
 import { ModalAssignmentPicker, ModalAssignmentForm } from './AssignmentView';
 
 export class AdminView extends Component {
@@ -100,20 +100,20 @@ export class WorkPlanListView extends Component{
                                         {workPlan.assignments.map((assignment, index2) => {
                                             return <span key={index2} style={{marginLeft: '-15px'}} dangerouslySetInnerHTML={{__html: assignment.user.avatar}}></span>;
                                         })}
-                                        {!this.props.isBlock && workPlan.template.state != 1 && <Button variant='outline-primary' className='rounded-circle' title='Attribuer un plan de travail.' onClick={() => this.onEdit(workPlan.template.id, 'assignments')}><FontAwesomeIcon icon={faPlus}/></Button>}
+                                        {!this.props.isBlock && workPlan.template.state != 1 && <CustomButton title='Attribuer un plan de travail.'  onClick={() => this.onEdit(workPlan.template.id, 'assignments')} faIcon={faPlus}/>}
                                     </div>
                                     <div className="m-3 p-2">
-                                        {workPlan.stats && workPlan.stats.nbLateStudents > 0 && <span className='badge bg-danger'>{`${workPlan.stats.nbLateStudents} apprenants en retard`}</span>}
-                                        {actStats.nbAwaitingGrade > 0 && <span className='badge bg-warning m-2'>{actStats.nbAwaitingGrade} travaux à corriger</span>}
-                                        {actStats.nbFails > 0 && <span className='badge bg-warning m-2'>{actStats.nbFails} risques d'échec</span>}
+                                        {workPlan.stats && workPlan.stats.nbLateStudents > 0 && <CustomBadge variant="bg-danger" text={`${workPlan.stats.nbLateStudents} apprenants en retard`}/>}
+                                        {actStats.nbAwaitingGrade > 0 && <CustomBadge variant="bg-warning" text={`${actStats.nbAwaitingGrade} travaux à corriger`}/>}
+                                        {actStats.nbFails > 0 && <CustomBadge variant="bg-warning" text={`${actStats.nbFails} risques d'échec`}/>}
                                         {workPlan.template.followUps.map((followUps, index2) => {
-                                            return <Button key={index2} variant={followUps.variant}>{followUps.desc}</Button>;
+                                            <CustomBadge key={index2} variant={followUps.variant} text={followUps.desc}/>
                                         })}
                                     </div>  
                                     {workPlan.stats && workPlan.stats.nbStudents > 0 && 
                                         <div className="p-2 text-muted row">
                                             <div className='col-md-6'>
-                                                <span title="Le nombre d'élèves qui ont complété le plan de travail / le nombre total d'élèves assigné au plan de travail">{"Achèvement "}<FontAwesomeIcon icon={faCheck}/></span><span className='ml-2'>{`${workPlan.stats.workPlanCompletion}/${workPlan.stats.nbStudents}`}</span>
+                                                <CustomBadgeCompletion title="Le nombre d'élèves qui ont complété le plan de travail / le nombre total d'élèves assigné au plan de travail" stats={`${workPlan.stats.workPlanCompletion}/${workPlan.stats.nbStudents}`}/>
                                             </div>
                                             <div className='col-md-6' style={{textAlign:'right'}}>
                                                 <span>
@@ -165,7 +165,7 @@ export class WorkPlanListView extends Component{
         {!this.props.isBlock && <a href='#' onClick={() => this.onEdit(workPlan.template.id, 'activities')} className='h3'>{workPlan.template.name}</a>}
         {this.props.isBlock && <a href={$glVars.recitWorkPlanUrl + '?id=' + workPlan.template.id} className='h3'>{workPlan.template.name}</a>}
         <ButtonGroup>
-            {!this.props.isBlock && <DropdownButton variant='outline-primary' title={<FontAwesomeIcon icon={faEllipsisV} />} id={`optionsWorkPlan${workPlan.template.id}`}>
+            {!this.props.isBlock && <DropdownButton bsPrefix='rounded btn btn-outline-primary' variant='' title={<FontAwesomeIcon icon={faEllipsisV} />} id={`optionsWorkPlan${workPlan.template.id}`}>
             <Dropdown.Item onClick={() => this.onCopy(workPlan.template.id)}><FontAwesomeIcon icon={faCopy}  />{" Copier"}</Dropdown.Item>
             {workPlan.template.state == 1 && <Dropdown.Item onClick={() => this.onCopy(workPlan.template.id, 0)}><FontAwesomeIcon icon={faBookmark}  />{" Utiliser ce gabarit"}</Dropdown.Item>}
             {workPlan.template.state != 1 && <Dropdown.Item onClick={() => this.onCopy(workPlan.template.id, 1)}><FontAwesomeIcon icon={faBookmark}  />{" Enregistrer en tant que gabarit"}</Dropdown.Item>}
@@ -302,8 +302,8 @@ class WorkPlanView extends Component{
 
         let main =  
             <div>   
-                <CustomHeader title="Modifier le plan de travail" btnBefore={<CustomButton title="Revenir" onClick={this.props.onClose}><FontAwesomeIcon icon={faArrowLeft}/></CustomButton>}>
-                    {this.state.data.template.state == 1 && <span className='badge bg-warning ml-2'><FontAwesomeIcon icon={faBookmark}/> Gabarit</span>}
+                <CustomHeader title="Modifier le plan de travail" btnBefore={<CustomButton title="Revenir" onClick={this.props.onClose} faIcon={faArrowLeft}/>}>
+                    {this.state.data.template.state == 1 && <CustomBadge variant='bg-warning' faIcon={faBookmark} text={"Gabarit"}/>}
                 </CustomHeader>             
 
                 <WorkPlanTemplateView data={this.state.data} onSave={this.onSaveTemplate} />
@@ -398,7 +398,7 @@ class WorkPlanAssignmentsView extends Component{
             <>     
                 <CustomHeader title="Affectations" btnAfter={<CustomButton title='Attribuer un plan de travail.'  onClick={() => this.onShowAssignments(true)}><FontAwesomeIcon icon={faPlus}/></CustomButton>}>
                     <div className='d-flex align-items-center d-block-mobile w-100-mobile' >
-                        Filtrer par <Form.Control className='rounded w-100-mobile' style={{display:'inline',width:'200px',marginRight:'10px', marginLeft:'10px'}} onChange={this.onSearch} type="search" value={this.state.queryStr} name='queryStr' placeholder="Nom, groupe..."/>
+                        Filtrer par <CustomFormControl className='w-100-mobile' style={{display:'inline',width:'200px',marginRight:'10px', marginLeft:'10px'}} onChange={this.onSearch} type="search" value={this.state.queryStr} name='queryStr' placeholder="Nom, groupe..."/>
                         Trier par <select type="select" className='form-control rounded' style={{width:'115px', marginLeft:'10px'}} onChange={(e) => this.setState({sortAssignment:e.target.value})}>
                             <option value="lastname">Nom</option>
                             <option value="firstname">Prénom</option>
@@ -438,15 +438,14 @@ class WorkPlanAssignmentsView extends Component{
                                             <div className='text-muted'>{`Échéance: ${UtilsDateTime.getDate(item.endDate)}`}</div>
                                         </div>
                                         <div>
-                                            {item.completionState == 0 && <span className='badge bg-success'>{`En cours`}</span>}
-                                            {item.completionState == 1 && <span className='badge bg-secondary'>{`Archivé`}</span>}
-                                            {item.completionState == 2 && <span className='badge bg-danger'>{`Apprenant en retard`}</span>}
-                                            {item.completionState == 3 && <span className='badge bg-success'>{`Complété`}</span>}
+                                            {item.completionState == 0 && <CustomBadge variant="bg-success" text="En cours"/>}
+                                            {item.completionState == 1 && <CustomBadge variant="bg-secondary" text="Archivé"/>}
+                                            {item.completionState == 2 && <CustomBadge variant="bg-danger" text="Apprenant en retard"/>}
+                                            {item.completionState == 3 && <CustomBadge variant="bg-success" text="Complété"/>}
                                         </div>
                                         <div className="p-2 text-muted" style={{alignItems: 'center', display: 'flex', justifyContent: 'flex-end'}}>
-                                            <span title="Le nombre d'affectations complétées / le nombre d'activités" className='mr-3'>{"Achèvement "}<FontAwesomeIcon icon={faCheck}/></span>
-                                            <span className='ml-2 mr-3'>{progressText}</span>  
-                                            <DropdownButton className='mr-3'variant='outline-primary' title={<span><FontAwesomeIcon icon={faEllipsisV}  />{" "}</span>} id={`optionsAssignments${item.id}`}>
+                                            <CustomBadgeCompletion title="Le nombre d'affectations complétées / le nombre d'activités" stats={progressText}/>
+                                            <DropdownButton className='mr-3' bsPrefix='rounded btn btn-outline-primary' variant='' title={<span><FontAwesomeIcon icon={faEllipsisV}  />{" "}</span>} id={`optionsAssignments${item.id}`}>
                                                 <Dropdown.Item onClick={() => this.setState({editAssignment: item})}><FontAwesomeIcon icon={faPencilAlt}  />{" Modifier"}</Dropdown.Item>
                                                 <Dropdown.Item onClick={() => this.onDeleteAssignment(item.id)}><FontAwesomeIcon icon={faTrashAlt}  />{" Supprimer"}</Dropdown.Item>
                                             </DropdownButton>
@@ -553,7 +552,7 @@ class WorkPlanActivitiesView extends Component{
             <>      
                 <CustomHeader title="Activités" btnAfter={<CustomButton title='Ajouter des activités.'  onClick={() => this.onShowActivities(true)}><FontAwesomeIcon icon={faPlus}/></CustomButton>}>
                     <div>
-                        Filtrer par <Form.Control style={{width: '300px', display: 'inline-block'}} className='rounded' onChange={this.onSearch} type="search" value={this.state.queryStr} name='queryStr' placeholder="Catégories, cours..."/>
+                        Filtrer par <CustomFormControl style={{width: '300px', display: 'inline-block'}} onChange={this.onSearch} type="search" value={this.state.queryStr} name='queryStr' placeholder="Catégories, cours..."/>
                     </div>
                 </CustomHeader>          
                 <div>
@@ -581,13 +580,12 @@ class WorkPlanActivitiesView extends Component{
                                             {template.followUps.map((followUps, index2) => {
                                                 return <Button key={index2} variant={followUps.variant}>{followUps.desc}</Button>;
                                             })}
-                                            {actStats.nbAwaitingGrade > 0 && <span className='badge bg-warning'>{actStats.nbAwaitingGrade} travaux à corriger</span>}
-                                            {actStats.nbFails > 0 && <span className='badge bg-warning'>{actStats.nbFails} risques d'échec</span>}
+                                            {actStats.nbAwaitingGrade > 0 && <CustomBadge variant="bg-warning" text={`${actStats.nbAwaitingGrade} travaux à corriger`}/>}
+                                            {actStats.nbFails > 0 && <CustomBadge variant="bg-warning" text={`${actStats.nbFails} risques d'échec`}/>}
                                         </div>
                                         <div className="p-2 text-muted" style={{alignItems: 'center', display: 'flex'}}>
-                                            <span title="Le nombre d'activités complètés / le nombre d'élèves" className='mr-3'>{"Achèvement "} <FontAwesomeIcon icon={faCheck}/></span>
-                                            <span className='ml-2 mr-3'>{progressText}</span>  
-                                            <DropdownButton variant='outline-primary' title={<span><FontAwesomeIcon icon={faEllipsisV}  />{" "}</span>} id={`optionsActivity${item.id}`}>
+                                            <CustomBadgeCompletion title="Le nombre d'activités complètés / le nombre d'élèves" stats={progressText}/>
+                                            <DropdownButton bsPrefix='rounded btn btn-outline-primary' variant='' title={<span><FontAwesomeIcon icon={faEllipsisV}  />{" "}</span>} id={`optionsActivity${item.id}`}>
                                                 <Dropdown.Item onClick={() => this.onShowActivities(true)}><FontAwesomeIcon icon={faPencilAlt}  />{" Modifier"}</Dropdown.Item>
                                                 <Dropdown.Item onClick={() => this.onDeleteActivity(item.id)}><FontAwesomeIcon icon={faTrashAlt}  />{" Supprimer"}</Dropdown.Item>
                                             </DropdownButton>

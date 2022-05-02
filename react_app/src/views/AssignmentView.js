@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {ComboBoxPlus, FeedbackCtrl, Modal} from '../libs/components/Components';
 import {$glVars} from '../common/common';
 import { JsNx } from '../libs/utils/Utils';
+import {CustomFormControl} from './Components'
 import { DateInput } from '../libs/components/DateTime';
 
 export class ModalAssignmentPicker extends Component{
@@ -97,7 +98,7 @@ export class ModalAssignmentPicker extends Component{
                     <div className='col-md-6'>
                         <div style={{display: 'flex', alignItems: "center", justifyContent: "space-between"}}>
                             <strong>Liste d'élèves</strong>
-                            <Form.Control className='rounded' style={{width:'200px'}} onChange={(e) => this.onFilterChange(e.target.name, e.target.value)}  type="search" value={this.state.dropdownLists.name} name='name' placeholder="Rechercher..."/>
+                            <CustomFormControl style={{width:'200px'}} onChange={(e) => this.onFilterChange(e.target.name, e.target.value)}  type="search" value={this.state.dropdownLists.name} name='name' placeholder="Rechercher..."/>
                         </div>
                         
                         <div className='mt-2 mb-2' style={{maxHeight: 500, overflowY: 'auto'}}>
@@ -154,7 +155,7 @@ export class ModalAssignmentPicker extends Component{
                         </div>
                     </div>
                     <div className='col-12'>
-                        <Form.Control className='rounded' style={{width:'180px',display:'inline'}} onChange={(e) => this.setState({rhythme:e.target.value})}  type="number" value={this.state.rhythme} name='rhythme' placeholder="Rythme (h/semaine)"/>
+                        <CustomFormControl style={{width:'180px', display:'inline'}} onChange={(e) => this.setState({rhythme:e.target.value})}  type="number" value={this.state.rhythme} name='rhythme' placeholder="Rythme (h/semaine)"/>
                         <Button variant="link" onClick={() => this.onAddSelected()}>{"Ajouter tous les utilisateurs "}<FontAwesomeIcon icon={faArrowRight}/></Button>
                     </div>
                 </div>
@@ -279,27 +280,27 @@ export class ModalAssignmentForm extends Component{
                 <Form.Group as={Row} >
                     <Form.Label column sm="2">{"Début"}</Form.Label>
                     <Col sm="10">
-                        <DateInput value={item.startDate} name="startDate" onChange={this.onDataChange} />
+                        <DateInput className="rounded" value={item.startDate} name="startDate" onChange={this.onDataChange} />
                     </Col>
                 </Form.Group>
                 <Form.Group as={Row}>
                     <Form.Label column sm="2">{"Commentaire"}</Form.Label>
                     <Col sm="10">
-                        <Form.Control as="textarea" rows={4} className='w-100' name="comment" value={item.comment} onChange={this.onDataChange}/>
+                        <CustomFormControl as="textarea" rows={4} className='w-100' name="comment" value={item.comment} onChange={this.onDataChange}/>
                     </Col>
                 </Form.Group>
                 <Form.Group as={Row}>
                     <Form.Label column sm="2">{"h/semaine"}</Form.Label>
                     <Col sm="10">
-                        <Form.Control style={{width: '50px', display: 'inline'}} className="mr-3" type="text" value={item.nbHoursPerWeek} name="nbHoursPerWeek" onChange={this.onDataChange} />
+                        <CustomFormControl style={{width: '50px', display: 'inline'}} className="mr-3" type="text" value={item.nbHoursPerWeek} name="nbHoursPerWeek" onChange={this.onDataChange} />
                     </Col>
                 </Form.Group>
             </Form>;
 
         let modalFooter = 
         <ButtonGroup>
-                <Button variant='secondary' onClick={this.onClose}>Annuler</Button>
-                <Button disabled={!this.state.flags.dataChanged} variant='success' className='ml-2' onClick={this.onSave}>Enregistrer</Button>
+                <Button variant='secondary' className='rounded' onClick={this.onClose}>Annuler</Button>
+                <Button disabled={!this.state.flags.dataChanged} variant='success' className='ml-2 rounded' onClick={this.onSave}>Enregistrer</Button>
         </ButtonGroup>;
 
 

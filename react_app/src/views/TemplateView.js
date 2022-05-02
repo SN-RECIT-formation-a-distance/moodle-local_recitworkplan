@@ -5,7 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {ComboBoxPlus, FeedbackCtrl, DataGrid, Modal, Pagination, ToggleButtons} from '../libs/components/Components';
 import {$glVars} from '../common/common';
 import { JsNx, UtilsString } from '../libs/utils/Utils';
-import { CustomButton, CustomHeader } from './Components';
+import { CustomButton, CustomHeader, CustomFormControl } from './Components';
 
 
 export class ActivityPicker extends Component{
@@ -128,8 +128,8 @@ export class ActivityPicker extends Component{
                                                                 <div><strong>{item.cmName}</strong></div>
                                                                 <span className='text-muted'>{item.courseName}</span>
                                                                 <div className='d-flex align-items-center'>
-                                                                    <Form.Control className='mr-3' style={{width: '100px'}} type="text" placeholder="Durée" value={item.nbHoursCompletion} onBlur={() => this.onSaveTplAct(item)} name="nbHoursCompletion" onChange={(event) => this.onDataChange(event, index)} />
-                                                                    <span>heures</span>
+                                                                    <CustomFormControl className='mr-3' style={{width: '100px'}} type="text" placeholder="Durée" value={item.nbHoursCompletion} onBlur={() => this.onSaveTplAct(item)} name="nbHoursCompletion" onChange={(event) => this.onDataChange(event, index)} />
+                                                                    <span className='text-muted'>heures</span>
                                                                 </div>
                                                             </div>
                                                             <div>
@@ -368,7 +368,7 @@ export class WorkPlanTemplateView extends Component{
                         </Row>}
                         <Row className='m-2'>
                             <Col className='text-muted' sm={2}>URL de communication</Col>
-                            <Col sm={10} className='bg-light border border-secondary p-2 rounded'><a target="_blank" href={data.template.communication_url}>{data.template.communication_url}</a></Col>
+                            <Col sm={10} className='bg-light border border-secondary p-2 rounded'><a target="_blank" href={data.template.communicationUrl}>{data.template.communicationUrl}</a></Col>
                         </Row>             
                         <Row className='m-2'>
                             <Col className='text-muted' sm={2}>Temps à consacrer</Col>
@@ -425,25 +425,25 @@ class ModalTemplateForm extends Component{
                 <Form.Group as={Row} >
                     <Form.Label column sm="2">{"Nom"}</Form.Label>
                     <Col sm="10">
-                        <Form.Control type="text" value={data.template.name} name="name" onChange={this.onDataChange} />
+                        <CustomFormControl type="text" value={data.template.name} name="name" onChange={this.onDataChange} />
                     </Col>
                 </Form.Group>
                 <Form.Group as={Row}>
                     <Form.Label column sm="2">{"Description"}</Form.Label>
                     <Col sm="10">
-                        <Form.Control as="textarea" rows={4} className='w-100' value={data.template.description} name="description" onChange={this.onDataChange} />
+                        <CustomFormControl as="textarea" rows={4} className='w-100' value={data.template.description} name="description" onChange={this.onDataChange} />
                     </Col>
                 </Form.Group>
                 <Form.Group as={Row}>
                     <Form.Label column sm="2">{"URL de communication"}</Form.Label>
                     <Col sm="10">
-                        <Form.Control type="text" className='w-100' value={data.template.communicationUrl || ''} name="communication_url" onChange={this.onDataChange} />
+                        <CustomFormControl type="text" className='w-100' value={data.template.communicationUrl} name="communicationUrl" onChange={this.onDataChange} />
                     </Col>
                 </Form.Group>
                 <Form.Group as={Row}>
                     <Form.Label column sm="2">{"Collaborateur"}</Form.Label>
                     <Col sm="10">
-                        <select className='w-100 form-control' name="collaborator.id" value={data.template.collaborator.id} onChange={this.onDataChange}>
+                        <select className='w-100 form-control rounded' name="collaborator.id" value={data.template.collaborator.id} onChange={this.onDataChange}>
                             <option value="0"></option>
                             
                             {this.state.teachers.map((item, index) => {
@@ -466,8 +466,8 @@ class ModalTemplateForm extends Component{
 
         let modalFooter = 
             <ButtonGroup>
-                    <Button variant='secondary' onClick={this.props.onClose}>Annuler</Button>
-                    <Button variant='success' className='ml-2' onClick={this.onSave}>Enregistrer</Button>
+                    <Button variant='secondary'  className='rounded' onClick={this.props.onClose}>Annuler</Button>
+                    <Button variant='success' className='ml-2 rounded' onClick={this.onSave}>Enregistrer</Button>
             </ButtonGroup>;
 
         return <Modal title="Modifier gabarit" body={modalBody} onClose={this.props.onClose} footer={modalFooter}/>

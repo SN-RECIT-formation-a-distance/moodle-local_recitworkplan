@@ -4,7 +4,7 @@ import { faSyncAlt, faArchive, faCheck, faChevronUp, faChevronDown} from '@forta
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {FeedbackCtrl, ToggleButtons} from '../libs/components/Components';
 import {$glVars} from '../common/common';
-import { UserActivityList, CustomCard } from './Components';
+import { UserActivityList, CustomCard, CustomBadge, CustomBadgeCompletion } from './Components';
 import { UtilsDateTime, WorkPlanUtils } from '../libs/utils/Utils';
 import { ClickableElipsis } from '../libs/components/ClickableElipsis';
 
@@ -103,11 +103,11 @@ export class StudentTemplateTile extends Component {
                     </div>
                     {this.state.assignment.completionState == 2 &&
                         <div>
-                            <span className='badge btn-danger'>{`En retard`}</span>
+                            <CustomBadge variant="bg-danger" text="En retard"/>
                         </div> 
                     }
-                    <div >
-                        <span title="Le nombre d'activités complétées / le nombre d'activités">{"Achèvement "}<FontAwesomeIcon icon={faCheck}/></span><span className='ml-2'>{progressText}</span>  
+                    <div>
+                        <CustomBadgeCompletion title="Le nombre d'activités complétées / le nombre d'activités" stats={progressText}/>
                     </div>
                 </div>
                 <div className='mt-3 d-flex align-items-center'>

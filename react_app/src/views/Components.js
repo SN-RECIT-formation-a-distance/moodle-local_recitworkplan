@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
-import { Card, Button} from 'react-bootstrap';
+import { Card, Button, Form} from 'react-bootstrap';
 import { JsNx } from '../libs/utils/Utils';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCheck } from '@fortawesome/free-solid-svg-icons';
 
 export class UserActivityList extends Component{
     static defaultProps = {        
@@ -94,10 +96,84 @@ export class CustomButton extends Component{
     static defaultProps = {        
         title: '',
         onClick: null,
-        children: null
+        children: null,
+        faIcon: null
     };
 
     render(){
-        return <Button size='sm' variant='outline-primary' className='rounded-circle' title={this.props.title} onClick={this.props.onClick} >{this.props.children}</Button>;
+        let main =
+            <Button size='sm' variant='outline-primary' className='rounded-circle' title={this.props.title} onClick={this.props.onClick} >
+                {this.props.faIcon && <FontAwesomeIcon icon={this.props.faIcon}/>}
+                {this.props.children}
+            </Button>;
+
+        return main;
+    }
+}
+
+export class CustomBadge extends Component{
+    static defaultProps = {        
+        faIcon: null,
+        text: '',
+        variant: ''
+    };
+
+    render(){
+        let main = 
+            <span className={`badge rounded ml-2 ${this.props.variant}`}>
+                {this.props.faIcon !== null && <FontAwesomeIcon icon={this.props.faIcon}/>}
+                {` ${this.props.text}`}
+            </span>;
+
+        return main;
+    }
+}
+
+export class CustomBadgeCompletion extends Component{
+    static defaultProps = {        
+        title: '',
+        stats: ''
+    };
+
+    render(){
+        let main = 
+            <span>
+                <span title={this.props.title}>
+                    {"Achèvement "}
+                    <FontAwesomeIcon icon={faCheck}/>
+                </span>
+                <span className='ml-2 mr-2'>
+                    {this.props.stats}
+                </span>
+            </span>;
+
+        return main;
+    }
+}
+
+export class CustomFormControl extends Component{
+    static defaultProps = {        
+        onChange: null,
+        name: '',
+        className: '',
+        style: null,
+        placeholder: '',
+        value: '',
+        onBlur: null,
+        type: '',
+        as: '',
+        rows: null
+    };
+
+    render(){
+        let textArea = <Form.Control as={this.props.as} rows={this.props.rows} className={`rounded ${this.props.className}`} style={this.props.style} 
+                placeholder={this.props.placeholder} value={this.props.value} 
+                onBlur={this.props.onBlur} name={this.props.name} onChange={this.props.onChange} />;
+
+        let input = <Form.Control className={`rounded ${this.props.className}`} style={this.props.style} 
+                type={this.props.type} placeholder={this.props.placeholder} value={this.props.value} 
+                onBlur={this.props.onBlur} name={this.props.name} onChange={this.props.onChange} />;
+
+        return (this.props.as === 'textarea' ? textArea : input);
     }
 }
