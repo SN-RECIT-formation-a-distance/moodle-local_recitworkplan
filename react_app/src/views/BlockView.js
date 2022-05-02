@@ -1,14 +1,11 @@
 import React, { Component } from 'react';
-import { Card, Tabs, Tab, Button, Form, DropdownButton, Dropdown} from 'react-bootstrap';
-import { faPencilAlt,  faPlus, faTrashAlt, faCopy, faCheck, faArrowLeft, faEllipsisV, faSyncAlt, faBookmark, faChevronUp, faChevronDown, faArchive, faUser, faChalkboardTeacher} from '@fortawesome/free-solid-svg-icons';
+import { Card} from 'react-bootstrap';
+import { faCheck} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { FeedbackCtrl, ToggleButtons } from '../libs/components/Components';
+import { FeedbackCtrl } from '../libs/components/Components';
 import {$glVars} from '../common/common';
-import { JsNx, UtilsString, UtilsDateTime, WorkPlanUtils } from '../libs/utils/Utils';
-import { Pagination } from '../libs/components/Pagination';
-import {ActivityPicker, WorkPlanTemplateView} from './TemplateView';
-import { UserActivityList } from './Components';
-import { ModalAssignmentPicker, ModalAssignmentForm } from './AssignmentView';
+import {  UtilsDateTime, WorkPlanUtils } from '../libs/utils/Utils';
+import { FollowUpCard, CustomCard, CustomBadgeCompletion  } from './Components';
 import { WorkPlanListView } from './WorkPlanView';
 
 export class StudentBlockView extends Component{
@@ -65,7 +62,7 @@ export class StudentBlockView extends Component{
                                     </div>
                                     <Card.Body style={{backgroundColor: "#f0f0f0"}}>
                                         <div className='d-flex' style={{justifyContent: 'space-between'}}>
-                                            <a href='#' href={this.viewUrl} className='h3'>{workPlan.template.name}</a>
+                                            <a href={this.viewUrl} className='h3'>{workPlan.template.name}</a>
                                         </div>
                                         <div className='m-1 p-1'>
                                             <span title="Le nombre d'activités complétées / le nombre d'activités">{"Achèvement "}<FontAwesomeIcon icon={faCheck}/></span><span className='ml-2'>{progressText}</span>  
@@ -95,11 +92,38 @@ export class StudentBlockView extends Component{
 
 }
 
-
 export class AdminBlockView extends Component {
     render() {
         let main = <WorkPlanListView isBlock={true} />;
 
         return (main);
+    }
+}
+
+export class WorkPlanCardBlock extends Component{
+    static defaultProps = {        
+        data: null,
+        progress: ''
+    };
+
+    render(){
+        let workPlan = this.props.data;
+
+        let main =
+            <CustomCard progressValue={`${this.props.progress}%`}>
+                <div className='d-flex' style={{justifyContent: 'space-between'}}>
+                    <a href={$glVars.recitWorkPlanUrl + '?id=' + workPlan.template.id} className='h3'>{workPlan.template.name}</a>
+                </div>              
+                {workPlan.stats && workPlan.stats.nbStudents > 0 && 
+                    <div className="p-2 text-muted row">
+                        <CustomBadgeCompletion title="Le nombre d'élèves qui ont complété le plan de travail / le nombre total d'élèves assigné au plan de travail" stats={`${workPlan.stats.workPlanCompletion}/${workPlan.stats.nbStudents}`}/>
+                    </div>
+                }
+                 <div className="m-3 p-2">
+                    <FollowUpCard data={workPlan}/>
+                </div>  
+            </CustomCard>;
+
+        return main;
     }
 }

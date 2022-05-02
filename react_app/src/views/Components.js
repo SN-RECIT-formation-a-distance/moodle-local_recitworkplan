@@ -3,6 +3,7 @@ import { Card, Button, Form} from 'react-bootstrap';
 import { JsNx } from '../libs/utils/Utils';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheck } from '@fortawesome/free-solid-svg-icons';
+import {WorkPlanUtils} from '../common/common';
 
 export class UserActivityList extends Component{
     static defaultProps = {        
@@ -175,5 +176,29 @@ export class CustomFormControl extends Component{
                 onBlur={this.props.onBlur} name={this.props.name} onChange={this.props.onChange} />;
 
         return (this.props.as === 'textarea' ? textArea : input);
+    }
+}
+
+export class FollowUpCard extends Component{
+    static defaultProps = {        
+        data: null,
+    };
+
+    render(){
+        let workPlan = this.props.data;
+
+        let actStats = WorkPlanUtils.getActivityStats(workPlan);
+
+        let main =
+            <>
+                {workPlan.stats && workPlan.stats.nbLateStudents > 0 && <CustomBadge variant="bg-danger" text={`${workPlan.stats.nbLateStudents} apprenants en retard`}/>}
+                {actStats.nbAwaitingGrade > 0 && <CustomBadge variant="bg-warning" text={`${actStats.nbAwaitingGrade} travaux à corriger`}/>}
+                {actStats.nbFails > 0 && <CustomBadge variant="bg-warning" text={`${actStats.nbFails} risques d'échec`}/>}
+                {workPlan.template.followUps.map((followUps, index2) => {
+                    <CustomBadge key={index2} variant={followUps.variant} text={followUps.desc}/>
+                })}
+            </>;
+
+        return main;
     }
 }

@@ -3,9 +3,9 @@ import {Button, Card} from 'react-bootstrap';
 import { faSyncAlt, faArchive, faCheck, faChevronUp, faChevronDown} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {FeedbackCtrl, ToggleButtons} from '../libs/components/Components';
-import {$glVars} from '../common/common';
+import {$glVars, WorkPlanUtils} from '../common/common';
 import { UserActivityList, CustomCard, CustomBadge, CustomBadgeCompletion } from './Components';
-import { UtilsDateTime, WorkPlanUtils } from '../libs/utils/Utils';
+import { UtilsDateTime } from '../libs/utils/Utils';
 import { ClickableElipsis } from '../libs/components/ClickableElipsis';
 
 export class StudentView extends Component {
@@ -92,7 +92,7 @@ export class StudentTemplateTile extends Component {
                     <ClickableElipsis className='text-muted' text={this.props.reportData.template.description}/>
                 </div>
                 
-                <div style={{ justifyContent: 'space-between', display: "flex", alignItems: "center"}}>
+                <div style={{ justifyContent: 'space-between', display: "flex", alignItems: "center", flexWrap: 'wrap'}}>
                     <div>
                         <div className='text-muted'>{`Échéance: ${UtilsDateTime.getDate(this.state.assignment.endDate)}`}</div>
                         <div className='text-muted'>{`Rythme: ${this.state.assignment.nbHoursPerWeek} (h/semaine)`}</div>
