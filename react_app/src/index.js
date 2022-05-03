@@ -47,17 +47,20 @@ class App extends Component {
 
     render() {
         let view = null;
+        let minHeight = '450px';
         if (this.state.mode  === 'a'){
             view = <AdminView workPlanId={this.props.workPlanId}/>;
         }else if (this.state.mode  === 's'){
             view =<StudentView/>;
         }else if (this.state.mode  === 'sb'){
             view =<StudentBlockView/>;
+            minHeight = 'auto';
         }else if (this.state.mode  === 'ab'){
             view =<AdminBlockView/>;
+            minHeight = 'auto';
         }
         let main =
-            <div style={{minHeight:'450px'}}>
+            <div style={{minHeight: minHeight}}>
                 {view}
                 {$glVars.feedback.msg.map((item, index) => {  
                     return (<VisualFeedback key={index} id={index} msg={item.msg} type={item.type} title={item.title} timeout={item.timeout}/>);                                    

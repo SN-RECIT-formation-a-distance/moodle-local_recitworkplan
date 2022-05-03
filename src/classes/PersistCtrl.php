@@ -263,22 +263,6 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         }
     }
 
-   /*public function deleteTemplate($templateId){
-        try{
-            $query = "delete t1, t2, t3
-                     from {$this->prefix}recit_wp_tpl as t1
-                    left join {$this->prefix}recit_wp_tpl_act as t2 on t1.id = t2.templateid 
-                    left join {$this->prefix}recit_wp_tpl_assign as t3 on t1.id = t3.templateid
-                    where t1.id = $templateId";
-
-            $this->mysqlConn->execSQL($query);
-            return true;
-        } 
-        catch(\Exception $ex){
-            throw $ex;
-        }  
-    }*/
-
     public function cloneTemplate($templateId, $state = null){
         try{
             $this->mysqlConn->beginTransaction();
@@ -530,23 +514,28 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         $rst = $this->mysqlConn->execSQLAndGetObjects("select * from workplans");
 
         $result = new WorkPlan();
-        $modinfo = null;
-		foreach($rst as $item){
-            if($item->courseid > 0){
-                if($modinfo == null || $modinfo->__get('courseid') != $item->courseid){
-                    $modinfo = get_fast_modinfo($item->courseid);
+
+        if(empty($rst)){
+            $result->template = $this->getTemplate($userId, $templateId);
+        }
+        else{
+            $modinfo = null;
+            foreach($rst as $item){
+                if($item->courseid > 0){
+                    if($modinfo == null || $modinfo->__get('courseid') != $item->courseid){
+                        $modinfo = get_fast_modinfo($item->courseid);
+                    }
+                    
+                    $item->cmname = $this->getCmNameFromCmId($item->cmid, $item->courseid, $modinfo);
                 }
-                
-                $item->cmname = $this->getCmNameFromCmId($item->cmid, $item->courseid, $modinfo);
-            }
-            
-
-            $result->addTemplateActivity($item);
-            $result->addAssignment($item);
-        }  
-
-        $result->setAssignmentsEndDate();       
-        $result->stats = $this->getWorkPlanStats($templateId);
+    
+                $result->addTemplateActivity($item);
+                $result->addAssignment($item);
+            }  
+    
+            $result->setAssignmentsEndDate();       
+            $result->stats = $this->getWorkPlanStats($templateId);
+        }
 
         $this->dropTmpWorkPlanTable();
 
@@ -573,7 +562,8 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
             $wheretmp .= "where creatorid = $userId or collaboratorid = $userId";
             $capabilities[] = RECITWORKPLAN_ASSIGN_CAPABILITY;
             $capabilities[] = RECITWORKPLAN_MANAGE_CAPABILITY;
-            $innerJoinSmt = "inner join (".$this->getAdminRolesStmt($userId, $capabilities).") as tblRoles on (t5.course = tblRoles.instanceid and tblRoles.contextlevel = 50)";
+            // left join required here in order to see work plans without any activity
+            $innerJoinSmt = "left join (".$this->getAdminRolesStmt($userId, $capabilities).") as tblRoles on (t5.course = tblRoles.instanceid and tblRoles.contextlevel = 50)";
         }else if (in_array($state, array('manager'))){
             $capabilities[] = RECITWORKPLAN_MANAGE_CAPABILITY;
             $innerJoinSmt = "inner join (".$this->getAdminRolesStmt($userId, $capabilities).") as tblRoles on ((t7.category = tblRoles.instanceid and tblRoles.contextlevel = 40) or (t5.course = tblRoles.instanceid and tblRoles.contextlevel = 50))";

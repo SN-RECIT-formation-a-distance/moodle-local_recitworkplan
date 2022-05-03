@@ -121,7 +121,7 @@ export class CustomBadge extends Component{
 
     render(){
         let main = 
-            <span className={`badge rounded ml-2 ${this.props.variant}`}>
+            <span className={`badge rounded m-1 ${this.props.variant}`}>
                 {this.props.faIcon !== null && <FontAwesomeIcon icon={this.props.faIcon}/>}
                 {` ${this.props.text}`}
             </span>;

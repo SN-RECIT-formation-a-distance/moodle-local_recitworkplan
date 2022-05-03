@@ -45,7 +45,7 @@ export class StudentBlockView extends Component{
         let main = 
             <div>
 
-                <div className='grid-4'>
+                <div className='tiles'>
                     {dataProvider.map((workPlan, index) => {
                             let assignment = workPlan.assignments[0]; 
                             let progressValue = {text: '', value: 0};
@@ -93,8 +93,54 @@ export class StudentBlockView extends Component{
 }
 
 export class AdminBlockView extends Component {
+    constructor(props){
+        super(props);
+        
+        this.getData = this.getData.bind(this);
+        this.getDataResult = this.getDataResult.bind(this);
+
+        this.state = {dataProvider: [], pagination: {current_page: 1, count: 0, item_per_page: 25}};
+    }
+
+    componentDidMount(){
+        this.getData();
+    }
+
+    getData(){
+        $glVars.webApi.getWorkPlanList(this.state.pagination.item_per_page, this.state.pagination.current_page - 1, 'ongoing', false, this.getDataResult);
+    }
+
+    getDataResult(result){
+        if(!result.success){
+            FeedbackCtrl.instance.showError($glVars.i18n.tags.appName, result.msg);
+            return;
+        }
+
+        let pagination = this.state.pagination;
+        pagination.current_page = parseInt(result.data.current_offset) + 1; 
+        pagination.count = parseInt(result.data.total_count);
+        this.setState({dataProvider: result.data.items, pagination: pagination}); 
+    }
+
     render() {
-        let main = <WorkPlanListView isBlock={true} />;
+        let main = 
+            <div className='tiles'>
+                {this.state.dataProvider.map((workPlan, index) => {
+                        let progress = '0';
+                        
+                        if(workPlan.stats  && workPlan.stats.nbStudents > 0){
+                            progress = workPlan.stats.workPlanCompletion/workPlan.stats.nbStudents * 100;
+                        }
+
+                        let card = <WorkPlanCardBlock key={index} data={workPlan} progress={progress}/>;
+
+                        return (card);                                     
+                    }
+                )}
+
+                {this.state.dataProvider.length === 0 && 
+                        <a  href={$glVars.recitWorkPlanUrl} className='h5'>Vers le plan de travail...</a>}
+            </div>;
 
         return (main);
     }

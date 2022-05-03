@@ -5,16 +5,17 @@ fieldset{border: 1px solid #eee; border-radius: .5rem; padding: 1rem; }
     .form-label{font-weight: 500;}
 }
 
-.grid-3 {
-    display: grid;
-    grid-gap: 1rem; 
-    grid-template-columns: 33% 33% 33%;
-}
-
-.grid-4 {
-    display: grid;
-    grid-gap: 1rem; 
-    grid-template-columns: 25% 25% 25% 25%;
+.tiles {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    align-content: flex-start;
+    align-items: stretch;
+    & > *{
+        flex: 0 0 25%;
+        min-width: 250px;
+        max-width: 340px;
+    }
 }
 
 .grid-assignments {
@@ -47,11 +48,7 @@ button.dropdown-toggle {
 / tablets layout
 /*********************************************************/
 @media screen and (min-width: 768px) and (max-width: 1023px){
-
-    .grid-3, .grid-4 {
-        display: grid;
-        grid-template-columns: 50% 50%;
-    }
+    
 }
 
 /**********************************************************
@@ -59,9 +56,8 @@ button.dropdown-toggle {
 /*********************************************************/
 @media screen and (max-width: 767px){
 
-    .grid-3, .grid-4 {
-        display: grid;
-        grid-template-columns: auto;
+    .tiles {
+        justify-content: center;
     }
 
     .d-block-mobile {

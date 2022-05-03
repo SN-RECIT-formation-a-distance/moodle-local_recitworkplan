@@ -10,7 +10,6 @@ import {ActivityPicker, WorkPlanTemplateView} from './TemplateView';
 import { UserActivityList, CustomCard, CustomHeader, CustomButton, CustomBadge, CustomBadgeCompletion, CustomFormControl, FollowUpCard  } from './Components';
 import { ModalAssignmentPicker, ModalAssignmentForm } from './AssignmentView';
 import {WorkPlanUtils} from '../common/common';
-import {WorkPlanCardBlock} from './BlockView';
 
 export class AdminView extends Component {
 
@@ -26,7 +25,6 @@ export class AdminView extends Component {
 
 export class WorkPlanListView extends Component{
     static defaultProps = {
-        isBlock: false,
         workPlanId: 0
     };
 
@@ -44,6 +42,7 @@ export class WorkPlanListView extends Component{
         this.onCopy = this.onCopy.bind(this);
 
         this.state = {dataProvider: [], templateId: -1, activeTab: 'ongoing', pagination: {current_page: 1, count: 0, item_per_page: 25}, editTab: 'activities'};
+        
         if (props.workPlanId > 0){
             this.state.templateId = props.workPlanId;
         }
@@ -84,24 +83,24 @@ export class WorkPlanListView extends Component{
         
         let main = 
             <div>
-                {this.renderHeader()}
+                <CustomHeader title="Plans de travail" btnAfter={<CustomButton title='Créer un plan de travail.' onClick={this.onAdd} ><FontAwesomeIcon icon={faPlus}/></CustomButton>}>
+                    <ToggleButtons name="completionState" onClick={this.onCompletionStateChange} type="radio" defaultValue={this.state.activeTab} options={[
+                            {value: "ongoing", text: <span><FontAwesomeIcon icon={faSyncAlt} />{" En cours"}</span>}, 
+                            {value: "archive", text:  <span><FontAwesomeIcon icon={faArchive} />{" Archivés"}</span>}, 
+                            {value: "template", text: <span><FontAwesomeIcon icon={faBookmark} />{" Gabarits"}</span>},
+                            {value: "manager", text: <span><FontAwesomeIcon icon={faChalkboardTeacher} />{" Gestionnaire"}</span>},
+                            ]}/>
+                </CustomHeader>
 
-                <div className='grid-3'>
+                <div className='tiles'>
                     {dataProvider.map((workPlan, index) => {
-                            let progress = 0;
+                            let progress = '0';
                             
-                            if(workPlan.stats){
+                            if(workPlan.stats && workPlan.stats.nbStudents > 0){
                                 progress = workPlan.stats.workPlanCompletion/workPlan.stats.nbStudents * 100;
                             }
 
-                            let card = null;
-                            
-                            if(this.props.isBlock){
-                                card = <WorkPlanCardBlock key={index} data={workPlan} progress={progress}/>;
-                            }
-                            else{
-                                card = <WorkPlanCard key={index} data={workPlan} progress={progress} onCopy={this.onCopy} onDelete={this.onDelete} onEdit={this.onEdit} onArchive={this.onArchive}/>;
-                            }
+                            let card = <WorkPlanCard key={index} data={workPlan} progress={progress} onCopy={this.onCopy} onDelete={this.onDelete} onEdit={this.onEdit} onArchive={this.onArchive}/>;
                                 
                             return (card);                                     
                         }
@@ -115,24 +114,6 @@ export class WorkPlanListView extends Component{
 
 
         return (this.state.templateId >= 0 ? form : main);
-    }
-
-    renderHeader(){
-        let result = null;
-
-        if(!this.props.isBlock){
-            result =
-            <CustomHeader title="Plans de travail" btnAfter={<CustomButton title='Créer un plan de travail.' onClick={this.onAdd} ><FontAwesomeIcon icon={faPlus}/></CustomButton>}>
-                <ToggleButtons name="completionState" onClick={this.onCompletionStateChange} type="radio" defaultValue={this.state.activeTab} options={[
-                        {value: "ongoing", text: <span><FontAwesomeIcon icon={faSyncAlt} />{" En cours"}</span>}, 
-                        {value: "archive", text:  <span><FontAwesomeIcon icon={faArchive} />{" Archivés"}</span>}, 
-                        {value: "template", text: <span><FontAwesomeIcon icon={faBookmark} />{" Gabarits"}</span>},
-                        {value: "manager", text: <span><FontAwesomeIcon icon={faChalkboardTeacher} />{" Gestionnaire"}</span>},
-                        ]}/>
-            </CustomHeader>; 
-        }
-
-        return result;
     }
 
     getPlan(templateId){
@@ -230,11 +211,11 @@ class WorkPlanCard extends Component{
         let workPlan = this.props.data;
 
         let main =
-            <CustomCard progressValue={`${this.props.progress}%`}>
+            <CustomCard title={`${this.props.progress}%`} progressValue={`${this.props.progress}%`}>
                 <div className='d-flex' style={{justifyContent: 'space-between'}}>
-                    <a href='#' onClick={() => this.onEdit(workPlan.template.id, 'activities')} className='h3'>{workPlan.template.name}</a>
+                    <a href='#' onClick={() => this.onEdit(workPlan.template.id, 'activities')} className='h4'>{workPlan.template.name}</a>
                     <ButtonGroup>
-                        <DropdownButton bsPrefix='rounded btn btn-outline-primary' variant='' title={<FontAwesomeIcon icon={faEllipsisV} />} id={`optionsWorkPlan${workPlan.template.id}`}>
+                        <DropdownButton bsPrefix='rounded btn btn-sm btn-outline-primary' variant='' title={<FontAwesomeIcon icon={faEllipsisV} />} id={`optionsWorkPlan${workPlan.template.id}`}>
                             <Dropdown.Item onClick={() => this.props.onCopy(workPlan.template.id)}><FontAwesomeIcon icon={faCopy}  />{" Copier"}</Dropdown.Item>
                             {workPlan.template.state == 1 && <Dropdown.Item onClick={() => this.props.onCopy(workPlan.template.id, 0)}><FontAwesomeIcon icon={faBookmark}  />{" Utiliser ce gabarit"}</Dropdown.Item>}
                             {workPlan.template.state != 1 && <Dropdown.Item onClick={() => this.props.onCopy(workPlan.template.id, 1)}><FontAwesomeIcon icon={faBookmark}  />{" Enregistrer en tant que gabarit"}</Dropdown.Item>}
@@ -254,10 +235,10 @@ class WorkPlanCard extends Component{
                 </div>  
                 {workPlan.stats && workPlan.stats.nbStudents > 0 && 
                     <div className="p-2 text-muted row">
-                        <div className='col-md-6'>
+                        <div className='col-md-7' style={{display: 'flex', alignItems: 'center'}}>
                             <CustomBadgeCompletion title="Le nombre d'élèves qui ont complété le plan de travail / le nombre total d'élèves assigné au plan de travail" stats={`${workPlan.stats.workPlanCompletion}/${workPlan.stats.nbStudents}`}/>
                         </div>
-                        <div className='col-md-6' style={{textAlign:'right'}}>
+                        <div className='col-md-5' style={{textAlign:'right'}}>
                             <span>
                                 <div dangerouslySetInnerHTML={{__html: workPlan.template.creator.avatar}}></div>
                                 <span>Créateur {workPlan.template.collaborator.id > 0 && <FontAwesomeIcon icon={faUserFriends} title={`Collaborateur: ${workPlan.template.collaborator.firstName} ${workPlan.template.collaborator.lastName}`}/>} </span>
@@ -459,7 +440,7 @@ class WorkPlanAssignmentsView extends Component{
                                         </div>
                                         <div className="p-2 text-muted" style={{alignItems: 'center', display: 'flex', justifyContent: 'flex-end'}}>
                                             <CustomBadgeCompletion title="Le nombre d'affectations complétées / le nombre d'activités" stats={progressText}/>
-                                            <DropdownButton className='mr-3' bsPrefix='rounded btn btn-outline-primary' variant='' title={<span><FontAwesomeIcon icon={faEllipsisV}  />{" "}</span>} id={`optionsAssignments${item.id}`}>
+                                            <DropdownButton className='mr-3' bsPrefix='rounded btn btn-sm btn-outline-primary' variant='' title={<span><FontAwesomeIcon icon={faEllipsisV}  />{" "}</span>} id={`optionsAssignments${item.id}`}>
                                                 <Dropdown.Item onClick={() => this.setState({editAssignment: item})}><FontAwesomeIcon icon={faPencilAlt}  />{" Modifier"}</Dropdown.Item>
                                                 <Dropdown.Item onClick={() => this.onDeleteAssignment(item.id)}><FontAwesomeIcon icon={faTrashAlt}  />{" Supprimer"}</Dropdown.Item>
                                             </DropdownButton>
@@ -599,7 +580,7 @@ class WorkPlanActivitiesView extends Component{
                                         </div>
                                         <div className="p-2 text-muted" style={{alignItems: 'center', display: 'flex'}}>
                                             <CustomBadgeCompletion title="Le nombre d'activités complètés / le nombre d'élèves" stats={progressText}/>
-                                            <DropdownButton bsPrefix='rounded btn btn-outline-primary' variant='' title={<span><FontAwesomeIcon icon={faEllipsisV}  />{" "}</span>} id={`optionsActivity${item.id}`}>
+                                            <DropdownButton bsPrefix='rounded btn btn-sm btn-outline-primary' variant='' title={<span><FontAwesomeIcon icon={faEllipsisV}  />{" "}</span>} id={`optionsActivity${item.id}`}>
                                                 <Dropdown.Item onClick={() => this.onShowActivities(true)}><FontAwesomeIcon icon={faPencilAlt}  />{" Modifier"}</Dropdown.Item>
                                                 <Dropdown.Item onClick={() => this.onDeleteActivity(item.id)}><FontAwesomeIcon icon={faTrashAlt}  />{" Supprimer"}</Dropdown.Item>
                                             </DropdownButton>
