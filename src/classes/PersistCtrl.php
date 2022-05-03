@@ -804,7 +804,6 @@ class Template{
     public $lastUpdate = null;
     //@array of TemplateActivity
     public $activities = array();
-    public $followUps = array();
 
     public function __construct(){
         $this->collaborator = new stdClass();
@@ -990,10 +989,22 @@ class Assignment{
          * Whether or not the user has completed the activity. 
          * Available states: 0 = not completed if there's no row in this table, that also counts as 0 = not completed, 1 = completed (passed or failed), 2 = completed (passed graded), 3 = completed (failed graded)
          */
+
+        if(!isset($dbData->cmid)){
+            return;
+        }
+
+        // activity already exists
+        foreach($this->user->activities as $item){
+            if($item->cmId == $dbData->cmid){
+                return;
+            }
+        }
+
         $item = new stdClass();
-        $item->completionState = (isset($dbData->activitycompletionstate) ? $dbData->activitycompletionstate : 0);
+        $item->completionState = $dbData->activitycompletionstate;
         $item->followup = (isset($dbData->followup) ? $dbData->followup : 0);
-        $item->cmId = (isset($dbData->cmid) ? $dbData->cmid : 0);
+        $item->cmId = $dbData->cmid;
         $this->user->activities[] = $item;
     }
 

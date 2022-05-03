@@ -3,7 +3,7 @@ import { Card, Button, Form} from 'react-bootstrap';
 import { JsNx } from '../libs/utils/Utils';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheck } from '@fortawesome/free-solid-svg-icons';
-import {WorkPlanUtils} from '../common/common';
+import {$glVars, WorkPlanUtils} from '../common/common';
 
 export class UserActivityList extends Component{
     static defaultProps = {        
@@ -181,24 +181,48 @@ export class CustomFormControl extends Component{
 
 export class FollowUpCard extends Component{
     static defaultProps = {        
-        data: null,
+        templateId: 0,
     };
 
+    constructor(props){
+        super(props);
+
+        this.getData = this.getData.bind(this);
+        this.getDataResult = this.getDataResult.bind(this);
+
+        this.state = {data: null};
+    }
+
     render(){
-        let workPlan = this.props.data;
+        let main = null;
 
-        let actStats = WorkPlanUtils.getActivityStats(workPlan);
+        if(this.state.data !== null){
+            let workPlan = this.state.data;
+            let actStats = WorkPlanUtils.getActivityStats(workPlan);
 
-        let main =
-            <>
-                {workPlan.stats && workPlan.stats.nbLateStudents > 0 && <CustomBadge variant="bg-danger" text={`${workPlan.stats.nbLateStudents} apprenants en retard`}/>}
-                {actStats.nbAwaitingGrade > 0 && <CustomBadge variant="bg-warning" text={`${actStats.nbAwaitingGrade} travaux à corriger`}/>}
-                {actStats.nbFails > 0 && <CustomBadge variant="bg-warning" text={`${actStats.nbFails} risques d'échec`}/>}
-                {workPlan.template.followUps.map((followUps, index2) => {
-                    <CustomBadge key={index2} variant={followUps.variant} text={followUps.desc}/>
-                })}
-            </>;
-
+            main =
+                <>
+                    {workPlan.stats && workPlan.stats.nbLateStudents > 0 && <CustomBadge variant="bg-danger" text={`${workPlan.stats.nbLateStudents} apprenants en retard`}/>}
+                    {actStats.nbAwaitingGrade > 0 && <CustomBadge variant="bg-warning" text={`${actStats.nbAwaitingGrade} travaux à corriger`}/>}
+                    {actStats.nbFails > 0 && <CustomBadge variant="bg-warning" text={`${actStats.nbFails} risques d'échec`}/>}
+                </>;
+        }
+        else{
+            main = <Button variant='link' onClick={this.getData}>Charger le suivi des apprenants</Button>
+        }
         return main;
+    }
+
+    getData(){
+        $glVars.webApi.getWorkPlanFormKit(this.props.templateId, this.getDataResult);
+    }
+
+    getDataResult(result){
+        if(!result.success){
+            FeedbackCtrl.instance.showError($glVars.i18n.tags.appName, result.msg);
+            return;
+        }
+
+        this.setState({data: result.data.data});
     }
 }

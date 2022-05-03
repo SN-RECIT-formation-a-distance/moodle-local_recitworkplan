@@ -156,7 +156,7 @@ export class WorkPlanCardBlock extends Component{
         let workPlan = this.props.data;
 
         let main =
-            <CustomCard progressValue={`${this.props.progress}%`}>
+            <CustomCard progressText={`${this.props.progress}%`} progressValue={`${this.props.progress}%`}>
                 <div className='d-flex' style={{justifyContent: 'space-between'}}>
                     <a href={$glVars.recitWorkPlanUrl + '?id=' + workPlan.template.id} className='h3'>{workPlan.template.name}</a>
                 </div>              
@@ -166,7 +166,7 @@ export class WorkPlanCardBlock extends Component{
                     </div>
                 }
                  <div className="m-3 p-2">
-                    <FollowUpCard data={workPlan}/>
+                    <FollowUpCard templateId={workPlan.template.id}/>
                 </div>  
             </CustomCard>;
 

@@ -112,20 +112,7 @@ export class WorkPlanListView extends Component{
 
         let form = <WorkPlanView templateId={this.state.templateId} activeTab={this.state.editTab} onClose={this.onClose}/>;
 
-
         return (this.state.templateId >= 0 ? form : main);
-    }
-
-    getPlan(templateId){
-        $glVars.webApi.getWorkPlanFormKit(templateId, (result) => {
-            let dataProvider = this.state.dataProvider;
-            for (let i in dataProvider){
-                if (dataProvider[i].id == templateId){
-                    dataProvider[i] = result.data.data;
-                    dataProvider[i].lastUpdate = new Date().toLocaleString();
-                }
-            }
-        });
     }
 
     onAdd(){
@@ -211,7 +198,7 @@ class WorkPlanCard extends Component{
         let workPlan = this.props.data;
 
         let main =
-            <CustomCard title={`${this.props.progress}%`} progressValue={`${this.props.progress}%`}>
+            <CustomCard progressText={`${this.props.progress}%`} progressValue={`${this.props.progress}%`}>
                 <div className='d-flex' style={{justifyContent: 'space-between'}}>
                     <a href='#' onClick={() => this.onEdit(workPlan.template.id, 'activities')} className='h4'>{workPlan.template.name}</a>
                     <ButtonGroup>
@@ -231,7 +218,7 @@ class WorkPlanCard extends Component{
                     {workPlan.template.state != 1 && <CustomButton title='Attribuer un plan de travail.'  onClick={() => this.props.onEdit(workPlan.template.id, 'assignments')} faIcon={faPlus}/>}
                 </div>
                 <div className="m-3 p-2">
-                    <FollowUpCard data={workPlan}/>
+                    <FollowUpCard templateId={workPlan.template.id}/>
                 </div>  
                 {workPlan.stats && workPlan.stats.nbStudents > 0 && 
                     <div className="p-2 text-muted row">
@@ -572,9 +559,6 @@ class WorkPlanActivitiesView extends Component{
                                             <div className='h6 text-muted pl-3'>{`${item.nbHoursCompletion} heures`}</div>
                                         </div>
                                         <div className="m-3 p-2">
-                                            {template.followUps.map((followUps, index2) => {
-                                                return <Button key={index2} variant={followUps.variant}>{followUps.desc}</Button>;
-                                            })}
                                             {actStats.nbAwaitingGrade > 0 && <CustomBadge variant="bg-warning" text={`${actStats.nbAwaitingGrade} travaux à corriger`}/>}
                                             {actStats.nbFails > 0 && <CustomBadge variant="bg-warning" text={`${actStats.nbFails} risques d'échec`}/>}
                                         </div>
