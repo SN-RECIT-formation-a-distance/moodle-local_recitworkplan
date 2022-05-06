@@ -1,12 +1,8 @@
 import React, { Component } from 'react';
-import { Card} from 'react-bootstrap';
-import { faCheck} from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { FeedbackCtrl } from '../libs/components/Components';
 import {$glVars} from '../common/common';
 import {  UtilsDateTime, WorkPlanUtils } from '../libs/utils/Utils';
 import { FollowUpCard, CustomCard, CustomBadgeCompletion  } from './Components';
-import { WorkPlanListView } from './WorkPlanView';
 
 export class StudentBlockView extends Component{
     static defaultProps = {        
@@ -56,30 +52,27 @@ export class StudentBlockView extends Component{
                             }
 
                             let card = 
-                                <Card key={index} className='rounded'>
-                                    <div style={{backgroundColor: '#0f6fc5', width: `${progressValue.value}%`, height: '5px', maxWidth: "100%"}}>
-                                         
-                                    </div>
-                                    <Card.Body style={{backgroundColor: "#f0f0f0"}}>
-                                        <div className='d-flex' style={{justifyContent: 'space-between'}}>
-                                            <a href={this.viewUrl} className='h3'>{workPlan.template.name}</a>
-                                        </div>
-                                        <div className='m-1 p-1'>
-                                            <span title="Le nombre d'activités complétées / le nombre d'activités">{"Achèvement "}<FontAwesomeIcon icon={faCheck}/></span><span className='ml-2'>{progressText}</span>  
-                                        </div>
-                                        <div className="m-1 p-1">
-                                            {assignment.endDate && <div className='text-muted'>{`Échéance: ${UtilsDateTime.getDate(assignment.endDate)}`}</div>}
-                                        </div>
-                                        <div className='m-1 p-1'>
-                                            {assignment.completionState == 2 &&
-                                                <div>
-                                                    <span className='badge btn-danger'>{`En retard`}</span>
-                                                </div> 
-                                            }
-                                        </div>
-                                    </Card.Body>
-                                </Card>
-                            return (card);                                     
+                            <CustomCard progressText={`${progressValue.value}%`} progressValue={`${progressValue.value}%`}>
+                                <div className='d-flex' style={{justifyContent: 'space-between'}}>
+                                    <a href={this.viewUrl} className='h3'>{workPlan.template.name}</a>
+                                </div>        
+                                <div className='m-1 p-1'>
+                                    <CustomBadgeCompletion title="Le nombre d'activités complétées / le nombre d'activités" stats={progressText}/>      
+                                </div>
+                                <div className="m-1 p-1">
+                                    {assignment.endDate && <div className='text-muted'>{`Échéance: ${UtilsDateTime.getDate(assignment.endDate)}`}</div>}
+                                </div>
+
+                                <div className='m-1 p-1'>
+                                    {assignment.completionState == 2 &&
+                                        <div>
+                                            <span className='badge btn-danger'>{`En retard`}</span>
+                                        </div> 
+                                    }
+                                </div>
+                            </CustomCard>;
+
+                        return (card);                                     
                         }
                     )}
                 </div>

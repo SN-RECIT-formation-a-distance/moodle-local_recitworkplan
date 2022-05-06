@@ -451,18 +451,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         inner join {$this->prefix}course_modules as t3 on t1.id = t3.instance and t3.module = (select id from {$this->prefix}modules where name = 'assign') and t1.course = t3.course
         left join {$this->prefix}assign_grades as t4 on t4.assignment = tuser.assignment and t4.userid = tuser.userid
         where t3.id in (select cmid from {$this->prefix}recit_wp_tpl_act where templateid = $templateId) and tuser.status = 'submitted' and (coalesce(t4.grade,0) <= 0 or tuser.timemodified > coalesce(t4.timemodified,0))
-        group by t3.id, t1.id, tuser.userid, tuser.timemodified)
-        union
-        (SELECT t3.id as cmId, CONVERT(t1.name USING utf8) as cmName, FROM_UNIXTIME(t1.timemodified) as timeModified, count(*) as nbItems, tuser.userid,
-        2 as followup
-        FROM {$this->prefix}recitcahiertraces as t1
-        inner join {$this->prefix}recitct_groups as t2 on t1.id = t2.ctid
-        left join {$this->prefix}recitct_notes as t4 on t2.id = t4.gid
-        left join {$this->prefix}recitct_user_notes as tuser on t4.id = tuser.nid
-        inner join {$this->prefix}course_modules as t3 on t1.id = t3.instance and t3.module = (select id from {$this->prefix}modules where name = 'recitcahiertraces') and t1.course = t3.course
-        where if(tuser.id > 0 and length(tuser.note) > 0 and (length(REGEXP_REPLACE(trim(coalesce(tuser.feedback, '')), '<[^>]*>+', '')) = 0), 1, 0) = 1 
-        and t3.id in (select cmid from {$this->prefix}recit_wp_tpl_act where templateid = $templateId) and t4.notifyteacher = 1
-        group by t3.id, t1.id, tuser.userid, t1.timemodified)
+        group by t3.id, t1.id, tuser.userid, tuser.timemodified)       
         union
         (select cmId, cmName, timeModified, count(*) as nbItems, userid, followup from 
         (SELECT  t1.id as cmId, t2.name as cmName, max(t3.timemodified) as timeModified, t3.userid, t3.attempt as quizAttempt, t4.questionusageid, group_concat(tuser.state order by tuser.sequencenumber) as states,
@@ -477,6 +466,20 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         group by t1.id, t2.id, t3.id, t4.id, tuser.userid, t3.timemodified) as tab
         where right(states, 12) = 'needsgrading'
         group by cmId, timeModified, userid)";
+
+        if(file_exists("{$CFG->dirroot}/mod/recitcahiertraces/")){
+            $stmt .= "union
+            (SELECT t3.id as cmId, CONVERT(t1.name USING utf8) as cmName, FROM_UNIXTIME(t1.timemodified) as timeModified, count(*) as nbItems, tuser.userid,
+            2 as followup
+            FROM {$this->prefix}recitcahiertraces as t1
+            inner join {$this->prefix}recitct_groups as t2 on t1.id = t2.ctid
+            left join {$this->prefix}recitct_notes as t4 on t2.id = t4.gid
+            left join {$this->prefix}recitct_user_notes as tuser on t4.id = tuser.nid
+            inner join {$this->prefix}course_modules as t3 on t1.id = t3.instance and t3.module = (select id from {$this->prefix}modules where name = 'recitcahiertraces') and t1.course = t3.course
+            where if(tuser.id > 0 and length(tuser.note) > 0 and (length(REGEXP_REPLACE(trim(coalesce(tuser.feedback, '')), '<[^>]*>+', '')) = 0), 1, 0) = 1 
+            and t3.id in (select cmid from {$this->prefix}recit_wp_tpl_act where templateid = $templateId) and t4.notifyteacher = 1
+            group by t3.id, t1.id, tuser.userid, t1.timemodified)";
+        }
         
         return $stmt;
     }
@@ -507,7 +510,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         left join {$this->prefix}course_modules_completion as t6 on t5.id = t6.coursemoduleid and t6.userid = users.id 
         inner join (".$this->getAdminRolesStmt($userId, array(RECITWORKPLAN_ASSIGN_CAPABILITY, RECITWORKPLAN_MANAGE_CAPABILITY)).") as tblRoles on (t7.category = tblRoles.instanceid and tblRoles.contextlevel = 40) or (t5.course = tblRoles.instanceid and tblRoles.contextlevel = 50)
         where t2.id = $templateId
-        order by t7.id asc, users.firstname asc, users.lastname asc, t3.slot ";
+        order by t7.id asc, t3.slot, users.firstname asc, users.lastname asc ";
 
         $this->createTmpWorkPlanTable($query);
 
@@ -699,6 +702,9 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
                 $whereStmt2 = "find_in_set($cmId, cmids) > 0";
             }
 
+            /**
+             *  where (t3.completionstate != 1) is to avoid archived assignments
+             */
             $query = "select assignmentId, templateid,  
             (case 
                 when nbIncompleteAct = 0 then 3 
@@ -712,8 +718,8 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
             group_concat(DISTINCT t2.cmid) as cmids, t1.nb_hours_per_week
             from mdl_recit_wp_tpl_assign as t1 
             inner join mdl_recit_wp_tpl_act as t2 on t1.templateid = t2.templateid 
-            left join mdl_course_modules_completion as t3 on t2.cmid = t3.coursemoduleid and t1.userid = t3.userid
-            where $whereStmt1
+            left join mdl_course_modules_completion as t3 on t2.cmid = t3.coursemoduleid and t1.userid = t3.userid           
+            where t3.completionstate != 1 and $whereStmt1
             group by t1.userid, t1.id) as tab
             where $whereStmt2";
            

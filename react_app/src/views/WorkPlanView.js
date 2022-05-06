@@ -200,7 +200,7 @@ class WorkPlanCard extends Component{
         let main =
             <CustomCard progressText={`${this.props.progress}%`} progressValue={`${this.props.progress}%`}>
                 <div className='d-flex' style={{justifyContent: 'space-between'}}>
-                    <a href='#' onClick={() => this.onEdit(workPlan.template.id, 'activities')} className='h4'>{workPlan.template.name}</a>
+                    <a href='#' onClick={() => this.props.onEdit(workPlan.template.id, 'activities')} className='h4'>{workPlan.template.name}</a>
                     <ButtonGroup>
                         <DropdownButton bsPrefix='rounded btn btn-sm btn-outline-primary' variant='' title={<FontAwesomeIcon icon={faEllipsisV} />} id={`optionsWorkPlan${workPlan.template.id}`}>
                             <Dropdown.Item onClick={() => this.props.onCopy(workPlan.template.id)}><FontAwesomeIcon icon={faCopy}  />{" Copier"}</Dropdown.Item>
