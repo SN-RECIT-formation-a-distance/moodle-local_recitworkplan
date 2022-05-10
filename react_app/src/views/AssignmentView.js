@@ -292,7 +292,7 @@ export class ModalAssignmentForm extends Component{
                 <Form.Group as={Row}>
                     <Form.Label column sm="2">{"h/semaine"}</Form.Label>
                     <Col sm="10">
-                        <CustomFormControl style={{width: '50px', display: 'inline'}} className="mr-3" type="text" value={item.nbHoursPerWeek} name="nbHoursPerWeek" onChange={this.onDataChange} />
+                        <CustomFormControl style={{width: '80px', display: 'inline'}} className="mr-3" type="text" value={item.nbHoursPerWeek} name="nbHoursPerWeek" onChange={this.onDataChange} />
                     </Col>
                 </Form.Group>
             </Form>;

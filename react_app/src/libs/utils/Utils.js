@@ -252,6 +252,14 @@ export class UtilsDateTime
         }
     }
 
+    static format(obj){
+        let options = {year: "numeric", month: "numeric", day: "numeric",
+           hour: "numeric", minute: "numeric", second: "numeric",
+           hour12: false};
+
+        return new Intl.DateTimeFormat('fr-fr', options).format(obj);
+    }
+
     static toTimestamp (strDate) {  
         const dt = Date.parse(strDate);  
         return dt / 1000;  

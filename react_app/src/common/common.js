@@ -81,4 +81,12 @@ export class WorkPlanUtils {
         }
         return {nbAwaitingGrade:nbAwaitingGrade, nbFails:nbFails};
     }
+
+    static isArchived(assignment){
+        if(assignment){
+            return (assignment.completionState === 1);
+        }
+            
+        return false;
+    }
 }

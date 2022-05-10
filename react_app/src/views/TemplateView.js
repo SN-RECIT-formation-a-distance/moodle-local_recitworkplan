@@ -3,8 +3,8 @@ import { Collapse, Row, Button, Form, FormGroup, InputGroup, FormControl, Col, T
 import { faPencilAlt,  faTrashAlt, faPlusSquare,  faSearch, faCopy, faSync, faMinus, faPlus, faArrowsAlt, faArrowRight} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {ComboBoxPlus, FeedbackCtrl, DataGrid, Modal, Pagination, ToggleButtons} from '../libs/components/Components';
-import {$glVars} from '../common/common';
-import { JsNx, UtilsString } from '../libs/utils/Utils';
+import {$glVars, WorkPlanUtils} from '../common/common';
+import { JsNx } from '../libs/utils/Utils';
 import { CustomButton, CustomHeader, CustomFormControl } from './Components';
 
 
@@ -125,8 +125,7 @@ export class ActivityPicker extends Component{
                                                                 <FontAwesomeIcon icon={faArrowsAlt} title="Déplacer l'item"/>
                                                             </div>
                                                             <div>
-                                                                <div><strong>{item.cmName}</strong></div>
-                                                                <span className='text-muted'>{item.courseName}</span>
+                                                                <div><strong>{item.cmName}</strong><span className='ml-2 text-muted'>{item.courseName}</span></div>
                                                                 <div className='d-flex align-items-center'>
                                                                     <CustomFormControl className='mr-3' style={{width: '100px'}} type="text" placeholder="Durée" value={item.nbHoursCompletion} onBlur={() => this.onSaveTplAct(item)} name="nbHoursCompletion" onChange={(event) => this.onDataChange(event, index)} />
                                                                     <span className='text-muted'>heures</span>
@@ -376,7 +375,7 @@ export class WorkPlanTemplateView extends Component{
             <>
                 <Card>
                     <Card.Body>
-                        <CustomHeader title="Description" btnAfter={<CustomButton title="Éditer" onClick={() => this.setState({editModal:true})}><FontAwesomeIcon icon={faPencilAlt}/></CustomButton>}/>
+                        <CustomHeader title="Description" btnAfter={<CustomButton disabled={WorkPlanUtils.isArchived(JsNx.at(data.assignments, 0, null))} title="Éditer" onClick={() => this.setState({editModal:true})}><FontAwesomeIcon icon={faPencilAlt}/></CustomButton>}/>
                         <Row className='m-2'>
                             <Col className='text-muted' sm={2}>Nom</Col>
                             <Col sm={10} className='bg-light border border-secondary p-2 rounded'>{data.template.name}</Col>

@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { Card, Button, Form} from 'react-bootstrap';
-import { JsNx } from '../libs/utils/Utils';
+import { JsNx, UtilsDateTime } from '../libs/utils/Utils';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheck } from '@fortawesome/free-solid-svg-icons';
 import {$glVars, WorkPlanUtils} from '../common/common';
@@ -98,12 +98,13 @@ export class CustomButton extends Component{
         title: '',
         onClick: null,
         children: null,
-        faIcon: null
+        faIcon: null,
+        disabled: false
     };
 
     render(){
         let main =
-            <Button size='sm' variant='outline-primary' className='rounded-circle' title={this.props.title} onClick={this.props.onClick} >
+            <Button disabled={this.props.disabled} size='sm' variant='outline-primary' className='rounded-circle' title={this.props.title} onClick={this.props.onClick} >
                 {this.props.faIcon && <FontAwesomeIcon icon={this.props.faIcon}/>}
                 {this.props.children}
             </Button>;
@@ -190,7 +191,7 @@ export class FollowUpCard extends Component{
         this.getData = this.getData.bind(this);
         this.getDataResult = this.getDataResult.bind(this);
 
-        this.state = {data: null};
+        this.state = {data: null, lastUpdate: null};
     }
 
     render(){
@@ -200,12 +201,19 @@ export class FollowUpCard extends Component{
             let workPlan = this.state.data;
             let actStats = WorkPlanUtils.getActivityStats(workPlan);
 
+            let noResult = !((workPlan.stats && workPlan.stats.nbLateStudents > 0) || (actStats.nbAwaitingGrade > 0) || (actStats.nbFails > 0));
             main =
-                <>
+                <div style={{textAlign: 'center'}}>
                     {workPlan.stats && workPlan.stats.nbLateStudents > 0 && <CustomBadge variant="bg-danger" text={`${workPlan.stats.nbLateStudents} apprenants en retard`}/>}
                     {actStats.nbAwaitingGrade > 0 && <CustomBadge variant="bg-warning" text={`${actStats.nbAwaitingGrade} travaux à corriger`}/>}
                     {actStats.nbFails > 0 && <CustomBadge variant="bg-warning" text={`${actStats.nbFails} risques d'échec`}/>}
-                </>;
+                    {noResult && 
+                        <>
+                            <span className='text-muted'>{`Aucun suivi à faire.`}</span><br/>
+                            <span className='text-muted'>{UtilsDateTime.format(this.state.lastUpdate)}</span>
+                        </>
+                    }
+                </div>;
         }
         else{
             main = <Button variant='link' onClick={this.getData}>Charger le suivi des apprenants</Button>
@@ -223,6 +231,6 @@ export class FollowUpCard extends Component{
             return;
         }
 
-        this.setState({data: result.data.data});
+        this.setState({data: result.data.data, lastUpdate: new Date()});
     }
 }
