@@ -163,15 +163,11 @@ export class ActivityPicker extends Component{
             FeedbackCtrl.instance.showError($glVars.i18n.tags.appName, result.msg);
             return;
         }
+
         let list = this.state.dropdownLists;
 
-        list.categoryList = [];
-        for(let item of result.data.catCourseList){
-            if(JsNx.getItem(list.categoryList, 'value', item.categoryId, null) === null){
-                list.categoryList.push({label: item.categoryName, value: item.categoryId});
-            }
-        }
-
+        this.createCategoryTree(list, result);
+      
         list.courseList = [];
         for(let item of result.data.catCourseList){
             if(JsNx.getItem(list.courseList, 'value', item.courseId, null) === null){
@@ -183,6 +179,33 @@ export class ActivityPicker extends Component{
         this.setState({
             data: result.data.data, 
             dropdownLists: list
+        });
+    }
+
+    createCategoryTree(list, result){
+        list.categoryList = [];
+
+        let setParent = function(el, child){
+            if(parseInt(el.parentCatId, 10) > 0){
+                let parent = JsNx.getItem(result.data.catCourseList, 'categoryId', el.parentCatId);
+                
+                child.label = `${parent.categoryName} / ${child.label}`;
+                setParent(parent, child);
+            }
+        }
+
+        for(let item of result.data.catCourseList){
+            let index = JsNx.getItemIndex(list.categoryList, 'value', item.categoryId);
+
+            if(index === -1){
+                index = list.categoryList.push({ label: item.categoryName, value: item.categoryId}) - 1;
+
+                setParent(item, list.categoryList[index]);
+            }
+        }
+
+        list.categoryList.sort(function(a, b) {
+            return a.label.localeCompare(b.label);
         });
     }
 

@@ -3,13 +3,12 @@ import { Card, Tabs, Tab, Button, Form, DropdownButton, Dropdown, ButtonGroup} f
 import { faPencilAlt,  faPlus, faTrashAlt, faCopy, faCheck, faArrowLeft, faEllipsisV, faSyncAlt, faBookmark, faChevronUp, faChevronDown, faArchive, faUser, faChalkboardTeacher, faRedoAlt, faRedo, faUserFriends} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { FeedbackCtrl, ToggleButtons } from '../libs/components/Components';
-import {$glVars} from '../common/common';
+import {$glVars, WorkPlanUtils} from '../common/common';
 import { JsNx, UtilsString, UtilsDateTime } from '../libs/utils/Utils';
 import { Pagination } from '../libs/components/Pagination';
 import {ActivityPicker, WorkPlanTemplateView} from './TemplateView';
 import { UserActivityList, CustomCard, CustomHeader, CustomButton, CustomBadge, CustomBadgeCompletion, CustomFormControl, FollowUpCard  } from './Components';
 import { ModalAssignmentPicker, ModalAssignmentForm } from './AssignmentView';
-import {WorkPlanUtils} from '../common/common';
 
 export class AdminView extends Component {
 

@@ -110,7 +110,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         $DB->execute("set @uniqueId = 0");
 
         $query = "select * from
-        (select @uniqueId := @uniqueId + 1 as uniqueId, t1.id as categoryid, t1.name as categoryname, t2.id as courseid, t2.shortname as coursename,
+        (select @uniqueId := @uniqueId + 1 as uniqueId, t1.id as categoryid, t1.name as categoryname, t2.id as courseid, t2.shortname as coursename, t1.parent, t1.depth,
         (select group_concat(distinct st3.capability) from {role_capabilities} as st3 inner join {role_assignments} as st4 on st3.roleid = st4.roleid where st4.contextid in (select id from {context} where instanceid = t2.id and contextlevel = 50) and st4.userid =:userid2 and (st3.capability=:cap1 or st3.capability=:cap2)) as roles,
         (select group_concat(distinct st3.capability) from {role_capabilities} as st3 inner join {role_assignments} as st4 on st3.roleid = st4.roleid where st4.contextid in (select id from {context} where instanceid = t2.category and contextlevel = 40) and st4.userid =:userid3 and st3.capability=:cap3) as categoryroles
         $extraFields
@@ -119,7 +119,8 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
         inner join {course} as t2 on t1.id = t2.category and t2.visible = 1
         $extraJoin) as tab
         where $whereStmt
-        order by categoryname asc, coursename asc $extraOrder";
+        order by courseid asc";
+        // order by courseid because of get_fast_modinfo
         
         $rst = $DB->get_records_sql($query, $params);
 
@@ -132,6 +133,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
             $item->categoryName = $item->categoryname; unset($item->categoryname);
             $item->courseId = $item->courseid; unset($item->courseid);
             $item->courseName = $item->coursename; unset($item->coursename);
+            $item->parentCatId = $item->parent; unset($item->parent);
            
             if(isset($item->roles)){
                 $item->roles = explode(",", $item->roles);
@@ -154,7 +156,27 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
             }
 
             $result[] = $item;
-        }  
+        }
+        
+        // order by depth, categoryName, courseName, sectionName
+        usort($result, 
+            function ($a, $b) {
+                $result = strcmp($a->depth, $b->depth);
+                if($result == 0){
+                    $result = strcmp($a->categoryName, $b->categoryName);
+
+                    if($result == 0){
+                        $result = strcmp($a->courseName, $b->courseName);
+
+                        if($result == 0 && isset($a->cmid)){
+                            $result = strcmp($a->sectionName, $b->sectionName);
+                        }
+                    }
+                }
+
+                return $result;
+            }
+        );
 
         return $result;
     }
@@ -703,7 +725,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
             }
 
             /**
-             *  where (t3.completionstate != 1) is to avoid archived assignments
+             *  where (t1.completionstate != 1) is to avoid archived assignments
              */
             $query = "select assignmentId, templateid,  
             (case 
@@ -719,7 +741,7 @@ class PersistCtrl extends recitcommon\MoodlePersistCtrl
             from mdl_recit_wp_tpl_assign as t1 
             inner join mdl_recit_wp_tpl_act as t2 on t1.templateid = t2.templateid 
             left join mdl_course_modules_completion as t3 on t2.cmid = t3.coursemoduleid and t1.userid = t3.userid           
-            where t3.completionstate != 1 and $whereStmt1
+            where t1.completionstate != 1 and $whereStmt1
             group by t1.userid, t1.id) as tab
             where $whereStmt2";
            

@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { FeedbackCtrl } from '../libs/components/Components';
-import {$glVars} from '../common/common';
-import {  UtilsDateTime, WorkPlanUtils } from '../libs/utils/Utils';
+import {$glVars, WorkPlanUtils} from '../common/common';
+import {  UtilsDateTime  } from '../libs/utils/Utils';
 import { FollowUpCard, CustomCard, CustomBadgeCompletion  } from './Components';
 
 export class StudentBlockView extends Component{
