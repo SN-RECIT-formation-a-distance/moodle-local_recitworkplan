@@ -22,17 +22,13 @@
 namespace recitworkplan;
 
 require_once(dirname(__FILE__).'../../../../config.php');
-require_once "$CFG->dirroot/local/recitcommon/php/WebApi.php";
-require_once "$CFG->dirroot/local/recitcommon/php/Utils.php";
+require_once dirname(__FILE__).'/recitcommon/WebApi.php';
 require_once dirname(__FILE__).'/PersistCtrl.php';
 
-use recitcommon;
-use recitcommon\WebApiResult;
-use recitcommon\Utils;
 use Exception;
 use stdClass;
 
-class WebApi extends recitcommon\MoodleApi
+class WebApi extends MoodleApi
 {
     public function __construct($DB, $COURSE, $USER){
         parent::__construct($DB, $COURSE, $USER);

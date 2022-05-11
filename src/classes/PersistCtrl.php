@@ -22,21 +22,18 @@
 
 namespace recitworkplan;
 
-require_once "$CFG->dirroot/local/recitcommon/php/PersistCtrl.php";
-require_once "$CFG->dirroot/local/recitcommon/php/Utils.php";
 require_once "$CFG->dirroot/user/externallib.php";
 require_once "$CFG->dirroot/calendar/lib.php";
 require_once __DIR__ . '/../lib.php';
+require_once __DIR__ . '/recitcommon/PersistCtrl.php';
 
 use DateTime;
-use recitcommon;
-use recitcommon\Utils;
 use stdClass;
 
 /**
  * Singleton class
  */
-class PersistCtrl extends recitcommon\MoodlePersistCtrl
+class PersistCtrl extends MoodlePersistCtrl
 {
     protected static $instance = null;
     

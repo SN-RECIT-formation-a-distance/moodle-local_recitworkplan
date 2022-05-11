@@ -44,9 +44,11 @@ export class JsNx{
      * @returns {*}
      */
     static getItem(arr, prop, value, defaultValue){ 
-        for(let item of arr){
-            if(JsNx.get(item, prop, null) === value){return item; }
-        }  
+        if(arr){
+            for(let item of arr){
+                if(JsNx.get(item, prop, null) === value){return item; }
+            }  
+        }
 
         return defaultValue;
     };
