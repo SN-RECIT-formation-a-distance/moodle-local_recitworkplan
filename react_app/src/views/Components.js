@@ -28,9 +28,9 @@ export class UserActivityList extends Component{
                         <div className='h6 text-muted pl-3'>{`${item.nbHoursCompletion} heures`}</div>
                     </div>
                     <div className="p-2 text-muted" style={{alignItems: 'center', display: 'flex'}}>
-                        {userActivity.completionState > 0 && <span className='badge bg-success'>Complété</span>}
-                        {userActivity.followup == 1 && <span className='badge bg-warning'>En attente de correction</span>}
-                        {userActivity.followup == 2 && <span className='badge bg-warning'>En attente de rétroaction</span>}
+                        {userActivity.completionState > 0 && <CustomBadge variant="bg-success" text="Complété"/>}
+                        {userActivity.followup == 1 && <CustomBadge variant="bg-warning" text="En attente de correction"/>}
+                        {userActivity.followup == 2 && <CustomBadge variant="bg-warning" text="En attente de rétroaction"/>}
                     </div>
                 </Card.Body>
             </Card>
@@ -232,5 +232,47 @@ export class FollowUpCard extends Component{
         }
 
         this.setState({data: result.data.data, lastUpdate: new Date()});
+    }
+}
+
+export class AssignmentFollowUp extends Component{
+    static defaultProps = {        
+        data: null,
+        userActivity: null
+    };
+
+    render(){
+        let item = this.props.data;
+        let result = [];
+
+        if(item.completionState == 0){
+            result.push(<CustomBadge key={result.length} variant="bg-success" text="En cours"/>);
+        }
+
+        if(item.completionState == 1){
+            result.push(<CustomBadge key={result.length} variant="bg-info" text="Archivé"/>);
+        }
+
+        if(item.completionState == 2){
+            result.push(<CustomBadge key={result.length} variant="bg-danger" text="Apprenant en retard"/>);
+        }
+
+        if(item.completionState == 3){
+            result.push(<CustomBadge key={result.length} variant="bg-success" text="Complété"/>);
+        }
+
+        let el =  JsNx.getItem(this.props.data.user.activities, 'followup', 1, null);
+
+        if(el){
+            result.push(<CustomBadge key={result.length} variant="bg-warning" text="En attente de correction"/>);
+        }
+        
+        el =  JsNx.getItem(this.props.data.user.activities, 'followup', 2, null);
+        
+        if(el){
+            result.push(<CustomBadge key={result.length} variant="bg-warning" text="En attente de rétroaction"/>);
+        }
+
+        return <div>{result}</div>;
     }
 }

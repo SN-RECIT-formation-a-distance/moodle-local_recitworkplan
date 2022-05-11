@@ -4,7 +4,7 @@ import { faSyncAlt, faArchive, faCheck, faChevronUp, faChevronDown} from '@forta
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {FeedbackCtrl, ToggleButtons} from '../libs/components/Components';
 import {$glVars, WorkPlanUtils} from '../common/common';
-import { UserActivityList, CustomCard, CustomBadge, CustomBadgeCompletion } from './Components';
+import { UserActivityList, CustomCard, AssignmentFollowUp, CustomBadgeCompletion } from './Components';
 import { UtilsDateTime } from '../libs/utils/Utils';
 import { ClickableElipsis } from '../libs/components/ClickableElipsis';
 
@@ -135,11 +135,7 @@ export class StudentTemplateTile extends Component {
                         <div className='text-muted'>{`Attribué par `}<a href={this.state.assignment.assignor.url} target="_blank"><span dangerouslySetInnerHTML={{__html: this.state.assignment.assignor.avatar}}></span></a></div>
                         {this.props.reportData.template.communicationUrl && this.props.reportData.template.communicationUrl.length > 0 && <div className='text-muted'><a href={this.props.reportData.template.communicationUrl} target="_blank">Contacter</a></div>}
                     </div>
-                    {this.state.assignment.completionState == 2 &&
-                        <div>
-                            <CustomBadge variant="bg-danger" text="En retard"/>
-                        </div> 
-                    }
+                    <AssignmentFollowUp data={this.state.assignment}/>
                     <div>
                         <CustomBadgeCompletion title="Le nombre d'activités complétées / le nombre d'activités" stats={progressText}/>
                     </div>

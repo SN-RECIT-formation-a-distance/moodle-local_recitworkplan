@@ -7,7 +7,7 @@ import {$glVars, WorkPlanUtils} from '../common/common';
 import { JsNx, UtilsString, UtilsDateTime } from '../libs/utils/Utils';
 import { Pagination } from '../libs/components/Pagination';
 import {ActivityPicker, WorkPlanTemplateView} from './TemplateView';
-import { UserActivityList, CustomCard, CustomHeader, CustomButton, CustomBadge, CustomBadgeCompletion, CustomFormControl, FollowUpCard  } from './Components';
+import { UserActivityList, CustomCard, CustomHeader, CustomButton, CustomBadge, CustomBadgeCompletion, CustomFormControl, FollowUpCard, AssignmentFollowUp  } from './Components';
 import { ModalAssignmentPicker, ModalAssignmentForm } from './AssignmentView';
 import {StudentWorkPlanList} from './StudentView';
 
@@ -423,10 +423,7 @@ class WorkPlanAssignmentsView extends Component{
                                             <div className='text-muted'>{`Échéance: ${UtilsDateTime.getDate(item.endDate)}`}</div>
                                         </div>
                                         <div>
-                                            {item.completionState == 0 && <CustomBadge variant="bg-success" text="En cours"/>}
-                                            {item.completionState == 1 && <CustomBadge variant="bg-info" text="Archivé"/>}
-                                            {item.completionState == 2 && <CustomBadge variant="bg-danger" text="Apprenant en retard"/>}
-                                            {item.completionState == 3 && <CustomBadge variant="bg-success" text="Complété"/>}
+                                            <AssignmentFollowUp data={item}/>
                                         </div>
                                         <div className="p-2 text-muted" style={{alignItems: 'center', display: 'flex', justifyContent: 'flex-end'}}>
                                             <CustomBadgeCompletion title="Le nombre d'affectations complétées / le nombre d'activités" stats={progressText}/>
