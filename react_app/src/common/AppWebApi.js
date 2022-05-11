@@ -28,8 +28,8 @@ export class AppWebApi extends WebApi
         }
     }
     
-    getWorkPlanList(limit, offset, state, forStudent, onSuccess){
-        let data = {limit: limit, offset: offset, forStudent: forStudent, state: state, service: "getWorkPlanList"};
+    getWorkPlanList(limit, offset, state, forStudent, userId, onSuccess){
+        let data = {limit: limit, offset: offset, forStudent: forStudent, state: state, userId: userId, service: "getWorkPlanList"};
         this.post(this.gateway, data, onSuccess);
     }
 
@@ -84,11 +84,6 @@ export class AppWebApi extends WebApi
         this.post(this.gateway, data, onSuccess);
     }
 
- /*   getTemplateList(limit, offset, onSuccess){
-        let data = {service: "getTemplateList", limit: limit, offset: offset};
-        this.post(this.gateway, data, onSuccess);
-    }
-*/
     getTemplateFormFormKit(templateId, onSuccess){
         let data = {templateId: templateId, service: "getTemplateFormFormKit"};
         this.post(this.gateway, data, onSuccess);
@@ -98,24 +93,6 @@ export class AppWebApi extends WebApi
         let data = {enrolled: enrolled, categoryId: categoryId, courseId: courseId, service: "getCatCourseSectionActivityList"};
         this.post(this.gateway, data, onSuccess);
     }  
-
-    /*saveTemplate(data, onSuccess){
-        let that = this;
-        let onSuccessTmp = function(result){     
-            onSuccess(result);
-            if(result.success){
-                that.notifyObservers('saveTemplate');
-            }
-        };
-
-        let options = {data: data, service: "saveTemplate"};
-        this.post(this.gateway, options, onSuccessTmp);
-    }
-
-    deleteTemplate(templateId, onSuccess){
-        let data = {templateId: templateId, service: "deleteTemplate"};
-        this.post(this.gateway, data, onSuccess);
-    }*/
 
     cloneTemplate(templateId, state, onSuccess){
         let data = {templateId: templateId, state: state, service: "cloneTemplate"};

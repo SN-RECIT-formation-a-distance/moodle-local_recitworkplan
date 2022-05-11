@@ -9,49 +9,83 @@ import { UtilsDateTime } from '../libs/utils/Utils';
 import { ClickableElipsis } from '../libs/components/ClickableElipsis';
 
 export class StudentView extends Component {
+    static defaultProps = {        
+        userId: 0,
+    };
+
     constructor(props) {
         super(props);
 
-
-        this.state = {activeReport: null, dataProvider: null, activeTab: 'ongoing'};
+        this.state = {lastUpdate: 0, activeTab: 'ongoing'};
     }
  
-    render() {
-        if (!this.state.dataProvider) return null;
-        let main = <div>
-        <div className='d-flex' style={{justifyContent: "space-between"}}>
-            <div className='d-flex' style={{alignItems: "center"}}>
-                <span className='h1 mr-3'>Plans de travail</span>
-            </div>
+    render() {        
+        let main = 
             <div>
-                <ToggleButtons name="completionState" onChange={(e) => this.onCompletionStateChange(e)} type="radio"  defaultValue={this.state.activeTab} options={
-                    [{value: "ongoing", text: <span><FontAwesomeIcon icon={faSyncAlt}  />{" En cours"}</span>}, 
-                    {value: "archive", text:  <span><FontAwesomeIcon icon={faArchive}  />{" Archivés"}</span>}]}/>
-            </div>
-        </div> 
+                <div className='d-flex' style={{justifyContent: "space-between"}}>
+                    <div className='d-flex' style={{alignItems: "center"}}>
+                        <span className='h1 mr-3'>Plans de travail</span>
+                    </div>
+                    <div>
+                        <ToggleButtons name="completionState" onChange={(e) => this.onCompletionStateChange(e)} type="radio"  defaultValue={this.state.activeTab} options={
+                            [{value: "ongoing", text: <span><FontAwesomeIcon icon={faSyncAlt}  />{" En cours"}</span>}, 
+                            {value: "archive", text:  <span><FontAwesomeIcon icon={faArchive}  />{" Archivés"}</span>}]}/>
+                    </div>
+                </div> 
 
-            <div style={{display: "grid", gridGap: "1rem", gridTemplateColumns: "auto"}}>
-            {this.state.dataProvider.map((item, index) => {
-                    let row = <StudentTemplateTile key={index} reportData={item}/>
-                    return (row);
-                }
-            )}
-            </div>
+               <StudentWorkPlanList state={this.state.activeTab} lastUpdate={this.state.lastUpdate}/>
             </div>;
 
         return (main);
     }
     
     onCompletionStateChange(event){
-        this.setState({activeTab: event.target.value}, this.getData); 
+        this.setState({activeTab: event.target.value, lastUpdate: Date.now()}, this.getData); 
+    }
+}
+
+export class StudentWorkPlanList extends Component {
+    static defaultProps = {        
+        userId: 0,
+        lastUpdate: 0,
+        state: 'ongoing'
+    };
+
+    constructor(props) {
+        super(props);
+
+        this.state = {dataProvider: null};
+    }
+ 
+    render() {
+        if (!this.state.dataProvider){
+            return null;
+        }
+
+        let main = 
+            <div style={{display: "grid", gridGap: "1rem", gridTemplateColumns: "auto"}}>
+                {this.state.dataProvider.map((item, index) => {
+                        let row = <StudentTemplateTile key={index} reportData={item}/>
+                        return (row);
+                    }
+                )}
+            </div>;
+
+        return (main);
+    }
+    
+    componentDidMount(){
+        this.getData();
     }
 
-    componentDidMount(){ 
-         this.getData();
+    componentDidUpdate(prevProps){ 
+        if(prevProps.lastUpdate !== this.props.lastUpdate){
+            this.getData();
+        }
     }
  
      getData(){
-         $glVars.webApi.getWorkPlanList(30, 0, this.state.activeTab, true, this.getDataResult.bind(this));
+         $glVars.webApi.getWorkPlanList(30, 0, this.props.state, true, this.props.userId, this.getDataResult.bind(this));
      }
  
      getDataResult(result){

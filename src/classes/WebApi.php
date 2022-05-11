@@ -62,16 +62,18 @@ class WebApi extends MoodleApi
             $forStudent = boolval($request['forStudent']);
             $limit = intval($request['limit']);
             $offset = intval($request['offset']);
+            $userId = intval($request['userId']);
+            $userId = ($userId == 0 ? $this->signedUser->id : $userId);
 
             if (!$forStudent){
                 $this->canUserAccess('a');
             }
 
             if($state == 'template'){
-                $result = $this->ctrl->getTemplateList($this->signedUser->id, $limit, $offset);
+                $result = $this->ctrl->getTemplateList($userId, $limit, $offset);
             }
             else{
-                $result = $this->ctrl->getWorkPlanList($this->signedUser->id, $limit, $offset, $state, $forStudent);
+                $result = $this->ctrl->getWorkPlanList($userId, $limit, $offset, $state, $forStudent);
             }
             
             $this->prepareJson($result);

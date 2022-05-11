@@ -529,8 +529,9 @@ class PersistCtrl extends MoodlePersistCtrl
         left join {$this->prefix}course_modules_completion as t6 on t5.id = t6.coursemoduleid and t6.userid = users.id 
         inner join (".$this->getAdminRolesStmt($userId, array(RECITWORKPLAN_ASSIGN_CAPABILITY, RECITWORKPLAN_MANAGE_CAPABILITY)).") as tblRoles on (t7.category = tblRoles.instanceid and tblRoles.contextlevel = 40) or (t5.course = tblRoles.instanceid and tblRoles.contextlevel = 50)
         where t2.id = $templateId
-        order by t7.id asc, t3.slot, users.firstname asc, users.lastname asc ";
-
+        order by t7.id, t7.id asc, t3.slot, users.firstname asc, users.lastname asc ";
+        // order by courseid because of get_fast_modinfo
+        
         $this->createTmpWorkPlanTable($query);
 
         $rst = $this->mysqlConn->execSQLAndGetObjects("select * from workplans");

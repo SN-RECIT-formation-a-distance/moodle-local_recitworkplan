@@ -9,6 +9,7 @@ import { Pagination } from '../libs/components/Pagination';
 import {ActivityPicker, WorkPlanTemplateView} from './TemplateView';
 import { UserActivityList, CustomCard, CustomHeader, CustomButton, CustomBadge, CustomBadgeCompletion, CustomFormControl, FollowUpCard  } from './Components';
 import { ModalAssignmentPicker, ModalAssignmentForm } from './AssignmentView';
+import {StudentWorkPlanList} from './StudentView';
 
 export class AdminView extends Component {
 
@@ -52,7 +53,7 @@ export class WorkPlanListView extends Component{
     }
 
     getData(){
-        $glVars.webApi.getWorkPlanList(this.state.pagination.item_per_page, this.state.pagination.current_page - 1, this.state.activeTab, false, this.getDataResult);
+        $glVars.webApi.getWorkPlanList(this.state.pagination.item_per_page, this.state.pagination.current_page - 1, this.state.activeTab, false, 0, this.getDataResult);
     }
 
     getDataResult(result){
@@ -330,7 +331,7 @@ class WorkPlanAssignmentsView extends Component{
         this.onSearch = this.onSearch.bind(this);
         this.onFilterChange = this.onFilterChange.bind(this);
 
-        this.state = {queryStr: "", detail: -1, showAssignments: false, filter: {late:false}, editAssignment: null, sortAssignment: 0};
+        this.state = {queryStr: "", detail: -1, showAssignments: false, filter: {late:false}, editAssignment: null, sortAssignment: 0, showUser: null};
     }
 
     render(){
@@ -414,7 +415,8 @@ class WorkPlanAssignmentsView extends Component{
                                             <span dangerouslySetInnerHTML={{__html: item.user.avatar}}></span>
                                         </div>
                                         <div>
-                                            <strong>{item.user.firstName}</strong><span  className='ml-3 text-muted'>Groupe:</span><span className='text-muted'>{` ${item.user.groupList}`}</span>
+                                            <a href='#' onClick={() => this.onOpenStudentView(item.user)}><strong>{item.user.firstName}</strong></a>
+                                            <span  className='ml-3 text-muted'>Groupe:</span><span className='text-muted'>{` ${item.user.groupList}`}</span>
                                             <div className='text-muted'>Dernière connexion: {item.user.lastAccess}</div>
                                             <div className='text-muted'>{`Début: ${UtilsDateTime.getDate(item.startDate)} (${item.nbHoursPerWeek} h/semaine)`}</div>
                                             <div className='text-muted'>{`Durée: ${txtDuration}`}</div>
@@ -453,9 +455,27 @@ class WorkPlanAssignmentsView extends Component{
                 </div>
                 {this.state.showAssignments && <ModalAssignmentPicker data={data} onClose={(refresh) => this.onShowAssignments(false, refresh)}/>}
                 {this.state.editAssignment !== null && <ModalAssignmentForm data={this.state.editAssignment} onClose={(refresh) => this.onShowAssignments(false, refresh)}/>}
-            </>
+            </>;
+
+            let studentView = null;
+
+            if(this.state.showUser !== null){
+                studentView =
+                    <div>
+                        <div className='p-2' style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                            <CustomButton title='Revenir'  onClick={() => this.onOpenStudentView(null)}><FontAwesomeIcon icon={faArrowLeft}/></CustomButton>
+                            <div className='mt2 d-flex align-items-center'>
+                                <span dangerouslySetInnerHTML={{__html: this.state.showUser.avatar}}></span>
+                                <span className='h2'>{`${this.state.showUser.firstName} ${this.state.showUser.lastName}`}</span>
+                            </div>
+                        </div>
+                        
+                        <StudentWorkPlanList userId={this.state.showUser.id} lastUpdate={Date.now()}/>
+                    </div>;
+            }
+                
             
-        return (main);
+        return (studentView ? studentView : main);
     }
     
     onDetail(id){
@@ -496,6 +516,10 @@ class WorkPlanAssignmentsView extends Component{
 
     onSearch(event){
         this.setState({queryStr: event.target.value});
+    }
+    
+    onOpenStudentView(user){
+        this.setState({showUser: user});
     }
 }
 

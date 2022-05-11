@@ -23,7 +23,7 @@ export class StudentBlockView extends Component{
     }
 
     getData(){
-        $glVars.webApi.getWorkPlanList(this.state.pagination.item_per_page, this.state.pagination.current_page - 1, 'ongoing', true, this.getDataResult);
+        $glVars.webApi.getWorkPlanList(this.state.pagination.item_per_page, this.state.pagination.current_page - 1, 'ongoing', true, 0, this.getDataResult);
     }
 
     getDataResult(result){
@@ -100,7 +100,7 @@ export class AdminBlockView extends Component {
     }
 
     getData(){
-        $glVars.webApi.getWorkPlanList(this.state.pagination.item_per_page, this.state.pagination.current_page - 1, 'ongoing', false, this.getDataResult);
+        $glVars.webApi.getWorkPlanList(this.state.pagination.item_per_page, this.state.pagination.current_page - 1, 'ongoing', false, 0, this.getDataResult);
     }
 
     getDataResult(result){
