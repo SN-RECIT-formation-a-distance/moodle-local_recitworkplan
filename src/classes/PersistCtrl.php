@@ -113,7 +113,7 @@ class PersistCtrl extends MoodlePersistCtrl
         $extraFields
         $enrolledStmt
         from {course_categories} as t1
-        inner join {course} as t2 on t1.id = t2.category and t2.visible = 1
+        left join {course} as t2 on t1.id = t2.category and t2.visible = 1
         $extraJoin) as tab
         where $whereStmt
         order by courseid asc";

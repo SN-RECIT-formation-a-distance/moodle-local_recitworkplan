@@ -188,8 +188,10 @@ export class ActivityPicker extends Component{
             if(parseInt(el.parentCatId, 10) > 0){
                 let parent = JsNx.getItem(result.data.catCourseList, 'categoryId', el.parentCatId);
                 
-                child.label = `${parent.categoryName} / ${child.label}`;
-                setParent(parent, child);
+                if(parent){
+                    child.label = `${parent.categoryName} / ${child.label}`;
+                    setParent(parent, child);
+                }
             }
         }
 
