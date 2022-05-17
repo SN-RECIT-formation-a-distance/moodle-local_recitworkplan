@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { Card, Tabs, Tab, Button, Form, DropdownButton, Dropdown, ButtonGroup} from 'react-bootstrap';
 import { faPencilAlt,  faPlus, faTrashAlt, faCopy, faCheck, faArrowLeft, faEllipsisV, faSyncAlt, faBookmark, faChevronUp, faChevronDown, faArchive, faUser, faChalkboardTeacher, faRedoAlt, faRedo, faUserFriends} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { FeedbackCtrl, ToggleButtons } from '../libs/components/Components';
+import { FeedbackCtrl, ToggleButtons, Modal } from '../libs/components/Components';
 import {$glVars, WorkPlanUtils} from '../common/common';
 import { JsNx, UtilsString, UtilsDateTime } from '../libs/utils/Utils';
 import { Pagination } from '../libs/components/Pagination';
@@ -457,18 +457,19 @@ class WorkPlanAssignmentsView extends Component{
             let studentView = null;
 
             if(this.state.showUser !== null){
-                studentView =
-                    <div>
-                        <div className='p-2' style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-                            <CustomButton title='Revenir'  onClick={() => this.onOpenStudentView(null)}><FontAwesomeIcon icon={faArrowLeft}/></CustomButton>
-                            <div className='mt2 d-flex align-items-center'>
-                                <span dangerouslySetInnerHTML={{__html: this.state.showUser.avatar}}></span>
-                                <span className='h2'>{`${this.state.showUser.firstName} ${this.state.showUser.lastName}`}</span>
-                            </div>
+                let body =  
+                <div>
+                    <div className='p-2' style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                        <div className='mt2 d-flex align-items-center'>
+                            <span dangerouslySetInnerHTML={{__html: this.state.showUser.avatar}}></span>
+                            <span className='h2'>{`${this.state.showUser.firstName} ${this.state.showUser.lastName}`}</span>
                         </div>
-                        
-                        <StudentWorkPlanList userId={this.state.showUser.id} lastUpdate={Date.now()}/>
-                    </div>;
+                    </div>
+                    <StudentWorkPlanList userId={this.state.showUser.id} lastUpdate={Date.now()}/>
+                </div>;
+
+                studentView = <Modal title={`Plan de travail de l'élève`} body={body} style={{maxWidth:900, width:'auto'}} onClose={() => this.onOpenStudentView(null)} />;
+                   
             }
                 
             
@@ -581,8 +582,8 @@ class WorkPlanActivitiesView extends Component{
                                             <div className='h6 text-muted pl-3'>{`${item.nbHoursCompletion} heures`}</div>
                                         </div>
                                         <div className="m-3 p-2">
-                                            {actStats.nbAwaitingGrade > 0 && <CustomBadge variant="bg-warning" text={`${actStats.nbAwaitingGrade} travaux à corriger`}/>}
-                                            {actStats.nbFails > 0 && <CustomBadge variant="bg-danger" text={`${actStats.nbFails} risques d'échec`}/>}
+                                            {actStats.nbAwaitingGrade > 0 && <CustomBadge variant="correction" nbIndicator={actStats.nbAwaitingGrade}/>}
+                                            {actStats.nbFails > 0 && <CustomBadge variant="failure" nbIndicator={actStats.nbFails}/>}
                                         </div>
                                         <div className="p-2 text-muted" style={{alignItems: 'center', display: 'flex'}}>
                                             <CustomBadgeCompletion title="Le nombre d'activités complètés / le nombre d'élèves" stats={progressText}/>

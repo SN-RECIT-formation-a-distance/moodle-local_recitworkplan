@@ -66,7 +66,7 @@ export class StudentBlockView extends Component{
                                 <div className='m-1 p-1'>
                                     {assignment.completionState == 2 &&
                                         <div>
-                                            <span className='badge btn-danger'>{`En retard`}</span>
+                                            <CustomBadge variant="late"/>  
                                         </div> 
                                     }
                                 </div>
@@ -132,7 +132,7 @@ export class AdminBlockView extends Component {
                 )}
 
                 {this.state.dataProvider.length === 0 && 
-                        <a  href={$glVars.recitWorkPlanUrl} className='h5'>Vers le plan de travail...</a>}
+                        <a  href={$glVars.recitWorkPlanUrl} className='h5'>Créer un plan de travail...</a>}
             </div>;
 
         return (main);

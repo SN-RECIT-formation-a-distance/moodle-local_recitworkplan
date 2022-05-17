@@ -221,7 +221,6 @@ class WebApi extends MoodleApi
             return new WebApiResult(true, $result);
         }
         catch(Exception $ex){
-            throw $ex;
             return new WebApiResult(false, false, $ex->GetMessage());
         }
     }

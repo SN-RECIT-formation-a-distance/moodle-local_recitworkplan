@@ -474,16 +474,16 @@ class PersistCtrl extends MoodlePersistCtrl
         group by t3.id, t1.id, tuser.userid, tuser.timemodified)       
         union
         (select cmId, cmName, timeModified, count(*) as nbItems, userid, followup from 
-        (SELECT  t1.id as cmId, t2.name as cmName, max(t3.timemodified) as timeModified, t3.userid, t3.attempt as quizAttempt, t4.questionusageid, group_concat(tuser.state order by tuser.sequencenumber) as states,
+        (SELECT  t1.id as cmId, t2.name as cmName, max(t3.timemodified) as timeModified, t3.userid, t3.attempt as quizAttempt, t4.questionusageid, group_concat(t5.state order by t5.sequencenumber) as states,
         1 as followup
         FROM 
         {$this->prefix}course_modules as t1 
         inner join {$this->prefix}quiz as t2 on t2.id = t1.instance and t1.module = (select id from {$this->prefix}modules where name = 'quiz') and t2.course = t1.course
         inner join {$this->prefix}quiz_attempts as t3 on t3.quiz = t2.id 
         inner join {$this->prefix}question_attempts as t4 on  t4.questionusageid = t3.uniqueid
-        inner join {$this->prefix}question_attempt_steps as tuser on t4.id = tuser.questionattemptid
+        inner join {$this->prefix}question_attempt_steps as t5 on t4.id = t5.questionattemptid
         where t1.id in (select cmid from {$this->prefix}recit_wp_tpl_act where templateid = $templateId)
-        group by t1.id, t2.id, t3.id, t4.id, tuser.userid, t3.timemodified) as tab
+        group by t1.id, t2.id, t3.id, t4.id, t3.userid, t3.timemodified) as tab
         where right(states, 12) = 'needsgrading'
         group by cmId, timeModified, userid)";
 
