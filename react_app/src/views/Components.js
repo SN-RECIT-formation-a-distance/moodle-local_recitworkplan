@@ -31,6 +31,7 @@ export class UserActivityList extends Component{
                         {userActivity.completionState > 0 && <CustomBadge variant="bg-success" text="Complété"/>}
                         {userActivity.followup == 1 && <CustomBadge variant="bg-warning" text="En attente de correction"/>}
                         {userActivity.followup == 2 && <CustomBadge variant="bg-warning" text="En attente de rétroaction"/>}
+                        {userActivity.passed == 0 && <CustomBadge variant="bg-danger" text="Risque d'échec"/>}
                     </div>
                 </Card.Body>
             </Card>
@@ -206,7 +207,7 @@ export class FollowUpCard extends Component{
                 <div style={{textAlign: 'center'}}>
                     {workPlan.stats && workPlan.stats.nbLateStudents > 0 && <CustomBadge variant="bg-danger" text={`${workPlan.stats.nbLateStudents} apprenants en retard`}/>}
                     {actStats.nbAwaitingGrade > 0 && <CustomBadge variant="bg-warning" text={`${actStats.nbAwaitingGrade} travaux à corriger`}/>}
-                    {actStats.nbFails > 0 && <CustomBadge variant="bg-warning" text={`${actStats.nbFails} risques d'échec`}/>}
+                    {actStats.nbFails > 0 && <CustomBadge variant="bg-danger" text={`${actStats.nbFails} risques d'échec`}/>}
                     {noResult && 
                         <>
                             <span className='text-muted'>{`Aucun suivi à faire.`}</span><br/>
@@ -271,6 +272,12 @@ export class AssignmentFollowUp extends Component{
         
         if(el){
             result.push(<CustomBadge key={result.length} variant="bg-warning" text="En attente de rétroaction"/>);
+        }
+        
+        el =  JsNx.getItem(this.props.data.user.activities, 'passed', 0, null);
+        
+        if(el){
+            result.push(<CustomBadge key={result.length} variant="bg-danger" text="Risque d'échec"/>);
         }
 
         return <div>{result}</div>;

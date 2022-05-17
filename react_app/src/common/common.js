@@ -19,7 +19,7 @@ export class WorkPlanUtils {
     static getActivityCompletion(activities){
         let count = 0;
         for(let item of activities){
-            if(item.completionState >= 1){
+            if(item.completionState >= 1 || item.passed >= 0){
                 count++;
             }
         }
@@ -73,7 +73,7 @@ export class WorkPlanUtils {
                     if (act.followup == 1){
                         nbAwaitingGrade++;
                     }
-                    if (act.completionState == 3){
+                    if (act.passed == 0){
                         nbFails++;
                     }
                 }

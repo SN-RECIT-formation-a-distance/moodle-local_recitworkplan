@@ -582,7 +582,7 @@ class WorkPlanActivitiesView extends Component{
                                         </div>
                                         <div className="m-3 p-2">
                                             {actStats.nbAwaitingGrade > 0 && <CustomBadge variant="bg-warning" text={`${actStats.nbAwaitingGrade} travaux à corriger`}/>}
-                                            {actStats.nbFails > 0 && <CustomBadge variant="bg-warning" text={`${actStats.nbFails} risques d'échec`}/>}
+                                            {actStats.nbFails > 0 && <CustomBadge variant="bg-danger" text={`${actStats.nbFails} risques d'échec`}/>}
                                         </div>
                                         <div className="p-2 text-muted" style={{alignItems: 'center', display: 'flex'}}>
                                             <CustomBadgeCompletion title="Le nombre d'activités complètés / le nombre d'élèves" stats={progressText}/>

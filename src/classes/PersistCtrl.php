@@ -241,6 +241,7 @@ class PersistCtrl extends MoodlePersistCtrl
                 $result = Template::create($item);
             }
             
+            if($item->courseid == 0){ continue;}
             if($item->cmid == 0){ continue;}
 
             if($modinfo == null || $modinfo->__get('courseid') != $item->courseid){
@@ -503,6 +504,16 @@ class PersistCtrl extends MoodlePersistCtrl
         return $stmt;
     }
 
+    public function getWorkGradeStmt($templateId){
+        $stmt = "SELECT t3.id as cmid, t2.userid, t2.finalgrade, t1.itemname, if(t2.finalgrade is null, -1, if(t2.finalgrade >= t1.gradepass, 1, 0)) as passed FROM {$this->prefix}grade_items t1
+        INNER JOIN {$this->prefix}grade_grades t2 ON t2.itemid = t1.id and t1.itemtype = 'mod'
+        INNER JOIN {$this->prefix}course_modules t3 ON t1.iteminstance = t3.instance
+        where t3.id in (select cmid from {$this->prefix}recit_wp_tpl_act where templateid = $templateId) and t1.gradepass > 0 and t2.rawgrade is not null order by t2.id desc
+        ";
+         
+        return $stmt;
+    }
+
     public function getWorkPlan($userId, $templateId){
         $query = "select t1.id, t1.nb_hours_per_week as nbhoursperweek, from_unixtime(t1.startdate) as startdate, 
         t1.completionstate as wpcompletionstate, t2.id as templateid, t2.creatorid, t2.name as templatename, t2.state as templatestate, 
@@ -510,13 +521,14 @@ class PersistCtrl extends MoodlePersistCtrl
         t3.nb_hours_completion as nb_hours_completion, count(*) OVER() AS total_count, t6.completionstate as activitycompletionstate, 
         t1.assignorid, t2.collaboratorid, collaborator.firstname as collaboratorfirstname, collaborator.lastname as collaboratorlastname, 
         assignor.picture as assignorpicture, assignor.imagealt as assignorimagealt, assignor.email as assignoremail, assignor.alternatename as assignoralternatename, assignor.firstname as assignorfirstname, assignor.lastname as assignorlastname, assignor.lastnamephonetic as assignorlastnamephonetic, assignor.firstnamephonetic as assignorfirstnamephonetic, 
-        t8.name as categoryname, t3.id as tpl_act_id, t1.comment as comment, t2.communication_url as communication_url, fup.followup, t3.slot,
+        t8.name as categoryname, t3.id as tpl_act_id, t1.comment as comment, t2.communication_url as communication_url, fup.followup, COALESCE(grade.passed, -1) AS passed, t3.slot,
         t1.userid, users.firstname, users.lastname, users.picture, users.imagealt, users.email, users.firstnamephonetic, users.lastnamephonetic, users.alternatename, FROM_UNIXTIME(users.lastaccess) as lastaccess, g.grouplist
         from {$this->prefix}recit_wp_tpl as t2
         left join {$this->prefix}recit_wp_tpl_assign as t1 on t1.templateid = t2.id
         left join {$this->prefix}recit_wp_tpl_act as t3 on t3.templateid = t2.id
         left join {$this->prefix}course_modules as t5 on t3.cmid = t5.id
         left join (".$this->getWorkFollowUpStmt($templateId).") as fup on t3.cmid = fup.cmId and t1.userid = fup.userid
+        left join (".$this->getWorkGradeStmt($templateId).") as grade on t3.cmid = grade.cmid and t1.userid = grade.userid
         left join {$this->prefix}course as t7 on t7.id = t5.course
         left join {$this->prefix}course_categories as t8 on t7.category = t8.id
         left join {$this->prefix}user as users on users.id = t1.userid
@@ -1030,6 +1042,7 @@ class Assignment{
         $item = new stdClass();
         $item->completionState = $dbData->activitycompletionstate;
         $item->followup = (isset($dbData->followup) ? $dbData->followup : 0);
+        $item->passed = (isset($dbData->passed) ? $dbData->passed : -1);
         $item->cmId = $dbData->cmid;
         $this->user->activities[] = $item;
     }
