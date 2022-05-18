@@ -422,10 +422,10 @@ class WorkPlanAssignmentsView extends Component{
                                             <div className='text-muted'>{`Durée: ${txtDuration}`}</div>
                                             <div className='text-muted'>{`Échéance: ${UtilsDateTime.getDate(item.endDate)}`}</div>
                                         </div>
-                                        <div>
+                                        <div className='w-100-mobile'>
                                             <AssignmentFollowUp data={item}/>
                                         </div>
-                                        <div className="p-2 text-muted" style={{alignItems: 'center', display: 'flex', justifyContent: 'flex-end'}}>
+                                        <div className="p-2 text-muted d-flex" style={{alignItems: 'center', justifyContent: 'flex-end'}}>
                                             <CustomBadgeCompletion title="Le nombre d'affectations complétées / le nombre d'activités" stats={progressText}/>
                                             <DropdownButton disabled={WorkPlanUtils.isArchived(JsNx.at(data.assignments, 0, null))} className='mr-3' bsPrefix='rounded btn btn-sm btn-outline-primary' variant='' title={<span><FontAwesomeIcon icon={faEllipsisV}  />{" "}</span>} id={`optionsAssignments${item.id}`}>
                                                 <Dropdown.Item onClick={() => this.setState({editAssignment: item})}><FontAwesomeIcon icon={faPencilAlt}  />{" Modifier"}</Dropdown.Item>
@@ -575,7 +575,7 @@ class WorkPlanActivitiesView extends Component{
                             
                             let card = 
                                 <CustomCard key={index} progressText={`${progressValue}% (le nombre d'activités complètes / le nombre d'élèves)`} progressValue={`${progressValue}%`}>
-                                    <div className='d-flex align-items-center' style={{justifyContent: 'space-between'}}>
+                                    <div className='d-flex d-block-mobile align-items-center' style={{justifyContent: 'space-between'}}>
                                         <div>
                                             <div className='h4'><strong><a href={item.cmUrl} target="_blank">{item.cmName}</a></strong></div>
                                             <div className='h6 text-muted pl-3'>{`${item.categoryName}/${item.courseName}`}</div>
