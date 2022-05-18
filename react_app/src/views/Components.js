@@ -295,6 +295,10 @@ export class AssignmentFollowUp extends Component{
             result.push(<CustomBadge key={result.length} variant="completed"/>);
         }
 
+        if(item.completionState == 4){
+            result.push(<CustomBadge key={result.length} variant="bg-info" text="Inactif"/>);
+        }
+
         let el =  JsNx.getItem(this.props.data.user.activities, 'followup', 1, null);
 
         if(el){

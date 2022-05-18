@@ -580,7 +580,7 @@ class PersistCtrl extends MoodlePersistCtrl
     public function getWorkPlanList($userId, $limit = 0, $offset = 0, $state = 'ongoing', $forStudent = false){
         $where = "";
         if ($state == 'ongoing'){
-            $where = "(t1.completionstate in (0,2,3) and t2.state = 0) or (t1.completionstate is null and t2.state = 0)";
+            $where = "(t1.completionstate in (0,2,3,4) and t2.state = 0) or (t1.completionstate is null and t2.state = 0)";
         }
         if ($state == 'archive'){
             $where = "(t1.completionstate = 1 and t2.state = 0)";
@@ -602,7 +602,7 @@ class PersistCtrl extends MoodlePersistCtrl
         }else if (in_array($state, array('manager'))){
             $capabilities[] = RECITWORKPLAN_MANAGE_CAPABILITY;
             $innerJoinSmt = "inner join (".$this->getAdminRolesStmt($userId, $capabilities).") as tblRoles on ((t7.category = tblRoles.instanceid and tblRoles.contextlevel = 40) or (t5.course = tblRoles.instanceid and tblRoles.contextlevel = 50))";
-            $where = "(t1.completionstate in (0,2,3))";
+            $where = "(t1.completionstate in (0,2,3,4))";
         }
         
         $query = "select t1.id, t1.nb_hours_per_week as nbhoursperweek, from_unixtime(t1.startdate) as startdate, 
@@ -735,7 +735,7 @@ class PersistCtrl extends MoodlePersistCtrl
             }
 
             /**
-             *  where (t1.completionstate != 1) is to avoid archived assignments
+             *  where (t1.completionstate != 1) is to avoid archived/inactive assignments
              */
             $query = "select assignmentId, templateid,  
             (case 
@@ -751,7 +751,7 @@ class PersistCtrl extends MoodlePersistCtrl
             from mdl_recit_wp_tpl_assign as t1 
             inner join mdl_recit_wp_tpl_act as t2 on t1.templateid = t2.templateid 
             left join mdl_course_modules_completion as t3 on t2.cmid = t3.coursemoduleid and t1.userid = t3.userid           
-            where t1.completionstate != 1 and $whereStmt1
+            where t1.completionstate not in (1,4) and $whereStmt1
             group by t1.userid, t1.id) as tab
             where $whereStmt2";
            
@@ -946,7 +946,7 @@ class Assignment{
     public $templateId = 0;
     public $comment = "";
     /**
-     * 0 = ongoing, 1 = archived, 2 = late
+     * 0 = ongoing, 1 = archived, 2 = late, 3= completed, 4 = inactive
      */
     public $completionState = 0;
 

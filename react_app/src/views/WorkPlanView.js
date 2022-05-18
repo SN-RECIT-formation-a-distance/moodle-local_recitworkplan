@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
-import { Card, Tabs, Tab, Button, Form, DropdownButton, Dropdown, ButtonGroup} from 'react-bootstrap';
-import { faPencilAlt,  faPlus, faTrashAlt, faCopy, faCheck, faArrowLeft, faEllipsisV, faSyncAlt, faBookmark, faChevronUp, faChevronDown, faArchive, faUser, faChalkboardTeacher, faRedoAlt, faRedo, faUserFriends} from '@fortawesome/free-solid-svg-icons';
+import { Card, Tabs, Tab, Button, Form, DropdownButton, Dropdown, ButtonGroup, ToggleButtonGroup, ToggleButton} from 'react-bootstrap';
+import { faPencilAlt,  faPlus, faTrashAlt, faCopy, faCheck, faArrowLeft, faEllipsisV, faSyncAlt, faBookmark, faChevronUp, faChevronDown, faArchive, faUser, faChalkboardTeacher, faRedoAlt, faRedo, faUserFriends, faPeopleCarry} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { FeedbackCtrl, ToggleButtons, Modal } from '../libs/components/Components';
 import {$glVars, WorkPlanUtils} from '../common/common';
@@ -331,7 +331,7 @@ class WorkPlanAssignmentsView extends Component{
         this.onSearch = this.onSearch.bind(this);
         this.onFilterChange = this.onFilterChange.bind(this);
 
-        this.state = {queryStr: "", detail: -1, showAssignments: false, filter: {late:false}, editAssignment: null, sortAssignment: 0, showUser: null};
+        this.state = {queryStr: "", detail: -1, showAssignments: false, filter: ['late','ongoing'], editAssignment: null, sortAssignment: 0, showUser: null};
     }
 
     render(){
@@ -341,7 +341,9 @@ class WorkPlanAssignmentsView extends Component{
         let regexp = UtilsString.getRegExp(this.state.queryStr);
 
         assignments = assignments.filter((item) =>{
-            if (this.state.filter.late && item.completionState != 2) return false;
+            if (!this.state.filter.includes('late') && item.completionState == 2) return false;
+            if (!this.state.filter.includes('ongoing') && item.completionState == 0) return false;
+            if (!this.state.filter.includes('inactive') && item.completionState == 4) return false;
             if(this.state.queryStr.length > 0){
                 return ((item.user.firstName.search(regexp) >= 0) || (item.user.lastName.search(regexp) >= 0) || (item.user.groupList.search(regexp) >= 0));
             }
@@ -378,18 +380,29 @@ class WorkPlanAssignmentsView extends Component{
             return 0;
         });
 
+        let filters = [];
+        if (this.countFlag(2) > 0){
+            filters.push({value:'late', text: 'En retard ('+this.countFlag(2)+')'});
+        }
+        if (this.countFlag(0) > 0){
+            filters.push({value:'ongoing', text: 'En cours ('+this.countFlag(0)+')'});
+        }
+        if (this.countFlag(4) > 0){
+            filters.push({value:'inactive', text: 'Inactif ('+this.countFlag(4)+')'});
+        }
+
         let main =  
             <>     
                 <CustomHeader title="Affectations" btnAfter={<CustomButton  disabled={WorkPlanUtils.isArchived(JsNx.at(data.assignments, 0, null))} title='Attribuer un plan de travail.'  onClick={() => this.onShowAssignments(true)}><FontAwesomeIcon icon={faPlus}/></CustomButton>}>
                     <div className='d-flex align-items-center d-block-mobile w-100-mobile' >
                         Filtrer par <CustomFormControl className='w-100-mobile' style={{display:'inline',width:'200px',marginRight:'10px', marginLeft:'10px'}} onChange={this.onSearch} type="search" value={this.state.queryStr} name='queryStr' placeholder="Nom, groupe..."/>
-                        Trier par <select type="select" className='form-control rounded' style={{width:'115px', marginLeft:'10px'}} onChange={(e) => this.setState({sortAssignment:e.target.value})}>
+                        Trier par <select type="select" className='form-control rounded ml-2 mr-2' style={{width:'115px'}} onChange={(e) => this.setState({sortAssignment:e.target.value})}>
                             <option value="lastname">Nom</option>
                             <option value="firstname">Prénom</option>
                             <option value="progress">Progrès</option>
                             <option value="enddate">Date d'échéance</option>
                         </select>
-                        <Form.Check style={{display:'inline',marginLeft:'10px'}} type="checkbox" onChange={this.onFilterChange} value={this.state.filter.late} name="late" label="Afficher seulement les élèves en retard"/>
+                        <ToggleButtons className='ml-2' type="checkbox" defaultValue={this.state.filter} onChange={this.onFilterChange} options={filters}/>
                     </div>
                 </CustomHeader>            
 
@@ -429,6 +442,7 @@ class WorkPlanAssignmentsView extends Component{
                                             <CustomBadgeCompletion title="Le nombre d'affectations complétées / le nombre d'activités" stats={progressText}/>
                                             <DropdownButton disabled={WorkPlanUtils.isArchived(JsNx.at(data.assignments, 0, null))} className='mr-3' bsPrefix='rounded btn btn-sm btn-outline-primary' variant='' title={<span><FontAwesomeIcon icon={faEllipsisV}  />{" "}</span>} id={`optionsAssignments${item.id}`}>
                                                 <Dropdown.Item onClick={() => this.setState({editAssignment: item})}><FontAwesomeIcon icon={faPencilAlt}  />{" Modifier"}</Dropdown.Item>
+                                                <Dropdown.Item onClick={() => this.onSetInactiveAssignment(item)}><FontAwesomeIcon icon={faPeopleCarry}  />{item.completionState == 4 ? " Mettre actif" : " Mettre inactif"}</Dropdown.Item>
                                                 <Dropdown.Item onClick={() => this.onDeleteAssignment(item.id)}><FontAwesomeIcon icon={faTrashAlt}  />{" Supprimer"}</Dropdown.Item>
                                             </DropdownButton>
                                         </div>
@@ -475,19 +489,33 @@ class WorkPlanAssignmentsView extends Component{
             
         return (studentView ? studentView : main);
     }
+
+    countFlag(flag){
+        let count = 0;
+        let data = this.props.data;
+        let assignments = data.assignments;
+        for (let a of assignments){
+            if (a.completionState == flag){
+                count++;
+            }
+        }
+        return count;
+    }
+
+    onSetInactiveAssignment(item){
+        let assignments = [];
+        item.completionState = item.completionState == 4 ? 0 : 4;
+        assignments.push(item);
+        let callback = (this.props.onRefresh ? this.props.onRefresh : null);
+        $glVars.webApi.saveAssignment(assignments, callback);
+    }
     
     onDetail(id){
         this.setState({detail:id});
     }
 
     onFilterChange(e){
-        let filter = this.state.filter;
-        if (typeof e.target.checked != 'undefined'){
-            filter[e.target.name] = e.target.checked;
-        }else{
-            filter[e.target.name] = e.target.value;
-        }
-        this.setState({filter:filter});
+        this.setState({filter:e.target.value});
     }
 
     onShowAssignments(value, refresh){

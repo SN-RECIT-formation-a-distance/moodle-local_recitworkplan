@@ -455,13 +455,13 @@ class ModalTemplateForm extends Component{
                 <Form.Group as={Row}>
                     <Form.Label column sm="2">{"Description"}</Form.Label>
                     <Col sm="10">
-                        <CustomFormControl as="textarea" rows={4} className='w-100' value={data.template.description} name="description" onChange={this.onDataChange} />
+                        <CustomFormControl as="textarea" rows={4} className='w-100' value={data.template.description || ''} name="description" onChange={this.onDataChange} />
                     </Col>
                 </Form.Group>
                 <Form.Group as={Row}>
                     <Form.Label column sm="2">{"URL de communication"}</Form.Label>
                     <Col sm="10">
-                        <CustomFormControl type="text" className='w-100' value={data.template.communicationUrl} name="communicationUrl" onChange={this.onDataChange} />
+                        <CustomFormControl type="text" className='w-100' value={data.template.communicationUrl || ''} name="communicationUrl" onChange={this.onDataChange} />
                     </Col>
                 </Form.Group>
                 <Form.Group as={Row}>
