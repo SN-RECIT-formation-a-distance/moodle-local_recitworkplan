@@ -411,7 +411,7 @@ class PersistCtrl extends MoodlePersistCtrl
 
     protected function getWorkPlanStats($templateId){
         $query = "select count(distinct cmid) as nbActivities, count(DISTINCT userid) as nbStudents
-            from workplans where templateid = $templateId group by templateid";
+            from workplans where templateid = $templateId and nb_hours_completion != 0 group by templateid";
 
         $result = $this->mysqlConn->execSQLAndGetObject($query);
         $stats = new stdClass();
@@ -441,7 +441,7 @@ class PersistCtrl extends MoodlePersistCtrl
         $rst = $this->mysqlConn->execSQLAndGetObject($query);
         $stats->nbLateStudents = $rst->count;
 
-        $query = "select count(distinct userid) as count, cmid from workplans where activitycompletionstate in (1,2,3) and templateid = $templateId group by cmid";
+        $query = "select count(distinct userid) as count, cmid from workplans where activitycompletionstate in (1,2,3) and nb_hours_completion != 0 and templateid = $templateId group by cmid";
 
         $rst = $this->mysqlConn->execSQLAndGetObjects($query);
         foreach($rst as $r){
