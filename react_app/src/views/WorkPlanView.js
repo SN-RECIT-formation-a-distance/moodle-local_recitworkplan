@@ -270,7 +270,7 @@ class WorkPlanView extends Component{
     }
 
     getData(templateId){
-        $glVars.webApi.getWorkPlanFormKit(templateId, this.getDataResult);
+        $glVars.webApi.getWorkPlanFormKit(templateId, false, this.getDataResult);
     }
 
     getDataResult(result){
@@ -288,7 +288,7 @@ class WorkPlanView extends Component{
             <div>   
                 <CustomHeader title="Modifier le plan de travail" btnBefore={<CustomButton title="Revenir" onClick={this.props.onClose} faIcon={faArrowLeft}/>}>
                     {this.state.data.template.state == 1 && <CustomBadge variant='bg-warning' faIcon={faBookmark} text={"Gabarit"}/>}
-                </CustomHeader>             
+                </CustomHeader>
 
                 <WorkPlanTemplateView data={this.state.data} onSave={this.onSaveTemplate} />
                     

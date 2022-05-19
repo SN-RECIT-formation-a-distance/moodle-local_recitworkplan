@@ -4,6 +4,7 @@ import { JsNx, UtilsDateTime } from '../libs/utils/Utils';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheck } from '@fortawesome/free-solid-svg-icons';
 import {$glVars, WorkPlanUtils} from '../common/common';
+import { FeedbackCtrl } from '../libs/components/Feedback';
 
 export class UserActivityList extends Component{
     static defaultProps = {        
@@ -214,6 +215,7 @@ export class CustomFormControl extends Component{
 export class FollowUpCard extends Component{
     static defaultProps = {        
         templateId: 0,
+        isStudent: false
     };
 
     constructor(props){
@@ -228,7 +230,9 @@ export class FollowUpCard extends Component{
     render(){
         let main = null;
 
-        if(this.state.data !== null){
+        if(this.state.data !== null && this.props.isStudent){
+            main = <AssignmentFollowUp data={this.state.data.assignments[0]}/>;
+        }else if(this.state.data !== null && !this.props.isStudent){
             let workPlan = this.state.data;
             let actStats = WorkPlanUtils.getActivityStats(workPlan);
 
@@ -256,7 +260,7 @@ export class FollowUpCard extends Component{
     }
 
     getData(){
-        $glVars.webApi.getWorkPlanFormKit(this.props.templateId, this.getDataResult);
+        $glVars.webApi.getWorkPlan(this.props.templateId, this.props.isStudent, this.getDataResult);
     }
 
     getDataResult(result){
@@ -265,7 +269,7 @@ export class FollowUpCard extends Component{
             return;
         }
 
-        this.setState({data: result.data.data, lastUpdate: new Date()});
+        this.setState({data: result.data, lastUpdate: new Date()});
     }
 }
 

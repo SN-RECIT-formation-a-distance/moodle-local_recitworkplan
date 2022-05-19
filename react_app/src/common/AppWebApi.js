@@ -33,10 +33,15 @@ export class AppWebApi extends WebApi
         this.post(this.gateway, data, onSuccess);
     }
 
-    getWorkPlanFormKit(templateId, onSuccess){
-        let data = {templateId: templateId, service: "getWorkPlanFormKit"};
+    getWorkPlan(templateId, forStudent, onSuccess){
+        let data = {templateId: templateId, forStudent: forStudent, service: "getWorkPlan"};
         this.post(this.gateway, data, onSuccess);
-    } 
+    }
+
+    getWorkPlanFormKit(templateId, forStudent, onSuccess){
+        let data = {templateId: templateId, forStudent: forStudent, service: "getWorkPlanFormKit"};
+        this.post(this.gateway, data, onSuccess);
+    }
 
     deleteWorkPlan(templateId, onSuccess){
         let data = {templateId: templateId, service: "deleteWorkPlan"};

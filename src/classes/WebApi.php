@@ -85,14 +85,36 @@ class WebApi extends MoodleApi
         }
     }
 
+    public function getWorkPlan($request){
+        try{
+            $forStudent = boolval($request['forStudent']);
+
+            if(!$forStudent){
+                $this->canUserAccess('a'); 
+            }
+
+            $templateId = intval($request['templateId']);
+
+            $result = $this->ctrl->getWorkPlan($this->signedUser->id, $templateId, $forStudent);
+
+            $this->prepareJson($result);
+            
+            return new WebApiResult(true, $result);
+        }
+        catch(Exception $ex){
+            return new WebApiResult(false, false, $ex->GetMessage());
+        }
+    }
+
     public function getWorkPlanFormKit($request){
         try{
-            $this->canUserAccess('a'); 
+
+            $this->canUserAccess('a');
 
             $templateId = intval($request['templateId']);
 
             $result = new stdClass();
-            $result->data = ($templateId > 0 ? $this->ctrl->getWorkPlan($this->signedUser->id, $templateId) : new WorkPlan());
+            $result->data = ($templateId > 0 ? $this->ctrl->getWorkPlan($this->signedUser->id, $templateId, false) : new WorkPlan());
 
             $this->prepareJson($result);
             

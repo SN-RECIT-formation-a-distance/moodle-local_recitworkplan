@@ -415,7 +415,6 @@ class PersistCtrl extends MoodlePersistCtrl
 
         $result = $this->mysqlConn->execSQLAndGetObject($query);
         $stats = new stdClass();
-        $stats->templateid = $templateId;
         $stats->activitycompleted = array();
         $stats->assignmentcompleted = array();
 
@@ -514,7 +513,13 @@ class PersistCtrl extends MoodlePersistCtrl
         return $stmt;
     }
 
-    public function getWorkPlan($userId, $templateId){
+    public function getWorkPlan($userId, $templateId, $isStudent = false){
+        $roles = array(RECITWORKPLAN_ASSIGN_CAPABILITY, RECITWORKPLAN_MANAGE_CAPABILITY);
+        $where = "";
+        if ($isStudent){
+            $roles = array(RECITWORKPLAN_FOLLOW_CAPABILITY);
+            $where = " and t1.userid = $userId";
+        }
         $query = "select t1.id, t1.nb_hours_per_week as nbhoursperweek, from_unixtime(t1.startdate) as startdate, 
         t1.completionstate as wpcompletionstate, t2.id as templateid, t2.creatorid, t2.name as templatename, t2.state as templatestate, 
         t7.fullname as coursename, t7.id as courseid, t2.description as templatedesc, from_unixtime(t2.lastupdate) as lastupdate, t3.cmid,
@@ -539,8 +544,8 @@ class PersistCtrl extends MoodlePersistCtrl
             left join {$this->prefix}groups as t10 on t9.groupid = t10.id
             group by t9.userid, t10.courseid) as g on g.userid = t1.userid and g.courseid = t5.course
         left join {$this->prefix}course_modules_completion as t6 on t5.id = t6.coursemoduleid and t6.userid = users.id 
-        inner join (".$this->getAdminRolesStmt($userId, array(RECITWORKPLAN_ASSIGN_CAPABILITY, RECITWORKPLAN_MANAGE_CAPABILITY)).") as tblRoles on (t7.category = tblRoles.instanceid and tblRoles.contextlevel = 40) or (t5.course = tblRoles.instanceid and tblRoles.contextlevel = 50)
-        where t2.id = $templateId
+        inner join (".$this->getAdminRolesStmt($userId, $roles).") as tblRoles on (t7.category = tblRoles.instanceid and tblRoles.contextlevel = 40) or (t5.course = tblRoles.instanceid and tblRoles.contextlevel = 50)
+        where t2.id = $templateId $where
         order by t7.id, t7.id asc, t3.slot, users.firstname asc, users.lastname asc ";
         // order by courseid because of get_fast_modinfo
         
