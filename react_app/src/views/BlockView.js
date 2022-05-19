@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { FeedbackCtrl } from '../libs/components/Components';
 import {$glVars, WorkPlanUtils} from '../common/common';
 import {  UtilsDateTime  } from '../libs/utils/Utils';
-import { FollowUpCard, CustomCard, CustomBadgeCompletion  } from './Components';
+import { FollowUpCard, CustomCard, CustomBadgeCompletion, CustomBadge  } from './Components';
 
 export class StudentBlockView extends Component{
     static defaultProps = {        
@@ -51,8 +51,8 @@ export class StudentBlockView extends Component{
                                 progressText = `${workPlan.stats.assignmentcompleted[`${assignment.user.id}`]}/${workPlan.stats.nbActivities}`;
                             }
 
-                            let card = 
-                            <CustomCard progressText={`${progressValue.value}%`} progressValue={`${progressValue.value}%`}>
+                            let card =
+                            <CustomCard key={index} progressText={`${progressValue.value}%`} progressValue={`${progressValue.value}%`}>
                                 <div className='d-flex' style={{justifyContent: 'space-between'}}>
                                     <a href={this.viewUrl} className='h3'>{workPlan.template.name}</a>
                                 </div>        
@@ -63,12 +63,8 @@ export class StudentBlockView extends Component{
                                     {assignment.endDate && <div className='text-muted'>{`Échéance: ${UtilsDateTime.getDate(assignment.endDate)}`}</div>}
                                 </div>
 
-                                <div className='m-1 p-1'>
-                                    {assignment.completionState == 2 &&
-                                        <div>
-                                            <CustomBadge variant="late"/>  
-                                        </div> 
-                                    }
+                                <div className="m-3 p-2">
+                                    <FollowUpCard templateId={workPlan.template.id} isStudent={true}/>
                                 </div>
                             </CustomCard>;
 
