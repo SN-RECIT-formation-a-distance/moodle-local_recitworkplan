@@ -504,7 +504,7 @@ class PersistCtrl extends MoodlePersistCtrl
     }
 
     public function getWorkGradeStmt($templateId){
-        $stmt = "SELECT t3.id as cmid, t2.userid, t2.finalgrade, t1.itemname, if(t2.finalgrade is null, -1, if(t2.finalgrade >= t1.gradepass, 1, 0)) as passed FROM {$this->prefix}grade_items t1
+        $stmt = "SELECT t3.id as cmid, t2.userid, t2.finalgrade, CONCAT(ROUND(t2.rawgrade,2),'/',ROUND(t2.rawgrademax,2)) as grade, t1.itemname, if(t2.finalgrade is null, -1, if(t2.finalgrade >= t1.gradepass, 1, 0)) as passed FROM {$this->prefix}grade_items t1
         INNER JOIN {$this->prefix}grade_grades t2 ON t2.itemid = t1.id and t1.itemtype = 'mod'
         INNER JOIN {$this->prefix}course_modules t3 ON t1.iteminstance = t3.instance
         where t3.id in (select cmid from {$this->prefix}recit_wp_tpl_act where templateid = $templateId) and t1.gradepass > 0 and t2.rawgrade is not null order by t2.id desc
@@ -526,7 +526,7 @@ class PersistCtrl extends MoodlePersistCtrl
         t3.nb_hours_completion as nb_hours_completion, count(*) OVER() AS total_count, t6.completionstate as activitycompletionstate, 
         t1.assignorid, t2.collaboratorid, collaborator.firstname as collaboratorfirstname, collaborator.lastname as collaboratorlastname, 
         assignor.picture as assignorpicture, assignor.imagealt as assignorimagealt, assignor.email as assignoremail, assignor.alternatename as assignoralternatename, assignor.firstname as assignorfirstname, assignor.lastname as assignorlastname, assignor.lastnamephonetic as assignorlastnamephonetic, assignor.firstnamephonetic as assignorfirstnamephonetic, 
-        t8.name as categoryname, t3.id as tpl_act_id, t1.comment as comment, t2.communication_url as communication_url, fup.followup, COALESCE(grade.passed, -1) AS passed, t3.slot,
+        t8.name as categoryname, t3.id as tpl_act_id, t1.comment as comment, t2.communication_url as communication_url, fup.followup, COALESCE(grade.passed, -1) AS passed, grade.grade, t3.slot,
         t1.userid, users.firstname, users.lastname, users.picture, users.imagealt, users.email, users.firstnamephonetic, users.lastnamephonetic, users.alternatename, FROM_UNIXTIME(users.lastaccess) as lastaccess, g.grouplist
         from {$this->prefix}recit_wp_tpl as t2
         left join {$this->prefix}recit_wp_tpl_assign as t1 on t1.templateid = t2.id
@@ -1048,6 +1048,7 @@ class Assignment{
         $item->completionState = $dbData->activitycompletionstate;
         $item->followup = (isset($dbData->followup) ? $dbData->followup : 0);
         $item->passed = (isset($dbData->passed) ? $dbData->passed : -1);
+        $item->grade = (isset($dbData->grade) ? $dbData->grade : null);
         $item->cmId = $dbData->cmid;
         $this->user->activities[] = $item;
     }

@@ -24,7 +24,8 @@ export class UserActivityList extends Component{
             <Card className='rounded mt-2 mb-2'>
                 <Card.Body style={{backgroundColor: "#ffffff", display: "grid", gridGap: '1rem', gridTemplateColumns: '50% auto auto', alignItems: 'center'}}>
                     <div>
-                        <div className='h4'><strong><a href={item.cmUrl} target="_blank">{item.cmName}</a></strong></div>
+                        <div className='h4'><strong><a href={item.cmUrl} target="_blank">{item.cmName}</a></strong>
+                        {userActivity.grade && <CustomBadge variant="bg-info" text={userActivity.grade}/>}</div>
                         <div className='h6 text-muted pl-3'>{`${item.categoryName}/${item.courseName}`}</div>
                         <div className='h6 text-muted pl-3'>{`${item.nbHoursCompletion} heures`}</div>
                     </div>
@@ -315,7 +316,7 @@ export class AssignmentFollowUp extends Component{
             result.push(<CustomBadge key={result.length} variant="feedback"/>);
         }
         
-        el =  JsNx.getItem(this.props.data.user.activities, 'passed', 0, null);
+        el = JsNx.getItem(this.props.data.user.activities, 'passed', 0, null);
         
         if(el){
             result.push(<CustomBadge key={result.length} variant="failure"/>);
