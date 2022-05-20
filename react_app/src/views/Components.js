@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { Card, Button, Form} from 'react-bootstrap';
 import { JsNx, UtilsDateTime } from '../libs/utils/Utils';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCheck } from '@fortawesome/free-solid-svg-icons';
+import { faCheck, faSyncAlt, faTasks } from '@fortawesome/free-solid-svg-icons';
 import {$glVars, WorkPlanUtils} from '../common/common';
 import { FeedbackCtrl } from '../libs/components/Feedback';
 
@@ -19,13 +19,16 @@ export class UserActivityList extends Component{
     render(){
         let item = this.props.data;
         let userActivity = JsNx.getItem(this.props.user.activities, 'cmId', item.cmId, []);
+        let className = (item.nbHoursCompletion === 0 ? 'bg-secondary' : '');
 
         let main = 
-            <Card className='rounded mt-2 mb-2'>
-                <Card.Body style={{backgroundColor: "#ffffff", display: "grid", gridGap: '1rem', gridTemplateColumns: '50% auto auto', alignItems: 'center'}}>
+            <Card className={`rounded mt-2 mb-2`}>
+                <Card.Body className={className} style={{backgroundColor: "#ffffff", display: "grid", gridGap: '1rem', gridTemplateColumns: '50% auto auto', alignItems: 'center'}}>
                     <div>
-                        <div className='h4'><strong><a href={item.cmUrl} target="_blank">{item.cmName}</a></strong>
-                        {userActivity.grade && <CustomBadge variant="bg-info" text={userActivity.grade}/>}</div>
+                        <div className='h4'>
+                            <strong><a href={item.cmUrl} target="_blank">{item.cmName}</a></strong>
+                            {userActivity.grade && <span className='ml-3 h6 text-muted'>{`(${userActivity.grade})`}</span>}
+                        </div>
                         <div className='h6 text-muted pl-3'>{`${item.categoryName}/${item.courseName}`}</div>
                         <div className='h6 text-muted pl-3'>{`${item.nbHoursCompletion} heures`}</div>
                     </div>
@@ -102,12 +105,15 @@ export class CustomButton extends Component{
         onClick: null,
         children: null,
         faIcon: null,
-        disabled: false
+        disabled: false,
+        rounded: true
     };
 
     render(){
+        let className = (this.props.rounded ? 'rounded-circle' : '');
+
         let main =
-            <Button disabled={this.props.disabled} size='sm' variant='outline-primary' className='rounded-circle' title={this.props.title} onClick={this.props.onClick} >
+            <Button disabled={this.props.disabled} size='sm' variant='outline-primary' className={className} title={this.props.title} onClick={this.props.onClick} >
                 {this.props.faIcon && <FontAwesomeIcon icon={this.props.faIcon}/>}
                 {this.props.children}
             </Button>;
@@ -134,7 +140,7 @@ export class CustomBadge extends Component{
                 text = 'Complété';
                 break;
             case 'correction': 
-                variant = 'bg-warning'; 
+                variant = 'bg-info'; 
                 text = 'Travaux à corriger';
                 break;
             case 'feedback': 
@@ -151,7 +157,7 @@ export class CustomBadge extends Component{
                 break;
         }
 
-        text = (this.props.nbIndicator > 0 ? `${text}: ${this.props.nbIndicator}` : text);
+        text = (this.props.nbIndicator > 1 ? `${text}: ${this.props.nbIndicator}` : text);
 
 
         let main = 
@@ -231,13 +237,12 @@ export class FollowUpCard extends Component{
     render(){
         let main = null;
 
-        if(this.state.data !== null && this.props.isStudent){
-            main = <AssignmentFollowUp data={this.state.data.assignments[0]}/>;
-        }else if(this.state.data !== null && !this.props.isStudent){
+        if(this.state.data !== null){
             let workPlan = this.state.data;
             let actStats = WorkPlanUtils.getActivityStats(workPlan);
 
             let noResult = !((workPlan.stats && workPlan.stats.nbLateStudents > 0) || (actStats.nbAwaitingGrade > 0) || (actStats.nbFails > 0));
+
             main =
                 <div style={{textAlign: 'center'}}>
                     {workPlan.stats && workPlan.stats.nbLateStudents > 0 && <CustomBadge variant="late" nbIndicator={workPlan.stats.nbLateStudents}/>}
@@ -249,12 +254,14 @@ export class FollowUpCard extends Component{
                             <span className='text-muted'>{UtilsDateTime.format(this.state.lastUpdate)}</span>
                         </>
                     }
+                    <br/>
+                    <CustomButton faIcon={faSyncAlt} title='Rafraichir le suivi des activités' onClick={this.getData}></CustomButton>
                 </div>;
         }
         else{
             main = 
                 <div style={{textAlign: 'center'}}>
-                    <Button variant='outline-primary' className='text-wrap' onClick={this.getData}>Suivi des activités</Button>    
+                    <CustomButton rounded={false} faIcon={faTasks} className='text-wrap' onClick={this.getData}>{" Suivi des activités"}</CustomButton>    
                 </div>;
         }
         return main;

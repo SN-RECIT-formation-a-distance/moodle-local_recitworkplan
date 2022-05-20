@@ -33,8 +33,8 @@ export class AppWebApi extends WebApi
         this.post(this.gateway, data, onSuccess);
     }
 
-    getWorkPlan(templateId, forStudent, onSuccess){
-        let data = {templateId: templateId, forStudent: forStudent, service: "getWorkPlan"};
+    getWorkPlan(templateId, studentId, onSuccess){
+        let data = {templateId: templateId, studentId: studentId || 0, service: "getWorkPlan"};
         this.post(this.gateway, data, onSuccess);
     }
 

@@ -1,44 +1,36 @@
 import React, { Component } from 'react';
-import {Button, Card} from 'react-bootstrap';
-import { faSyncAlt, faArchive, faCheck, faChevronUp, faChevronDown, faArrowLeft} from '@fortawesome/free-solid-svg-icons';
+import { faSyncAlt, faArchive, faArrowLeft} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {FeedbackCtrl, ToggleButtons} from '../libs/components/Components';
 import {$glVars, WorkPlanUtils} from '../common/common';
 import { UserActivityList, CustomCard, AssignmentFollowUp, CustomBadgeCompletion, CustomHeader, CustomButton, FollowUpCard } from './Components';
 import { UtilsDateTime } from '../libs/utils/Utils';
-import { ClickableElipsis } from '../libs/components/ClickableElipsis';
 
 export class StudentView extends Component {
-    static defaultProps = {        
-        userId: 0,
-    };
-
     constructor(props) {
         super(props);
 
-        this.state = {lastUpdate: 0, activeTab: 'ongoing', detail: -1};
+        this.state = {lastUpdate: 0, activeTab: 'ongoing', showHeader: true};
     }
  
     render() {
-        let list = 
+        let main = 
             <div>
-                <div className='d-flex' style={{justifyContent: "space-between"}}>
-                    <div className='d-flex' style={{alignItems: "center"}}>
-                        <span className='h1 mr-3'>Plans de travail</span>
-                    </div>
-                    <div>
-                        <ToggleButtons name="completionState" onChange={(e) => this.onCompletionStateChange(e)} type="radio" defaultValue={this.state.activeTab} options={
-                            [{value: "ongoing", text: <span><FontAwesomeIcon icon={faSyncAlt}  />{" En cours"}</span>}, 
-                            {value: "archive", text: <span><FontAwesomeIcon icon={faArchive}  />{" Archivés"}</span>}]}/>
-                    </div>
-                </div> 
+                {this.state.showHeader && 
+                    <div className='d-flex' style={{justifyContent: "space-between"}}>
+                        <div className='d-flex' style={{alignItems: "center"}}>
+                            <span className='h1 mr-3'>Plans de travail</span>
+                        </div>
+                        <div>
+                            <ToggleButtons name="completionState" onChange={(e) => this.onCompletionStateChange(e)} type="radio" defaultValue={this.state.activeTab} options={
+                                [{value: "ongoing", text: <span><FontAwesomeIcon icon={faSyncAlt}  />{" En cours"}</span>}, 
+                                {value: "archive", text: <span><FontAwesomeIcon icon={faArchive}  />{" Archivés"}</span>}]}/>
+                        </div>
+                    </div> 
+                }
 
-               <StudentWorkPlanList state={this.state.activeTab} onDetail={(tplId) => this.setState({detail:tplId})} lastUpdate={this.state.lastUpdate}/>
+               <StudentWorkPlanList state={this.state.activeTab}  lastUpdate={this.state.lastUpdate} onDetail={(v) => this.setState({showHeader: v})} />
             </div>;
-
-        let details = <StudentTemplateDetail templateId={this.state.detail} onClose={() => this.setState({detail: -1})}/>
-
-        let main = this.state.detail == -1 ? list : details;
 
         return (main);
     }
@@ -59,7 +51,9 @@ export class StudentWorkPlanList extends Component {
     constructor(props) {
         super(props);
 
-        this.state = {dataProvider: null, detail: -1};
+        this.onDetail = this.onDetail.bind(this);
+
+        this.state = {dataProvider: null, templateId: 0};
     }
  
     render() {
@@ -70,13 +64,22 @@ export class StudentWorkPlanList extends Component {
         let list = 
             <div className='tiles'>
                 {this.state.dataProvider.map((item, index) => {
-                        let row = <StudentTemplateTile onDetail={this.props.onDetail} key={index} reportData={item}/>
+                        let row = <StudentTemplateTile onDetail={this.onDetail} key={index} reportData={item}/>
                         return (row);
                     }
                 )}
             </div>;
 
-        return list;
+        let details = 
+                    <>
+                        <CustomHeader title="Plan de travail" btnBefore={<CustomButton title="Revenir" onClick={() => this.onDetail(0)} faIcon={faArrowLeft}/>}/>
+                        <StudentTemplateDetail templateId={this.state.templateId} userId={this.props.userId} />
+                    </>
+            
+
+        let main = (this.state.templateId === 0 ? list : details);
+
+        return main;
     }
     
     componentDidMount(){
@@ -89,21 +92,26 @@ export class StudentWorkPlanList extends Component {
         }
     }
  
-     getData(){
-         $glVars.webApi.getWorkPlanList(30, 0, this.props.state, true, this.props.userId, this.getDataResult.bind(this));
-     }
+    getData(){
+        $glVars.webApi.getWorkPlanList(30, 0, this.props.state, true, this.props.userId, this.getDataResult.bind(this));
+    }
  
-     getDataResult(result){
-         if(!result.success){
-             FeedbackCtrl.instance.showError($glVars.i18n.tags.appName, result.msg);
-             return;
-         }
+    getDataResult(result){
+        if(!result.success){
+            FeedbackCtrl.instance.showError($glVars.i18n.tags.appName, result.msg);
+            return;
+        }
  
-         this.setState({dataProvider: result.data.items});
-     }
+        this.setState({dataProvider: result.data.items});
+    }
+
+    onDetail(templateId){
+        this.setState({templateId: templateId});
+        this.props.onDetail(templateId === 0);
+    }
 }
 
-export class StudentTemplateTile extends Component {
+class StudentTemplateTile extends Component {
     static defaultProps = {        
         reportData: null,
         onDetail: null     
@@ -196,10 +204,10 @@ export class StudentTemplateTile extends Component {
     }
 }
 
-class StudentTemplateDetail extends Component {
+export class StudentTemplateDetail extends Component {
     static defaultProps = {
-        onClose: null,
         templateId: 0,
+        studentId: 0
     }
 
     constructor(props) {
@@ -213,7 +221,7 @@ class StudentTemplateDetail extends Component {
     }
  
     getData(){
-        $glVars.webApi.getWorkPlan(this.props.templateId, true, this.getDataResult.bind(this));
+        $glVars.webApi.getWorkPlan(this.props.templateId, this.props.studentId, this.getDataResult.bind(this));
     }
  
     getDataResult(result){
@@ -227,18 +235,19 @@ class StudentTemplateDetail extends Component {
 
     render(){
         if (!this.state.dataProvider) return null;
+
         let reportData = this.state.dataProvider;
         let progressValue = {text: '', value: 0};
         let progressText  = `0/${reportData.stats.nbActivities}`;
+
         if(reportData.stats.assignmentcompleted[`${this.state.assignment.user.id}`]){
             progressValue = WorkPlanUtils.getAssignmentProgress(reportData.template.activities, this.state.assignment);
             progressText = `${reportData.stats.assignmentcompleted[`${this.state.assignment.user.id}`]}/${reportData.stats.nbActivities}`;
         }
+
         let rythmeColor = StudentTemplateTile.getProgressBarRythmColor(reportData, this.state.assignment);
 
-        let main = <>
-            <CustomHeader title="Plan de travail" btnBefore={<CustomButton title="Revenir" onClick={this.props.onClose} faIcon={faArrowLeft}/>}>
-            </CustomHeader>
+        let main = <>            
             <CustomCard progressColor={rythmeColor} progressText={progressValue.text} progressValue={`${progressValue.value}%`}>
                 <div className='mb-3'>
                     <div className='h4'>{reportData.template.name}</div>

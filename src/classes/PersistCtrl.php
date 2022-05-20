@@ -411,7 +411,7 @@ class PersistCtrl extends MoodlePersistCtrl
 
     protected function getWorkPlanStats($templateId){
         $query = "select count(distinct cmid) as nbActivities, count(DISTINCT userid) as nbStudents
-            from workplans where templateid = $templateId and nb_hours_completion != 0 group by templateid";
+            from workplans where templateid = $templateId and nb_hours_completion > 0 group by templateid";
 
         $result = $this->mysqlConn->execSQLAndGetObject($query);
         $stats = new stdClass();
@@ -440,14 +440,14 @@ class PersistCtrl extends MoodlePersistCtrl
         $rst = $this->mysqlConn->execSQLAndGetObject($query);
         $stats->nbLateStudents = $rst->count;
 
-        $query = "select count(distinct userid) as count, cmid from workplans where activitycompletionstate in (1,2,3) and nb_hours_completion != 0 and templateid = $templateId group by cmid";
+        $query = "select count(distinct userid) as count, cmid from workplans where activitycompletionstate in (1,2,3) and nb_hours_completion > 0 and templateid = $templateId group by cmid";
 
         $rst = $this->mysqlConn->execSQLAndGetObjects($query);
         foreach($rst as $r){
             $stats->activitycompleted[$r->cmid] = $r->count;
         }
         
-        $query = "select userid, count(distinct cmid) as count from workplans where activitycompletionstate in (1,2,3) and templateid = $templateId group by userid";
+        $query = "select userid, count(distinct cmid) as count from workplans where activitycompletionstate in (1,2,3) and nb_hours_completion > 0 and templateid = $templateId group by userid";
 
         $rst = $this->mysqlConn->execSQLAndGetObjects($query);
         foreach($rst as $r){
@@ -516,10 +516,12 @@ class PersistCtrl extends MoodlePersistCtrl
     public function getWorkPlan($userId, $templateId, $isStudent = false){
         $roles = array(RECITWORKPLAN_ASSIGN_CAPABILITY, RECITWORKPLAN_MANAGE_CAPABILITY);
         $where = "";
+
         if ($isStudent){
             $roles = array(RECITWORKPLAN_FOLLOW_CAPABILITY);
             $where = " and t1.userid = $userId";
         }
+
         $query = "select t1.id, t1.nb_hours_per_week as nbhoursperweek, from_unixtime(t1.startdate) as startdate, 
         t1.completionstate as wpcompletionstate, t2.id as templateid, t2.creatorid, t2.name as templatename, t2.state as templatestate, 
         t7.fullname as coursename, t7.id as courseid, t2.description as templatedesc, from_unixtime(t2.lastupdate) as lastupdate, t3.cmid,
@@ -740,7 +742,9 @@ class PersistCtrl extends MoodlePersistCtrl
             }
 
             /**
-             *  where (t1.completionstate != 1) is to avoid archived/inactive assignments
+             * WHERE statement: 
+             * t1.completionstate not in (1,4) is to avoid archived/inactive assignments
+             * t2.nb_hours_completion > 0 is to ignore activities assigned with 0h 
              */
             $query = "select assignmentId, templateid,  
             (case 
@@ -756,7 +760,7 @@ class PersistCtrl extends MoodlePersistCtrl
             from mdl_recit_wp_tpl_assign as t1 
             inner join mdl_recit_wp_tpl_act as t2 on t1.templateid = t2.templateid 
             left join mdl_course_modules_completion as t3 on t2.cmid = t3.coursemoduleid and t1.userid = t3.userid           
-            where t1.completionstate not in (1,4) and $whereStmt1
+            where t1.completionstate not in (1,4) and $whereStmt1 and t2.nb_hours_completion > 0
             group by t1.userid, t1.id) as tab
             where $whereStmt2";
            

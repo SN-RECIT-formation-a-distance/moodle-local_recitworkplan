@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { Card, Tabs, Tab, Button, Form, DropdownButton, Dropdown, ButtonGroup, ToggleButtonGroup, ToggleButton} from 'react-bootstrap';
-import { faPencilAlt,  faPlus, faTrashAlt, faCopy, faCheck, faArrowLeft, faEllipsisV, faSyncAlt, faBookmark, faChevronUp, faChevronDown, faArchive, faUser, faChalkboardTeacher, faRedoAlt, faRedo, faUserFriends, faPeopleCarry} from '@fortawesome/free-solid-svg-icons';
+import { faPencilAlt,  faPlus, faTrashAlt, faCopy, faCheck, faArrowLeft, faEllipsisV, faSyncAlt, faBookmark, faChevronUp, faChevronDown, faArchive, faChalkboardTeacher, faRedoAlt, faUserFriends, faUserAltSlash, faUserAlt} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { FeedbackCtrl, ToggleButtons, Modal } from '../libs/components/Components';
 import {$glVars, WorkPlanUtils} from '../common/common';
@@ -9,7 +9,7 @@ import { Pagination } from '../libs/components/Pagination';
 import {ActivityPicker, WorkPlanTemplateView} from './TemplateView';
 import { UserActivityList, CustomCard, CustomHeader, CustomButton, CustomBadge, CustomBadgeCompletion, CustomFormControl, FollowUpCard, AssignmentFollowUp  } from './Components';
 import { ModalAssignmentPicker, ModalAssignmentForm } from './AssignmentView';
-import {StudentWorkPlanList} from './StudentView';
+import {StudentTemplateDetail} from './StudentView';
 
 export class AdminView extends Component {
 
@@ -439,10 +439,16 @@ class WorkPlanAssignmentsView extends Component{
                                             <AssignmentFollowUp data={item}/>
                                         </div>
                                         <div className="p-2 text-muted d-flex" style={{alignItems: 'center', justifyContent: 'flex-end'}}>
-                                            <CustomBadgeCompletion title="Le nombre d'affectations complétées / le nombre d'activités" stats={progressText}/>
+                                            <CustomBadgeCompletion title="Le nombre d'affectations complétées / le nombre d'activités avec une durée plus grande que 0" stats={progressText}/>
                                             <DropdownButton disabled={WorkPlanUtils.isArchived(JsNx.at(data.assignments, 0, null))} className='mr-3' bsPrefix='rounded btn btn-sm btn-outline-primary' variant='' title={<span><FontAwesomeIcon icon={faEllipsisV}  />{" "}</span>} id={`optionsAssignments${item.id}`}>
                                                 <Dropdown.Item onClick={() => this.setState({editAssignment: item})}><FontAwesomeIcon icon={faPencilAlt}  />{" Modifier"}</Dropdown.Item>
-                                                <Dropdown.Item onClick={() => this.onSetInactiveAssignment(item)}><FontAwesomeIcon icon={faPeopleCarry}  />{item.completionState == 4 ? " Mettre actif" : " Mettre inactif"}</Dropdown.Item>
+                                                <Dropdown.Item onClick={() => this.onSetInactiveAssignment(item)}>
+                                                    {item.completionState == 4 ? 
+                                                        <><FontAwesomeIcon icon={faUserAlt}  />{"  Mettre actif"}</>
+                                                         : 
+                                                        <><FontAwesomeIcon icon={faUserAltSlash}  />{" Mettre inactif"}</>
+                                                    }
+                                                    </Dropdown.Item>
                                                 <Dropdown.Item onClick={() => this.onDeleteAssignment(item.id)}><FontAwesomeIcon icon={faTrashAlt}  />{" Supprimer"}</Dropdown.Item>
                                             </DropdownButton>
                                         </div>
@@ -479,7 +485,7 @@ class WorkPlanAssignmentsView extends Component{
                             <span className='h2'>{`${this.state.showUser.firstName} ${this.state.showUser.lastName}`}</span>
                         </div>
                     </div>
-                    <StudentWorkPlanList userId={this.state.showUser.id} lastUpdate={Date.now()}/>
+                    <StudentTemplateDetail templateId={this.props.data.template.id} studentId={this.state.showUser.id}/>
                 </div>;
 
                 studentView = <Modal title={`Plan de travail de l'élève`} body={body} style={{maxWidth:900, width:'auto'}} onClose={() => this.onOpenStudentView(null)} />;

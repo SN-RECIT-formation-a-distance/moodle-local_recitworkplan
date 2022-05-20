@@ -87,15 +87,13 @@ class WebApi extends MoodleApi
 
     public function getWorkPlan($request){
         try{
-            $forStudent = boolval($request['forStudent']);
-
-            if(!$forStudent){
-                $this->canUserAccess('a'); 
-            }
-
             $templateId = intval($request['templateId']);
+            $studentId = intval($request['studentId']);
+            $userId = ($studentId == 0 ? $this->signedUser->id : $studentId);
 
-            $result = $this->ctrl->getWorkPlan($this->signedUser->id, $templateId, $forStudent);
+            $this->canUserAccess('s'); 
+            
+            $result = $this->ctrl->getWorkPlan($userId, $templateId, true);
 
             $this->prepareJson($result);
             
