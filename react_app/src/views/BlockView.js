@@ -64,7 +64,7 @@ export class StudentBlockView extends Component{
                                 </div>
 
                                 <div className="m-3 p-2">
-                                    <FollowUpCard templateId={workPlan.template.id} isStudent={true}/>
+                                    <FollowUpCard templateId={workPlan.template.id} studentId={assignment.user.id}/>
                                 </div>
                             </CustomCard>;
 

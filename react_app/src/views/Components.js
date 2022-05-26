@@ -27,7 +27,7 @@ export class UserActivityList extends Component{
                     <div>
                         <div className='h4'>
                             <strong><a href={item.cmUrl} target="_blank">{item.cmName}</a></strong>
-                            {userActivity.grade && <span className='ml-3 h6 text-muted'>{`(${userActivity.grade})`}</span>}
+                            {userActivity.grade && <CustomBadge variant='bg-info' text={userActivity.grade}/>}
                         </div>
                         <div className='h6 text-muted pl-3'>{`${item.categoryName}/${item.courseName}`}</div>
                         <div className='h6 text-muted pl-3'>{`${item.nbHoursCompletion} heures`}</div>
@@ -110,7 +110,7 @@ export class CustomButton extends Component{
     };
 
     render(){
-        let className = (this.props.rounded ? 'rounded-circle' : '');
+        let className = (this.props.rounded ? 'rounded-circle' : 'rounded');
 
         let main =
             <Button disabled={this.props.disabled} size='sm' variant='outline-primary' className={className} title={this.props.title} onClick={this.props.onClick} >
@@ -222,7 +222,7 @@ export class CustomFormControl extends Component{
 export class FollowUpCard extends Component{
     static defaultProps = {        
         templateId: 0,
-        isStudent: false
+        studentId: 0
     };
 
     constructor(props){
@@ -268,7 +268,7 @@ export class FollowUpCard extends Component{
     }
 
     getData(){
-        $glVars.webApi.getWorkPlan(this.props.templateId, this.props.isStudent, this.getDataResult);
+        $glVars.webApi.getWorkPlan(this.props.templateId, this.props.studentId, this.getDataResult);
     }
 
     getDataResult(result){

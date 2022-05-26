@@ -29,7 +29,7 @@ export class StudentView extends Component {
                     </div> 
                 }
 
-               <StudentWorkPlanList state={this.state.activeTab}  lastUpdate={this.state.lastUpdate} onDetail={(v) => this.setState({showHeader: v})} />
+               <StudentWorkPlanList state={this.state.activeTab} userId={$glVars.signedUser.userId}  lastUpdate={this.state.lastUpdate} onDetail={(v) => this.setState({showHeader: v})} />
             </div>;
 
         return (main);
@@ -73,7 +73,7 @@ export class StudentWorkPlanList extends Component {
         let details = 
                     <>
                         <CustomHeader title="Plan de travail" btnBefore={<CustomButton title="Revenir" onClick={() => this.onDetail(0)} faIcon={faArrowLeft}/>}/>
-                        <StudentTemplateDetail templateId={this.state.templateId} userId={this.props.userId} />
+                        <StudentTemplateDetail templateId={this.state.templateId} studentId={this.props.userId} />
                     </>
             
 
@@ -156,7 +156,7 @@ class StudentTemplateTile extends Component {
                         <div className='text-muted'>{`Rythme: ${this.state.assignment.nbHoursPerWeek} (h/semaine)`}</div>
                     </div>
                     <div className="m-3 p-2">
-                        <FollowUpCard templateId={reportData.template.id} isStudent={true}/>
+                        <FollowUpCard templateId={reportData.template.id} studentId={this.state.assignment.user.id}/>
                     </div>
                 </div>
             </CustomCard>
