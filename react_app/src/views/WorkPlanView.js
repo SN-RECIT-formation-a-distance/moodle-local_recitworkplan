@@ -9,7 +9,7 @@ import { Pagination } from '../libs/components/Pagination';
 import {ActivityPicker, WorkPlanTemplateView} from './TemplateView';
 import { UserActivityList, CustomCard, CustomHeader, CustomButton, CustomBadge, CustomBadgeCompletion, CustomFormControl, FollowUpCard, AssignmentFollowUp  } from './Components';
 import { ModalAssignmentPicker, ModalAssignmentForm } from './AssignmentView';
-import {StudentTemplateDetail} from './StudentView';
+import {StudentWorkPlanList} from './StudentView';
 
 export class AdminView extends Component {
 
@@ -479,13 +479,13 @@ class WorkPlanAssignmentsView extends Component{
             if(this.state.showUser !== null){
                 let body =  
                 <div>
-                    <div className='p-2' style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                    <div className='mb-4 p-2' style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
                         <div className='mt2 d-flex align-items-center'>
                             <span dangerouslySetInnerHTML={{__html: this.state.showUser.avatar}}></span>
                             <span className='h2'>{`${this.state.showUser.firstName} ${this.state.showUser.lastName}`}</span>
                         </div>
                     </div>
-                    <StudentTemplateDetail templateId={this.props.data.template.id} studentId={this.state.showUser.id}/>
+                    <StudentWorkPlanList userId={this.state.showUser.id}/>
                 </div>;
 
                 studentView = <Modal title={`Plan de travail de l'élève`} body={body} style={{maxWidth:900, width:'auto'}} onClose={() => this.onOpenStudentView(null)} />;

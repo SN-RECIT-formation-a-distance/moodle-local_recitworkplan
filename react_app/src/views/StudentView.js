@@ -107,7 +107,10 @@ export class StudentWorkPlanList extends Component {
 
     onDetail(templateId){
         this.setState({templateId: templateId});
-        this.props.onDetail(templateId === 0);
+
+        if(this.props.onDetail){
+            this.props.onDetail(templateId === 0);
+        }
     }
 }
 
