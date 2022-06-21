@@ -230,7 +230,7 @@ class PersistCtrl extends MoodlePersistCtrl
         left join {$this->prefix}course_categories as t5 on t4.category = t5.id
         left join (".$this->getAdminRolesStmt($userId, array(RECITWORKPLAN_ASSIGN_CAPABILITY, RECITWORKPLAN_MANAGE_CAPABILITY)).") as tblRoles on (t4.category = tblRoles.instanceid and tblRoles.contextlevel = 40) or (t4.id = tblRoles.instanceid and tblRoles.contextlevel = 50)
         where t1.id =$templateId
-        order by t4.id, t2.slot asc";//--left join for templates with no activities, otherwise it'd return null
+        order by t4.id asc";//--left join for templates with no activities, otherwise it'd return null
 
         $rst = $this->mysqlConn->execSQLAndGetObjects($query);
 
@@ -252,6 +252,8 @@ class PersistCtrl extends MoodlePersistCtrl
             
             $result->addActivity($item);
         }
+
+        $result->orderBySlot();
 
         return $result;
     }
@@ -548,7 +550,7 @@ class PersistCtrl extends MoodlePersistCtrl
         left join {$this->prefix}course_modules_completion as t6 on t5.id = t6.coursemoduleid and t6.userid = users.id 
         inner join (".$this->getAdminRolesStmt($userId, $roles).") as tblRoles on (t7.category = tblRoles.instanceid and tblRoles.contextlevel = 40) or (t5.course = tblRoles.instanceid and tblRoles.contextlevel = 50)
         where t2.id = $templateId $where
-        order by t7.id, t7.id asc, t3.slot, users.firstname asc, users.lastname asc ";
+        order by t7.id, t7.id asc, users.firstname asc, users.lastname asc ";
         // order by courseid because of get_fast_modinfo
         
         $this->createTmpWorkPlanTable($query);
@@ -578,6 +580,8 @@ class PersistCtrl extends MoodlePersistCtrl
             $result->setAssignmentsEndDate();       
             $result->stats = $this->getWorkPlanStats($templateId);
         }
+
+        $result->template->orderBySlot();
 
         $this->dropTmpWorkPlanTable();
 
@@ -631,7 +635,7 @@ class PersistCtrl extends MoodlePersistCtrl
         left join {$this->prefix}course_categories as t8 on t7.category = t8.id
         left join {$this->prefix}course_modules_completion as t6 on t5.id = t6.coursemoduleid and t6.userid = t4.id
         $innerJoinSmt
-        where $where order by t3.slot";
+        where $where";
 
         if ($limit > 0){
             $offsetsql = $offset * $limit;
@@ -656,6 +660,7 @@ class PersistCtrl extends MoodlePersistCtrl
         foreach($workPlanList as $templateId => $item){
             $item->setAssignmentsEndDate();       
             $item->stats = $this->getWorkPlanStats($templateId);
+            $item->template->orderBySlot();
         }
 
         $pagination = new Pagination();
@@ -898,6 +903,14 @@ class Template{
         }
 
         $this->activities[] = TemplateActivity::create($dbData);
+    }
+
+    public function orderBySlot(){
+        usort($this->activities, 
+            function ($a, $b) {
+                return ($a->slot - $b->slot);
+            }
+        );
     }
 }
 

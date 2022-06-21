@@ -247,7 +247,7 @@ class WorkPlanView extends Component{
         activeTab: 'activities',
         onClose: null
     };
-
+ 
     constructor(props){
         super(props);
 
