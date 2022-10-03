@@ -22,9 +22,10 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->version   = 2022020907;       // The current module version (Date: YYYYMMDDXX)
-$plugin->release = 'v1.0.12';
+$plugin->release = 'v1.0.12-beta';
+$plugin->supported = [39, 311];      //  Moodle 3.9.x, 3.10.x and 3.11.x are supported.
 $plugin->requires  = 2020061500.00; // Moodle 3.9.0
 $plugin->component = 'local_recitworkplan';        // Full name of the plugin (used for diagnostics)
 $plugin->cron      = 0;
 //$plugin->dependencies = [];
-$plugin->maturity = MATURITY_ALPHA; // MATURITY_ALPHA, MATURITY_BETA, MATURITY_RC or MATURITY_STABLE
+$plugin->maturity = MATURITY_BETA; // MATURITY_ALPHA, MATURITY_BETA, MATURITY_RC or MATURITY_STABLE
