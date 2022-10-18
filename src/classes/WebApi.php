@@ -234,7 +234,7 @@ class WebApi extends MoodleApi
 
             $result = new stdClass();
             $result->data = ($templateId > 0 ? $this->ctrl->getTemplate($this->signedUser->id, $templateId) : new Template());
-            $result->catCourseList = $this->ctrl->getCatCourseSectionActivityList();
+            $result->catCourseList = $this->ctrl->getCatCourseSectionActivityList(true);
 
             $this->prepareJson($result);
             

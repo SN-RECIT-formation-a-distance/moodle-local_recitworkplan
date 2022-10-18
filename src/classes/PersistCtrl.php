@@ -92,10 +92,10 @@ class PersistCtrl extends MoodlePersistCtrl
         }
 
         if($courseId > 0){
-            $extraFields = ", t3.id as sectionid, if(length(coalesce(t3.name, '')) = 0, concat('Section ', t3.section), t3.name) as sectionname, t4.id as cmid, 'unknown' as cmname, t4.deletioninprogress as deletioninprogress ";
+            $extraFields = ", t3.id as sectionid, if(length(coalesce(t3.name, '')) = 0, concat('Section ', t3.section), t3.name) as sectionname, t4.id as cmid, 'unknown' as cmname, t4.deletioninprogress as deletioninprogress, t3.section as section ";
             $extraJoin = " inner join {course_sections} as t3 on t2.id = t3.course inner join {course_modules} as t4 on t3.id = t4.section ";
             $whereStmt .= " and (courseid =:courseid) and (deletioninprogress = 0) ";
-            $extraOrder = ", sectionname asc";
+            $extraOrder = ", section asc";
             $params['courseid'] = $courseId;
         }
         $params['userid2'] = $this->signedUser->id;
@@ -116,7 +116,7 @@ class PersistCtrl extends MoodlePersistCtrl
         left join {course} as t2 on t1.id = t2.category and t2.visible = 1
         $extraJoin) as tab
         where $whereStmt
-        order by courseid asc";
+        order by courseid asc".$extraOrder;
         // order by courseid because of get_fast_modinfo
         
         $rst = $DB->get_records_sql($query, $params);
