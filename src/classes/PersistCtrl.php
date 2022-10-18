@@ -92,7 +92,7 @@ class PersistCtrl extends MoodlePersistCtrl
         }
 
         if($courseId > 0){
-            $extraFields = ", t3.id as sectionid, if(length(coalesce(t3.name, '')) = 0, concat('Section ', t3.section), t3.name) as sectionname, t4.id as cmid, 'unknown' as cmname, t4.deletioninprogress as deletioninprogress, t3.section as section ";
+            $extraFields = ", t3.id as sectionid, if(length(coalesce(t3.name, '')) = 0, concat('Section ', t3.section), t3.name) as sectionname, t4.id as cmid, 'unknown' as cmname, t4.deletioninprogress as deletioninprogress, t3.section as section, t4.completion as cmcompletion ";
             $extraJoin = " inner join {course_sections} as t3 on t2.id = t3.course inner join {course_modules} as t4 on t3.id = t4.section ";
             $whereStmt .= " and (courseid =:courseid) and (deletioninprogress = 0) ";
             $extraOrder = ", section asc";

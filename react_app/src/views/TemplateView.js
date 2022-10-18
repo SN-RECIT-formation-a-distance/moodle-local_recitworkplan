@@ -33,6 +33,7 @@ export class ActivityPicker extends Component{
             data: null, 
             collapse: true, 
             draggingItem: null, 
+            showActivityNoAchievement: true,
             dropdownLists: {
                 categoryId: "0", 
                 categoryList: [], 
@@ -55,7 +56,10 @@ export class ActivityPicker extends Component{
     render(){
         if(this.state.data === null){ return null; }
 
-        let tmpActivityList = this.state.dropdownLists.activityList.filter(item => (JsNx.getItem(this.state.data.activities, 'cmId', item.cmId, null) === null && item.sectionId === this.state.dropdownLists.sectionId) );
+        let tmpActivityList = this.state.dropdownLists.activityList.filter(item => {
+            if (!this.state.showActivityNoAchievement && parseInt(item.cmcompletion) == 0) return false;
+            return (JsNx.getItem(this.state.data.activities, 'cmId', item.cmId, null) === null && item.sectionId === this.state.dropdownLists.sectionId); 
+        });
 
         let tmpCourseList = this.state.dropdownLists.courseList.filter(item => (item.data.categoryId === this.state.dropdownLists.categoryId));
         
@@ -109,6 +113,8 @@ export class ActivityPicker extends Component{
                                     </tbody>
                                 </Table>
                             </div>
+                            
+                            {this.state.dropdownLists.activityList.length > 0 && <Form.Check type="checkbox" className='mt-3' label={`Afficher les activités qui n'ont pas d'achèvement`} onChange={(e) => this.setState({showActivityNoAchievement: !this.state.showActivityNoAchievement})} checked={this.state.showActivityNoAchievement} />}
                         </div>
                     </div>
                     <div className='col-md-8'>

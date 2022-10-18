@@ -68617,6 +68617,7 @@ var ActivityPicker = /*#__PURE__*/function (_Component) {
       data: null,
       collapse: true,
       draggingItem: null,
+      showActivityNoAchievement: true,
       dropdownLists: {
         categoryId: "0",
         categoryList: [],
@@ -68648,6 +68649,7 @@ var ActivityPicker = /*#__PURE__*/function (_Component) {
       }
 
       var tmpActivityList = this.state.dropdownLists.activityList.filter(function (item) {
+        if (!_this2.state.showActivityNoAchievement && parseInt(item.cmcompletion) == 0) return false;
         return _Utils.JsNx.getItem(_this2.state.data.activities, 'cmId', item.cmId, null) === null && item.sectionId === _this2.state.dropdownLists.sectionId;
       });
       var tmpCourseList = this.state.dropdownLists.courseList.filter(function (item) {
@@ -68740,7 +68742,17 @@ var ActivityPicker = /*#__PURE__*/function (_Component) {
         }))));
 
         return row;
-      })))))), /*#__PURE__*/_react.default.createElement("div", {
+      })))), this.state.dropdownLists.activityList.length > 0 && /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Check, {
+        type: "checkbox",
+        className: "mt-3",
+        label: "Afficher les activit\xE9s qui n'ont pas d'ach\xE8vement",
+        onChange: function onChange(e) {
+          return _this2.setState({
+            showActivityNoAchievement: !_this2.state.showActivityNoAchievement
+          });
+        },
+        checked: this.state.showActivityNoAchievement
+      }))), /*#__PURE__*/_react.default.createElement("div", {
         className: "col-md-8"
       }, /*#__PURE__*/_react.default.createElement("h6", null, "Activit\xE9s s\xE9lectionn\xE9es ", /*#__PURE__*/_react.default.createElement(_reactBootstrap.Badge, {
         variant: "warning",
@@ -68827,6 +68839,7 @@ var ActivityPicker = /*#__PURE__*/function (_Component) {
       }
 
       var list = this.state.dropdownLists;
+      this.createCategoryTree(list, result);
       list.courseList = [];
 
       var _iterator = _createForOfIteratorHelper(result.data.catCourseList),
@@ -68852,7 +68865,6 @@ var ActivityPicker = /*#__PURE__*/function (_Component) {
         _iterator.f();
       }
 
-      this.createCategoryTree(list, result);
       this.setState({
         data: result.data.data,
         dropdownLists: list
@@ -68861,8 +68873,6 @@ var ActivityPicker = /*#__PURE__*/function (_Component) {
   }, {
     key: "createCategoryTree",
     value: function createCategoryTree(list, result) {
-      var _this3 = this;
-
       list.categoryList = [];
 
       var setParent = function setParent(el, child) {
@@ -68880,28 +68890,18 @@ var ActivityPicker = /*#__PURE__*/function (_Component) {
           _step2;
 
       try {
-        var _loop = function _loop() {
+        for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
           var item = _step2.value;
 
           var index = _Utils.JsNx.getItemIndex(list.categoryList, 'value', item.categoryId);
 
           if (index === -1) {
-            var tmpCourseList = _this3.state.dropdownLists.courseList.filter(function (it) {
-              return it.data.categoryId === item.categoryId && !it.isDisabled;
-            });
-
-            if (tmpCourseList.length > 0) {
-              index = list.categoryList.push({
-                label: item.categoryName,
-                value: item.categoryId
-              }) - 1;
-              setParent(item, list.categoryList[index]);
-            }
+            index = list.categoryList.push({
+              label: item.categoryName,
+              value: item.categoryId
+            }) - 1;
+            setParent(item, list.categoryList[index]);
           }
-        };
-
-        for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
-          _loop();
         }
       } catch (err) {
         _iterator2.e(err);
@@ -68923,7 +68923,7 @@ var ActivityPicker = /*#__PURE__*/function (_Component) {
   }, {
     key: "onDropRow",
     value: function onDropRow(item, index) {
-      var _this4 = this;
+      var _this3 = this;
 
       var data = this.state.data;
       item = _Utils.JsNx.getItem(data.activities, 'id', item.id, null);
@@ -68942,15 +68942,15 @@ var ActivityPicker = /*#__PURE__*/function (_Component) {
           dataChanged: true
         }
       }, function () {
-        _this4.onSaveTplAct(item);
+        _this3.onSaveTplAct(item);
 
-        _this4.onSaveTplAct(draggingItem);
+        _this3.onSaveTplAct(draggingItem);
       });
     }
   }, {
     key: "onAddTplAct",
     value: function onAddTplAct(item) {
-      var _this5 = this;
+      var _this4 = this;
 
       var newItem = {};
       newItem.id = 0;
@@ -68965,7 +68965,7 @@ var ActivityPicker = /*#__PURE__*/function (_Component) {
           dataChanged: true
         }
       }, function () {
-        return _this5.onSaveTplAct(newItem);
+        return _this4.onSaveTplAct(newItem);
       });
     }
   }, {
@@ -69125,21 +69125,21 @@ var WorkPlanTemplateView = /*#__PURE__*/function (_Component2) {
   var _super2 = _createSuper(WorkPlanTemplateView);
 
   function WorkPlanTemplateView(props) {
-    var _this6;
+    var _this5;
 
     _classCallCheck(this, WorkPlanTemplateView);
 
-    _this6 = _super2.call(this, props);
-    _this6.onSave = _this6.onSave.bind(_assertThisInitialized(_this6));
-    _this6.state = {
+    _this5 = _super2.call(this, props);
+    _this5.onSave = _this5.onSave.bind(_assertThisInitialized(_this5));
+    _this5.state = {
       editModal: false
     };
 
-    if (_this6.props.data.template.id === 0) {
-      _this6.state.editModal = true;
+    if (_this5.props.data.template.id === 0) {
+      _this5.state.editModal = true;
     }
 
-    return _this6;
+    return _this5;
   }
 
   _createClass(WorkPlanTemplateView, [{
@@ -69154,7 +69154,7 @@ var WorkPlanTemplateView = /*#__PURE__*/function (_Component2) {
   }, {
     key: "render",
     value: function render() {
-      var _this7 = this;
+      var _this6 = this;
 
       if (this.state.data === null) {
         return null;
@@ -69194,7 +69194,7 @@ var WorkPlanTemplateView = /*#__PURE__*/function (_Component2) {
           disabled: _common.WorkPlanUtils.isArchived(_Utils.JsNx.at(data.assignments, 0, null)),
           title: "\xC9diter",
           onClick: function onClick() {
-            return _this7.setState({
+            return _this6.setState({
               editModal: true
             });
           }
@@ -69255,7 +69255,7 @@ var WorkPlanTemplateView = /*#__PURE__*/function (_Component2) {
       }, catList)))), this.state.editModal && /*#__PURE__*/_react.default.createElement(ModalTemplateForm, {
         data: data,
         onClose: function onClose() {
-          return _this7.setState({
+          return _this6.setState({
             editModal: false
           });
         },
@@ -69267,12 +69267,12 @@ var WorkPlanTemplateView = /*#__PURE__*/function (_Component2) {
   }, {
     key: "onSave",
     value: function onSave(template) {
-      var _this8 = this;
+      var _this7 = this;
 
       this.setState({
         editModal: false
       }, function () {
-        return _this8.props.onSave(template);
+        return _this7.props.onSave(template);
       });
     }
   }]);
@@ -69293,27 +69293,27 @@ var ModalTemplateForm = /*#__PURE__*/function (_Component3) {
   var _super3 = _createSuper(ModalTemplateForm);
 
   function ModalTemplateForm(props) {
-    var _this9;
+    var _this8;
 
     _classCallCheck(this, ModalTemplateForm);
 
-    _this9 = _super3.call(this, props);
-    _this9.onDataChange = _this9.onDataChange.bind(_assertThisInitialized(_this9));
-    _this9.onSave = _this9.onSave.bind(_assertThisInitialized(_this9));
-    _this9.state = {
-      data: _Utils.JsNx.clone(_this9.props.data),
+    _this8 = _super3.call(this, props);
+    _this8.onDataChange = _this8.onDataChange.bind(_assertThisInitialized(_this8));
+    _this8.onSave = _this8.onSave.bind(_assertThisInitialized(_this8));
+    _this8.state = {
+      data: _Utils.JsNx.clone(_this8.props.data),
       teachers: []
     };
-    return _this9;
+    return _this8;
   }
 
   _createClass(ModalTemplateForm, [{
     key: "componentDidMount",
     value: function componentDidMount() {
-      var _this10 = this;
+      var _this9 = this;
 
       _common.$glVars.webApi.getTeacherList(this.state.data.template.id, function (result) {
-        _this10.setState({
+        _this9.setState({
           teachers: result.data
         });
       });
@@ -72592,7 +72592,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "64705" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "50626" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
