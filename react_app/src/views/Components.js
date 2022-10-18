@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
-import { Card, Button, Form} from 'react-bootstrap';
+import { Card, Button, Form, OverlayTrigger, Tooltip} from 'react-bootstrap';
 import { JsNx, UtilsDateTime } from '../libs/utils/Utils';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCheck, faSyncAlt, faTasks } from '@fortawesome/free-solid-svg-icons';
+import { faCheck, faInfoCircle, faSyncAlt, faTasks } from '@fortawesome/free-solid-svg-icons';
 import {$glVars, WorkPlanUtils} from '../common/common';
 import { FeedbackCtrl } from '../libs/components/Feedback';
 
@@ -137,33 +137,38 @@ export class CustomBadge extends Component{
         switch(variant){
             case 'completed': 
                 variant = 'bg-success'; 
-                text = 'Complété';
+                text = <>Complété</>;
                 break;
             case 'correction': 
                 variant = 'bg-info'; 
-                text = 'Travaux à corriger';
+                text = <>Travaux à corriger</>;
                 break;
             case 'feedback': 
                 variant = 'bg-warning'; 
-                text = 'Rétroactions attendues';
+                text = <>Rétroactions attendues</>;
                 break;
             case 'failure': 
                 variant = 'bg-danger'; 
-                text = "Risque d'échec";
+                text = 
+                <OverlayTrigger overlay={<Tooltip>Dans une activité QUIZ, dès que la note de passage n’est pas atteinte et que l’achèvement y est liée.</Tooltip>}>
+                  <span className="d-inline-block">
+                    Risque d'échec <FontAwesomeIcon icon={faInfoCircle}/>
+                  </span>
+                </OverlayTrigger>;
                 break;
             case 'late': 
                 variant = 'bg-warning'; 
-                text = "En retard";
+                text = <>En retard</>;
                 break;
         }
 
-        text = (this.props.nbIndicator > 1 ? `${text}: ${this.props.nbIndicator}` : text);
+        text = (this.props.nbIndicator > 1 ? <>${text}: ${this.props.nbIndicator}</> : text);
 
 
         let main = 
             <span className={`badge rounded m-1 ${variant}`}>
                 {this.props.faIcon !== null && <FontAwesomeIcon icon={this.props.faIcon}/>}
-                {` ${text}`}
+                {text}
             </span>;
 
         return main;

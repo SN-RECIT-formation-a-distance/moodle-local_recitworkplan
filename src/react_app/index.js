@@ -68222,7 +68222,7 @@ var CustomBadge = /*#__PURE__*/function (_Component5) {
         case 'failure':
           variant = 'bg-danger';
           text = /*#__PURE__*/_react.default.createElement(_reactBootstrap.OverlayTrigger, {
-            overlay: /*#__PURE__*/_react.default.createElement(_reactBootstrap.Tooltip, null, "Le risque d'\xE9chec est initi\xE9 par quel \xE9l\xE9ment?", /*#__PURE__*/_react.default.createElement("br", null), "Dans une activit\xE9 QUIZ, d\xE8s que la note de passage n\u2019est pas atteinte et que l\u2019ach\xE8vement y est li\xE9e.")
+            overlay: /*#__PURE__*/_react.default.createElement(_reactBootstrap.Tooltip, null, "Dans une activit\xE9 QUIZ, d\xE8s que la note de passage n\u2019est pas atteinte et que l\u2019ach\xE8vement y est li\xE9e.")
           }, /*#__PURE__*/_react.default.createElement("span", {
             className: "d-inline-block"
           }, "Risque d'\xE9chec ", /*#__PURE__*/_react.default.createElement(_reactFontawesome.FontAwesomeIcon, {
@@ -72630,7 +72630,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "50626" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "60482" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
