@@ -228,10 +228,9 @@ export class ActivityPicker extends Component{
         if(item.id === draggingItem.id){ return; }
 
         let oldSlot = item.slot;
-        item.slot = draggingItem.slot;
-        draggingItem.slot = oldSlot;
+        draggingItem.slot = oldSlot+1;
 
-        this.setState({flags: {dataChanged: true}}, () => {this.onSaveTplAct(item); this.onSaveTplAct(draggingItem)});
+        this.setState({flags: {dataChanged: true}}, () => {this.onSaveTplActOrder(draggingItem);});
     }
 
     onAddTplAct(item){
@@ -280,12 +279,14 @@ export class ActivityPicker extends Component{
     onFilterChange(event){
         let that = this;
         let item = this.state.dropdownLists;
-        item[event.target.name] = event.target.value;
+        if (event){
+            item[event.target.name] = event.target.value;
 
-        if(event.target.name === "categoryId"){
-            item.courseId = "0";
-            item.activityList = [];
-            item.sectionList = [];
+            if(event.target.name === "categoryId"){
+                item.courseId = "0";
+                item.activityList = [];
+                item.sectionList = [];
+            }
         }
 
         if(item.courseId !== "0"){
@@ -330,6 +331,21 @@ export class ActivityPicker extends Component{
 
         if(this.state.flags.dataChanged){
             $glVars.webApi.saveTplAct({templateId: this.state.data.id, id: tplAct.id, cmId: tplAct.cmId, nbHoursCompletion: tplAct.nbHoursCompletion, slot: tplAct.slot}, callback);
+        }
+    }
+    
+    onSaveTplActOrder(tplAct){
+        let that = this;
+        let callback = function(result){
+            if(!result.success){
+                $glVars.feedback.showError($glVars.i18n.tags.appName, result.msg);
+                return;
+            }
+            that.onFilterChange();
+        }
+
+        if(this.state.flags.dataChanged){
+            $glVars.webApi.saveTplActOrder({templateId: this.state.data.id, id: tplAct.id, slot: tplAct.slot}, callback);
         }
     }
 

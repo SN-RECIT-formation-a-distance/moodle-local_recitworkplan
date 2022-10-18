@@ -67670,6 +67670,15 @@ var AppWebApi = /*#__PURE__*/function (_WebApi) {
       this.post(this.gateway, options, onSuccess);
     }
   }, {
+    key: "saveTplActOrder",
+    value: function saveTplActOrder(data, onSuccess) {
+      var options = {
+        data: data,
+        service: "saveTplActOrder"
+      };
+      this.post(this.gateway, options, onSuccess);
+    }
+  }, {
     key: "deleteTplAct",
     value: function deleteTplAct(templateId, tplActId, onSuccess) {
       var data = {
@@ -68197,37 +68206,43 @@ var CustomBadge = /*#__PURE__*/function (_Component5) {
       switch (variant) {
         case 'completed':
           variant = 'bg-success';
-          text = 'Complété';
+          text = /*#__PURE__*/_react.default.createElement(_react.default.Fragment, null, "Compl\xE9t\xE9");
           break;
 
         case 'correction':
           variant = 'bg-info';
-          text = 'Travaux à corriger';
+          text = /*#__PURE__*/_react.default.createElement(_react.default.Fragment, null, "Travaux \xE0 corriger");
           break;
 
         case 'feedback':
           variant = 'bg-warning';
-          text = 'Rétroactions attendues';
+          text = /*#__PURE__*/_react.default.createElement(_react.default.Fragment, null, "R\xE9troactions attendues");
           break;
 
         case 'failure':
           variant = 'bg-danger';
-          text = "Risque d'échec";
+          text = /*#__PURE__*/_react.default.createElement(_reactBootstrap.OverlayTrigger, {
+            overlay: /*#__PURE__*/_react.default.createElement(_reactBootstrap.Tooltip, null, "Le risque d'\xE9chec est initi\xE9 par quel \xE9l\xE9ment?", /*#__PURE__*/_react.default.createElement("br", null), "Dans une activit\xE9 QUIZ, d\xE8s que la note de passage n\u2019est pas atteinte et que l\u2019ach\xE8vement y est li\xE9e.")
+          }, /*#__PURE__*/_react.default.createElement("span", {
+            className: "d-inline-block"
+          }, "Risque d'\xE9chec ", /*#__PURE__*/_react.default.createElement(_reactFontawesome.FontAwesomeIcon, {
+            icon: _freeSolidSvgIcons.faInfoCircle
+          })));
           break;
 
         case 'late':
           variant = 'bg-warning';
-          text = "En retard";
+          text = /*#__PURE__*/_react.default.createElement(_react.default.Fragment, null, "En retard");
           break;
       }
 
-      text = this.props.nbIndicator > 1 ? "".concat(text, ": ").concat(this.props.nbIndicator) : text;
+      text = this.props.nbIndicator > 1 ? /*#__PURE__*/_react.default.createElement(_react.default.Fragment, null, "$", text, ": $", this.props.nbIndicator) : text;
 
       var main = /*#__PURE__*/_react.default.createElement("span", {
         className: "badge rounded m-1 ".concat(variant)
       }, this.props.faIcon !== null && /*#__PURE__*/_react.default.createElement(_reactFontawesome.FontAwesomeIcon, {
         icon: this.props.faIcon
-      }), " ".concat(text));
+      }), text);
 
       return main;
     }
@@ -68935,16 +68950,13 @@ var ActivityPicker = /*#__PURE__*/function (_Component) {
       }
 
       var oldSlot = item.slot;
-      item.slot = draggingItem.slot;
-      draggingItem.slot = oldSlot;
+      draggingItem.slot = oldSlot + 1;
       this.setState({
         flags: {
           dataChanged: true
         }
       }, function () {
-        _this3.onSaveTplAct(item);
-
-        _this3.onSaveTplAct(draggingItem);
+        _this3.onSaveTplActOrder(draggingItem);
       });
     }
   }, {
@@ -69018,12 +69030,15 @@ var ActivityPicker = /*#__PURE__*/function (_Component) {
     value: function onFilterChange(event) {
       var that = this;
       var item = this.state.dropdownLists;
-      item[event.target.name] = event.target.value;
 
-      if (event.target.name === "categoryId") {
-        item.courseId = "0";
-        item.activityList = [];
-        item.sectionList = [];
+      if (event) {
+        item[event.target.name] = event.target.value;
+
+        if (event.target.name === "categoryId") {
+          item.courseId = "0";
+          item.activityList = [];
+          item.sectionList = [];
+        }
       }
 
       if (item.courseId !== "0") {
@@ -69097,6 +69112,29 @@ var ActivityPicker = /*#__PURE__*/function (_Component) {
           id: tplAct.id,
           cmId: tplAct.cmId,
           nbHoursCompletion: tplAct.nbHoursCompletion,
+          slot: tplAct.slot
+        }, callback);
+      }
+    }
+  }, {
+    key: "onSaveTplActOrder",
+    value: function onSaveTplActOrder(tplAct) {
+      var that = this;
+
+      var callback = function callback(result) {
+        if (!result.success) {
+          _common.$glVars.feedback.showError(_common.$glVars.i18n.tags.appName, result.msg);
+
+          return;
+        }
+
+        that.onFilterChange();
+      };
+
+      if (this.state.flags.dataChanged) {
+        _common.$glVars.webApi.saveTplActOrder({
+          templateId: this.state.data.id,
+          id: tplAct.id,
           slot: tplAct.slot
         }, callback);
       }

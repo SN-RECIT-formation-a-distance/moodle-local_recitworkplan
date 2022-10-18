@@ -347,6 +347,36 @@ class PersistCtrl extends MoodlePersistCtrl
         }
     }
 
+    public function saveTplActOrder($data, $userId){
+        try{
+
+            $fields = array("slot");
+            $values = array($data->slot);
+
+            $query = $this->mysqlConn->prepareStmt("update", "{$this->prefix}recit_wp_tpl_act", $fields, $values, array("id"), array($data->id));
+            $this->mysqlConn->execSQL($query);
+
+            $activities = $this->getWorkPlan($userId, $data->templateId);
+            $activities = $activities->template->activities;
+            $slot = 1;
+            foreach($activities as $g){
+                $sql = "UPDATE {$this->prefix}recit_wp_tpl_act SET slot=$slot WHERE id={$g->id};";
+                $slot+=2;
+                $this->mysqlConn->execSQL($sql);
+            }
+
+
+            $result = new StdClass();
+            $result->templateId = $data->templateId;
+            $result->tplActId = $data->id;
+
+            return $result;
+        }
+        catch(\Exception $ex){
+            throw $ex;
+        }
+    }
+
     public function deleteTplAct($tplActId){
         try{
             $this->mysqlConn->execSQL("delete from {$this->prefix}recit_wp_tpl_act where id = $tplActId");

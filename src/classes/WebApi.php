@@ -289,6 +289,23 @@ class WebApi extends MoodleApi
             return new WebApiResult(false, false, $ex->GetMessage());
         }
     }
+
+    public function saveTplActOrder($request){
+        try{
+            $this->canUserAccess('a');
+
+            $data = json_decode(json_encode($request['data']), FALSE);
+
+            $result = $this->ctrl->saveTplActOrder($data, $this->signedUser->id);
+
+            $this->ctrl->processWorkPlan($result->templateId);
+
+            return new WebApiResult(true, $result);
+        }
+        catch(Exception $ex){
+            return new WebApiResult(false, false, $ex->GetMessage());
+        }
+    }
     
     public function deleteTplAct($request){
         try{
