@@ -64375,6 +64375,11 @@ var ComboBoxPlus = /*#__PURE__*/function (_Component) {
       this.setState({
         value: value
       });
+
+      if (this.props.multiple) {
+        value = event;
+      }
+
       this.props.onChange({
         target: {
           name: this.props.name,
@@ -69203,6 +69208,7 @@ var WorkPlanTemplateView = /*#__PURE__*/function (_Component2) {
       var data = this.props.data;
       var nbHoursCompletionTotal = 0;
       var catList = "";
+      var collaboratorList = "";
       var categories = [];
 
       var _iterator4 = _createForOfIteratorHelper(template.activities),
@@ -69226,6 +69232,22 @@ var WorkPlanTemplateView = /*#__PURE__*/function (_Component2) {
       }
 
       catList = catList.substring(0, catList.length - 2);
+
+      var _iterator5 = _createForOfIteratorHelper(data.template.collaboratorList),
+          _step5;
+
+      try {
+        for (_iterator5.s(); !(_step5 = _iterator5.n()).done;) {
+          var u = _step5.value;
+          collaboratorList = collaboratorList + u.firstName + " " + u.lastName + ", ";
+        }
+      } catch (err) {
+        _iterator5.e(err);
+      } finally {
+        _iterator5.f();
+      }
+
+      collaboratorList = collaboratorList.substring(0, collaboratorList.length - 2);
 
       var main = /*#__PURE__*/_react.default.createElement(_react.default.Fragment, null, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Card, null, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Card.Body, null, /*#__PURE__*/_react.default.createElement(_Components2.CustomHeader, {
         title: "Description",
@@ -69256,15 +69278,15 @@ var WorkPlanTemplateView = /*#__PURE__*/function (_Component2) {
       }, "Description"), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Col, {
         sm: 10,
         className: "bg-light border border-secondary p-2 rounded"
-      }, data.template.description)), data.template.collaborator && /*#__PURE__*/_react.default.createElement(_reactBootstrap.Row, {
+      }, data.template.description)), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Row, {
         className: "m-2"
       }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Col, {
         className: "text-muted",
         sm: 2
-      }, "Collaborateur"), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Col, {
+      }, "Collaborateur(s)"), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Col, {
         sm: 10,
         className: "bg-light border border-secondary p-2 rounded"
-      }, data.template.collaborator.firstName, " ", data.template.collaborator.lastName)), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Row, {
+      }, collaboratorList)), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Row, {
         className: "m-2"
       }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Col, {
         className: "text-muted",
@@ -69343,6 +69365,27 @@ var ModalTemplateForm = /*#__PURE__*/function (_Component3) {
       data: _Utils.JsNx.clone(_this8.props.data),
       teachers: []
     };
+    var collaborators = [];
+
+    var _iterator6 = _createForOfIteratorHelper(_this8.state.data.template.collaboratorList),
+        _step6;
+
+    try {
+      for (_iterator6.s(); !(_step6 = _iterator6.n()).done;) {
+        var t = _step6.value;
+        collaborators.push({
+          label: t.firstName + ' ' + t.lastName,
+          value: parseInt(t.userId),
+          data: t
+        });
+      }
+    } catch (err) {
+      _iterator6.e(err);
+    } finally {
+      _iterator6.f();
+    }
+
+    _this8.state.collaborators = collaborators;
     return _this8;
   }
 
@@ -69352,8 +69395,28 @@ var ModalTemplateForm = /*#__PURE__*/function (_Component3) {
       var _this9 = this;
 
       _common.$glVars.webApi.getTeacherList(this.state.data.template.id, function (result) {
+        var teachers = [];
+
+        var _iterator7 = _createForOfIteratorHelper(result.data),
+            _step7;
+
+        try {
+          for (_iterator7.s(); !(_step7 = _iterator7.n()).done;) {
+            var t = _step7.value;
+            teachers.push({
+              label: t.firstName + ' ' + t.lastName,
+              value: parseInt(t.userId),
+              data: t
+            });
+          }
+        } catch (err) {
+          _iterator7.e(err);
+        } finally {
+          _iterator7.f();
+        }
+
         _this9.setState({
-          teachers: result.data
+          teachers: teachers
         });
       });
     }
@@ -69367,6 +69430,25 @@ var ModalTemplateForm = /*#__PURE__*/function (_Component3) {
       }
 
       var modalBody = /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form, null, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Group, {
+        as: _reactBootstrap.Row
+      }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Label, {
+        column: true,
+        sm: "2"
+      }, "Enregistrer en tant que"), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Col, {
+        sm: "10"
+      }, /*#__PURE__*/_react.default.createElement(_Components.ToggleButtons, {
+        name: "state",
+        defaultValue: [data.template.state],
+        onClick: this.onDataChange,
+        disabled: data.assignments.length > 1,
+        options: [{
+          value: 0,
+          text: "Plan de travail"
+        }, {
+          value: 1,
+          text: "Gabarit"
+        }]
+      }))), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Group, {
         as: _reactBootstrap.Row
       }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Label, {
         column: true,
@@ -69410,39 +69492,15 @@ var ModalTemplateForm = /*#__PURE__*/function (_Component3) {
       }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Label, {
         column: true,
         sm: "2"
-      }, "Collaborateur"), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Col, {
+      }, "Collaborateurs"), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Col, {
         sm: "10"
-      }, /*#__PURE__*/_react.default.createElement("select", {
-        className: "w-100 form-control rounded",
-        name: "collaborator.id",
-        value: data.template.collaborator.id,
+      }, /*#__PURE__*/_react.default.createElement(_Components.ComboBoxPlus, {
+        multiple: true,
+        placeholder: "Sélectionnez votre option",
+        name: "collaborators",
+        value: this.state.collaborators,
+        options: this.state.teachers,
         onChange: this.onDataChange
-      }, /*#__PURE__*/_react.default.createElement("option", {
-        value: "0"
-      }), this.state.teachers.map(function (item, index) {
-        return /*#__PURE__*/_react.default.createElement("option", {
-          value: item.userId,
-          key: index
-        }, item.firstName, " ", item.lastName);
-      })))), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Group, {
-        as: _reactBootstrap.Row
-      }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Label, {
-        column: true,
-        sm: "2"
-      }, "Enregistrer en tant que"), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Col, {
-        sm: "10"
-      }, /*#__PURE__*/_react.default.createElement(_Components.ToggleButtons, {
-        name: "state",
-        defaultValue: [data.template.state],
-        onClick: this.onDataChange,
-        disabled: data.assignments.length > 1,
-        options: [{
-          value: 0,
-          text: "Plan de travail"
-        }, {
-          value: 1,
-          text: "Gabarit"
-        }]
       }))));
 
       var modalFooter = /*#__PURE__*/_react.default.createElement(_reactBootstrap.ButtonGroup, null, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Button, {
@@ -69468,8 +69526,29 @@ var ModalTemplateForm = /*#__PURE__*/function (_Component3) {
       var data = this.state.data;
 
       if (data.template[event.target.name] !== event.target.value) {
-        if (event.target.name === 'collaborator.id') {
-          data.template.collaborator.id = event.target.value;
+        if (event.target.name === 'collaborators') {
+          this.setState({
+            collaborators: event.target.value
+          });
+          var collaboratorList = [];
+
+          var _iterator8 = _createForOfIteratorHelper(event.target.value),
+              _step8;
+
+          try {
+            for (_iterator8.s(); !(_step8 = _iterator8.n()).done;) {
+              var u = _step8.value;
+              collaboratorList.push({
+                userId: u.value
+              });
+            }
+          } catch (err) {
+            _iterator8.e(err);
+          } finally {
+            _iterator8.f();
+          }
+
+          data.template.collaboratorList = collaboratorList;
         } else {
           data.template[event.target.name] = event.target.value;
         }
@@ -71315,9 +71394,9 @@ var WorkPlanCard = /*#__PURE__*/function (_Component3) {
         dangerouslySetInnerHTML: {
           __html: workPlan.template.creator.avatar
         }
-      }), /*#__PURE__*/_react.default.createElement("span", null, "Cr\xE9ateur ", workPlan.template.collaborator.id > 0 && /*#__PURE__*/_react.default.createElement(_reactFontawesome.FontAwesomeIcon, {
+      }), /*#__PURE__*/_react.default.createElement("span", null, "Cr\xE9ateur ", workPlan.template.collaboratorList.length > 0 && /*#__PURE__*/_react.default.createElement(_reactFontawesome.FontAwesomeIcon, {
         icon: _freeSolidSvgIcons.faUserFriends,
-        title: "Collaborateur: ".concat(workPlan.template.collaborator.firstName, " ").concat(workPlan.template.collaborator.lastName)
+        title: "Collaborateurs: ".concat(workPlan.template.collaboratorList[0].firstName, " ").concat(workPlan.template.collaboratorList[0].lastName, " et plus")
       }), " "))), /*#__PURE__*/_react.default.createElement("div", {
         className: "col-md-7 d-flex align-items-center"
       }, /*#__PURE__*/_react.default.createElement(_Components2.CustomBadgeCompletion, {
@@ -71964,6 +72043,10 @@ var WorkPlanActivitiesView = /*#__PURE__*/function (_Component6) {
       var activityList = this.props.data.template.activities;
       var stats = this.props.data.stats;
       var template = this.props.data.template;
+
+      if (this.props.data.stats === null) {
+        return null;
+      }
 
       var regexp = _Utils.UtilsString.getRegExp(this.state.queryStr);
 

@@ -216,7 +216,7 @@ class WorkPlanCard extends Component{
                         <div className='col-md-5' >
                             <span>
                                 <div dangerouslySetInnerHTML={{__html: workPlan.template.creator.avatar}}></div>
-                                <span>Créateur {workPlan.template.collaborator.id > 0 && <FontAwesomeIcon icon={faUserFriends} title={`Collaborateur: ${workPlan.template.collaborator.firstName} ${workPlan.template.collaborator.lastName}`}/>} </span>
+                                <span>Créateur {workPlan.template.collaboratorList.length > 0 && <FontAwesomeIcon icon={faUserFriends} title={`Collaborateurs: ${workPlan.template.collaboratorList[0].firstName} ${workPlan.template.collaboratorList[0].lastName} et plus`}/>} </span>
                             </span>
                         </div>
                         <div className='col-md-7 d-flex align-items-center'>
@@ -577,7 +577,8 @@ class WorkPlanActivitiesView extends Component{
 
         let activityList = this.props.data.template.activities;
         let stats = this.props.data.stats;
-        let template = this.props.data.template
+        let template = this.props.data.template;
+        if(this.props.data.stats === null){return null;}
 
         let regexp = UtilsString.getRegExp(this.state.queryStr);
 

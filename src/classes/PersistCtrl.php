@@ -261,8 +261,15 @@ class PersistCtrl extends MoodlePersistCtrl
     public function saveTemplate($data){
         try{	
             $result = $data;
-            $fields = array("name", "description", "communication_url", "collaboratorid", "lastupdate", "state");
-            $values = array($data->name, $data->description, $data->communicationUrl, $data->collaborator->id, time(), $data->state);
+            $collaboratorids = array();
+            if (!empty($data->collaboratorList)){
+                foreach ($data->collaboratorList as $u){
+                    $collaboratorids[] = $u->userId;
+                }
+            }
+            $collaboratorids = implode(',', $collaboratorids);
+            $fields = array("name", "description", "communication_url", "collaboratorids", "lastupdate", "state");
+            $values = array($data->name, $data->description, $data->communicationUrl, $collaboratorids, time(), $data->state);
 
             if($data->id == 0){
                 $fields[] = "creatorid";
@@ -558,7 +565,7 @@ class PersistCtrl extends MoodlePersistCtrl
         t1.completionstate as wpcompletionstate, t2.id as templateid, t2.creatorid, t2.name as templatename, t2.state as templatestate, 
         t7.fullname as coursename, t7.id as courseid, t2.description as templatedesc, from_unixtime(t2.lastupdate) as lastupdate, t3.cmid,
         t3.nb_hours_completion as nb_hours_completion, count(*) OVER() AS total_count, t6.completionstate as activitycompletionstate, 
-        t1.assignorid, t2.collaboratorid, collaborator.firstname as collaboratorfirstname, collaborator.lastname as collaboratorlastname, 
+        t1.assignorid, t2.collaboratorids, 
         assignor.picture as assignorpicture, assignor.imagealt as assignorimagealt, assignor.email as assignoremail, assignor.alternatename as assignoralternatename, assignor.firstname as assignorfirstname, assignor.lastname as assignorlastname, assignor.lastnamephonetic as assignorlastnamephonetic, assignor.firstnamephonetic as assignorfirstnamephonetic, 
         t8.name as categoryname, t3.id as tpl_act_id, t1.comment as comment, t2.communication_url as communication_url, fup.followup, COALESCE(grade.passed, -1) AS passed, grade.grade, t3.slot,
         t1.userid, users.firstname, users.lastname, users.picture, users.imagealt, users.email, users.firstnamephonetic, users.lastnamephonetic, users.alternatename, FROM_UNIXTIME(users.lastaccess) as lastaccess, g.grouplist
@@ -572,7 +579,6 @@ class PersistCtrl extends MoodlePersistCtrl
         left join {$this->prefix}course_categories as t8 on t7.category = t8.id
         left join {$this->prefix}user as users on users.id = t1.userid
         left join {$this->prefix}user as assignor on t1.assignorid = assignor.id
-        left join {$this->prefix}user as collaborator on t2.collaboratorid = collaborator.id
         left join (select t9.userid as userid, group_concat(t10.name) as grouplist, t10.courseid
             from {$this->prefix}groups_members t9
             left join {$this->prefix}groups as t10 on t9.groupid = t10.id
@@ -635,7 +641,7 @@ class PersistCtrl extends MoodlePersistCtrl
             $capabilities[] = RECITWORKPLAN_FOLLOW_CAPABILITY;
             $innerJoinSmt = "inner join (".$this->getAdminRolesStmt($userId, $capabilities).") as tblRoles on (t5.course = tblRoles.instanceid and tblRoles.contextlevel = 50)";
         }else if (in_array($state, array('ongoing','archive'))){
-            $wheretmp .= "where creatorid = $userId or collaboratorid = $userId";
+            $wheretmp .= "where creatorid = $userId or FIND_IN_SET('$userId', collaboratorids)";
             $capabilities[] = RECITWORKPLAN_ASSIGN_CAPABILITY;
             $capabilities[] = RECITWORKPLAN_MANAGE_CAPABILITY;
             // left join required here in order to see work plans without any activity
@@ -652,14 +658,12 @@ class PersistCtrl extends MoodlePersistCtrl
         from_unixtime(t2.lastupdate) as lastupdate, t3.cmid, t3.nb_hours_completion as nb_hours_completion, count(*) OVER() AS total_count,
         t4.id as userid, t4.picture, t4.imagealt, t4.email, t4.firstname, t4.alternatename, t4.lastname, t4.firstnamephonetic, t4.lastnamephonetic, 
         t1.assignorid, assignor.picture as assignorpicture, assignor.imagealt as assignorimagealt, assignor.firstnamephonetic as assignorfirstnamephonetic, assignor.alternatename as assignoralternatename, assignor.lastnamephonetic as assignorlastnamephonetic, assignor.email as assignoremail, assignor.firstname as assignorfirstname, assignor.lastname as assignorlastname, 
-        t2.collaboratorid, collaborator.firstname as collaboratorfirstname, collaborator.lastname as collaboratorlastname, 
-        t6.completionstate as activitycompletionstate, t8.name as categoryname, t3.id as tpl_act_id, t2.state as templatestate, t1.comment as comment
+        t6.completionstate as activitycompletionstate, t8.name as categoryname, t3.id as tpl_act_id, t2.state as templatestate, t1.comment as comment, t2.collaboratorids as collaboratorids
         from {$this->prefix}recit_wp_tpl as t2
         left join {$this->prefix}recit_wp_tpl_assign as t1 on t1.templateid = t2.id
         left join {$this->prefix}recit_wp_tpl_act as t3 on t3.templateid = t2.id
         left join {$this->prefix}user as t4 on t1.userid = t4.id
         left join {$this->prefix}user as assignor on t1.assignorid = assignor.id
-        left join {$this->prefix}user as collaborator on t2.collaboratorid = collaborator.id
         left join {$this->prefix}course_modules as t5 on t3.cmid = t5.id
         left join {$this->prefix}course as t7 on t7.id = t5.course
         left join {$this->prefix}course_categories as t8 on t7.category = t8.id
@@ -881,17 +885,13 @@ class Template{
     public $description = "";
     public $communicationUrl = "";
     public $creatorId = 0;
-    public $collaborator = null;
+    public $collaboratorList = array();
     public $state = 0;
     public $lastUpdate = null;
     //@array of TemplateActivity
     public $activities = array();
 
     public function __construct(){
-        $this->collaborator = new stdClass();
-        $this->collaborator->id = 0;
-        $this->collaborator->firstName = '';
-        $this->collaborator->lastName = '';
     }
  
     public static function create($dbData){
@@ -914,13 +914,23 @@ class Template{
             $result->creator->avatar = $OUTPUT->user_picture($creator, array('size'=> 50));
         }
 
-        if((isset($dbData->collaboratorid)) && ($dbData->collaboratorid != 0)){
-            $result->collaborator->id = $dbData->collaboratorid;
-            $result->collaborator->firstName = $dbData->collaboratorfirstname;
-            $result->collaborator->lastName =$dbData->collaboratorlastname;
+        if((isset($dbData->collaboratorids)) && (!empty($dbData->collaboratorids))){
+            $result->loadCollaborators($dbData->collaboratorids);
         }
 
         return $result;
+    }
+
+    public function loadCollaborators($collaborators){
+        global $DB;
+        $rst = $DB->get_records_sql("select * from {user} where id in ($collaborators)");
+        foreach ($rst as $user){
+            $collaborator = new stdClass();
+            $collaborator->userId = $user->id;
+            $collaborator->firstName = $user->firstname;
+            $collaborator->lastName = $user->lastname;
+            $this->collaboratorList[] = $collaborator;
+        }
     }
 
     public function addActivity($dbData){

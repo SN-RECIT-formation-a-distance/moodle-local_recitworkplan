@@ -385,6 +385,7 @@ export class WorkPlanTemplateView extends Component{
 
         let nbHoursCompletionTotal = 0;
         let catList = "";
+        let collaboratorList = "";
         let categories = [];
         for (let act of template.activities){
             if (!categories.includes(act.categoryName)){
@@ -394,6 +395,10 @@ export class WorkPlanTemplateView extends Component{
             nbHoursCompletionTotal = nbHoursCompletionTotal + parseFloat(act.nbHoursCompletion);
         }
         catList = catList.substring(0,catList.length-2);
+        for(let u of data.template.collaboratorList){
+            collaboratorList = collaboratorList + u.firstName + " " + u.lastName + ", ";
+        }
+        collaboratorList = collaboratorList.substring(0,collaboratorList.length-2);
 
         let main =  
             <>
@@ -408,10 +413,10 @@ export class WorkPlanTemplateView extends Component{
                             <Col className='text-muted' sm={2}>Description</Col>
                             <Col sm={10} className='bg-light border border-secondary p-2 rounded'>{data.template.description}</Col>
                         </Row>
-                        {data.template.collaborator && <Row className='m-2'>
-                            <Col className='text-muted' sm={2}>Collaborateur</Col>
-                            <Col sm={10} className='bg-light border border-secondary p-2 rounded'>{data.template.collaborator.firstName} {data.template.collaborator.lastName}</Col>
-                        </Row>}
+                        <Row className='m-2'>
+                            <Col className='text-muted' sm={2}>Collaborateur(s)</Col>
+                            <Col sm={10} className='bg-light border border-secondary p-2 rounded'>{collaboratorList}</Col>
+                        </Row>
                         <Row className='m-2'>
                             <Col className='text-muted' sm={2}>URL de communication</Col>
                             <Col sm={10} className='bg-light border border-secondary p-2 rounded'><a target="_blank" href={data.template.communicationUrl}>{data.template.communicationUrl}</a></Col>
@@ -453,11 +458,20 @@ class ModalTemplateForm extends Component{
         this.onSave = this.onSave.bind(this);
 
         this.state = {data: JsNx.clone(this.props.data), teachers: []}
+        let collaborators = [];
+        for (let t of this.state.data.template.collaboratorList){
+            collaborators.push({label: t.firstName+' '+t.lastName, value: parseInt(t.userId), data: t})
+        }
+        this.state.collaborators = collaborators;
     }
 
     componentDidMount(){
         $glVars.webApi.getTeacherList(this.state.data.template.id, (result) => {
-            this.setState({teachers:result.data})
+            let teachers = [];
+            for (let t of result.data){
+                teachers.push({label: t.firstName+' '+t.lastName, value: parseInt(t.userId), data: t})
+            }
+            this.setState({teachers:teachers})
         })
     }
 
@@ -468,6 +482,16 @@ class ModalTemplateForm extends Component{
 
         let modalBody = 
             <Form>
+                <Form.Group as={Row}>
+                    <Form.Label column sm="2">{"Enregistrer en tant que"}</Form.Label>
+                    <Col sm="10">
+                        <ToggleButtons name="state" defaultValue={[data.template.state]} onClick={this.onDataChange} disabled={data.assignments.length > 1}
+                                options={[
+                                    {value: 0, text:"Plan de travail"},
+                                    {value: 1, text:"Gabarit"}
+                                ]}/>
+                    </Col>
+                </Form.Group>
                 <Form.Group as={Row} >
                     <Form.Label column sm="2">{"Nom"}</Form.Label>
                     <Col sm="10">
@@ -487,25 +511,9 @@ class ModalTemplateForm extends Component{
                     </Col>
                 </Form.Group>
                 <Form.Group as={Row}>
-                    <Form.Label column sm="2">{"Collaborateur"}</Form.Label>
+                    <Form.Label column sm="2">{"Collaborateurs"}</Form.Label>
                     <Col sm="10">
-                        <select className='w-100 form-control rounded' name="collaborator.id" value={data.template.collaborator.id} onChange={this.onDataChange}>
-                            <option value="0"></option>
-                            
-                            {this.state.teachers.map((item, index) => {
-                                return <option value={item.userId} key={index}>{item.firstName} {item.lastName}</option>
-                            })}
-                        </select>
-                    </Col>
-                </Form.Group>
-                <Form.Group as={Row}>
-                    <Form.Label column sm="2">{"Enregistrer en tant que"}</Form.Label>
-                    <Col sm="10">
-                        <ToggleButtons name="state" defaultValue={[data.template.state]} onClick={this.onDataChange} disabled={data.assignments.length > 1}
-                                options={[
-                                    {value: 0, text:"Plan de travail"},
-                                    {value: 1, text:"Gabarit"}
-                                ]}/>
+                        <ComboBoxPlus multiple placeholder={"Sélectionnez votre option"} name="collaborators" value={this.state.collaborators} options={this.state.teachers} onChange={this.onDataChange} />
                     </Col>
                 </Form.Group>
             </Form>;
@@ -523,8 +531,13 @@ class ModalTemplateForm extends Component{
         let data = this.state.data;
 
         if(data.template[event.target.name] !== event.target.value){
-            if(event.target.name === 'collaborator.id'){
-                data.template.collaborator.id = event.target.value;
+            if(event.target.name === 'collaborators'){
+                this.setState({collaborators: event.target.value});
+                let collaboratorList = [];
+                for (let u of event.target.value){
+                    collaboratorList.push({userId: u.value});
+                }
+                data.template.collaboratorList = collaboratorList;
             }
             else{
                 data.template[event.target.name] = event.target.value;

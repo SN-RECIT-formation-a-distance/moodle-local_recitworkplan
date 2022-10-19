@@ -24,7 +24,7 @@ export class ComboBoxPlus extends Component {
         this.state = {value: this.props.value};
     }
     
-    render() {     
+    render() { 
         //  spread attributes <div {...this.props}>    
         let spreadAttr = {required: this.props.required, disabled: this.props.disabled, size: this.props.size, style: this.props.style, options: this.props.options};
         if (this.props.multiple){
@@ -41,6 +41,9 @@ export class ComboBoxPlus extends Component {
         let value = event.value || "";
         let text = event.label;
         this.setState({value:value});
+        if (this.props.multiple){
+            value = event;
+        }
 
         this.props.onChange({target:{name: this.props.name, value: value, text: text, data: this.props.data}});
     }   
