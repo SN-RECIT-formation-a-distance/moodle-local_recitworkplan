@@ -9,7 +9,8 @@ import { FeedbackCtrl } from '../libs/components/Feedback';
 export class UserActivityList extends Component{
     static defaultProps = {        
         data: null,
-        user: null
+        user: null,
+        isTeacher: false,
     };
 
     constructor(props){
@@ -26,7 +27,7 @@ export class UserActivityList extends Component{
                 <Card.Body className={className} style={{backgroundColor: "#ffffff", display: "grid", gridGap: '1rem', gridTemplateColumns: '50% auto auto', alignItems: 'center'}}>
                     <div>
                         <div className='h4'>
-                            <strong><a href={item.cmUrl} target="_blank">{item.cmName}</a></strong>
+                            <strong><a href={this.props.isTeacher ? userActivity.cmUrl : item.cmUrl} target="_blank">{item.cmName}</a></strong>
                             {userActivity.grade && <CustomBadge variant='bg-info' text={userActivity.grade}/>}
                         </div>
                         <div className='h6 text-muted pl-3'>{`${item.categoryName}/${item.courseName}`}</div>

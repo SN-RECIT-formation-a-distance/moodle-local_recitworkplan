@@ -460,7 +460,7 @@ class WorkPlanAssignmentsView extends Component{
                                     {this.state.detail == item.id && 
                                         <div style={{width:'100%'}}>
                                             {data.template.activities.map((act, index) => {
-                                                    return (<UserActivityList user={item.user} data={act} key={index}/>);   
+                                                    return (<UserActivityList isTeacher={true} user={item.user} data={act} key={index}/>);   
                                                 }
                                             )}
                                     </div>}

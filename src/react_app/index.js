@@ -68010,7 +68010,7 @@ var UserActivityList = /*#__PURE__*/function (_Component) {
       }, /*#__PURE__*/_react.default.createElement("div", null, /*#__PURE__*/_react.default.createElement("div", {
         className: "h4"
       }, /*#__PURE__*/_react.default.createElement("strong", null, /*#__PURE__*/_react.default.createElement("a", {
-        href: item.cmUrl,
+        href: this.props.isTeacher ? userActivity.cmUrl : item.cmUrl,
         target: "_blank"
       }, item.cmName)), userActivity.grade && /*#__PURE__*/_react.default.createElement(CustomBadge, {
         variant: "bg-info",
@@ -68046,7 +68046,8 @@ exports.UserActivityList = UserActivityList;
 
 _defineProperty(UserActivityList, "defaultProps", {
   data: null,
-  user: null
+  user: null,
+  isTeacher: false
 });
 
 var CustomCard = /*#__PURE__*/function (_Component2) {
@@ -71770,6 +71771,7 @@ var WorkPlanAssignmentsView = /*#__PURE__*/function (_Component5) {
           }
         }, data.template.activities.map(function (act, index) {
           return /*#__PURE__*/_react.default.createElement(_Components2.UserActivityList, {
+            isTeacher: true,
             user: item.user,
             data: act,
             key: index

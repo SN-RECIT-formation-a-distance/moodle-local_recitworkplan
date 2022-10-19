@@ -1097,7 +1097,35 @@ class Assignment{
         $item->passed = (isset($dbData->passed) ? $dbData->passed : -1);
         $item->grade = (isset($dbData->grade) ? $dbData->grade : null);
         $item->cmId = $dbData->cmid;
+        $item->cmUrl = $this->getCustomCmUrl($dbData);
+     
         $this->user->activities[] = $item;
+    }
+
+    public function getCustomCmUrl($result){
+        //Get cm url
+        $cmUrl = "";
+        $modName = "";
+        if ($result->cmid > 0){
+            try {
+                list ($course, $cm) = get_course_and_cm_from_cmId($result->cmid, '', $result->courseid);
+                $url = $cm->__get('url');
+                // if user has permission
+                if($url){
+                    $cmUrl = $cm->__get('url')->out();
+                    $modName = $cm->modname;
+                }
+            }catch(\Exception $e){
+                //cm does not exist
+            }
+        }
+
+        switch ($modName){
+            case 'assign':
+                $cmUrl = $cmUrl . '&rownum=0&action=grader&userid='.$result->userid;
+        }
+
+        return $cmUrl;
     }
 
     public function setEndDate($template){
