@@ -266,7 +266,7 @@ export class StudentTemplateDetail extends Component {
                         <div className='text-muted'>{`Attribué par `}<a href={this.state.assignment.assignor.url} target="_blank"><span dangerouslySetInnerHTML={{__html: this.state.assignment.assignor.avatar}}></span></a></div>
                         {reportData.template.communicationUrl && reportData.template.communicationUrl.length > 0 && <div className='text-muted'><a href={reportData.template.communicationUrl} target="_blank">Contacter</a></div>}
                     </div>
-                    <AssignmentFollowUp data={this.state.assignment}/>
+                    <AssignmentFollowUp data={this.state.assignment} template={reportData.template}/>
                     <div>
                         <CustomBadgeCompletion title="Le nombre d'activités complétées / le nombre d'activités" stats={progressText}/>
                     </div>

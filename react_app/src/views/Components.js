@@ -107,11 +107,12 @@ export class CustomButton extends Component{
         children: null,
         faIcon: null,
         disabled: false,
+        className: '',
         rounded: true
     };
 
     render(){
-        let className = (this.props.rounded ? 'rounded-circle' : 'rounded');
+        let className = (this.props.rounded ? 'rounded-circle' : 'rounded') + ' ' + this.props.className;
 
         let main =
             <Button disabled={this.props.disabled} size='sm' variant='outline-primary' className={className} title={this.props.title} onClick={this.props.onClick} >
@@ -158,7 +159,7 @@ export class CustomBadge extends Component{
                 </OverlayTrigger>;
                 break;
             case 'late': 
-                variant = 'bg-warning'; 
+                variant = 'bg-warning';
                 text = <>En retard</>;
                 break;
         }
@@ -290,6 +291,7 @@ export class FollowUpCard extends Component{
 export class AssignmentFollowUp extends Component{
     static defaultProps = {        
         data: null,
+        template: null,
         userActivity: null
     };
 
@@ -305,7 +307,25 @@ export class AssignmentFollowUp extends Component{
             result.push(<CustomBadge key={result.length} variant="bg-info" text="Archivé"/>);
         }
 
-        if(item.completionState == 2){
+        let enddate = new Date(item.endDate);
+        let now = new Date();
+        if (enddate < now){
+            result.push(<CustomBadge key={result.length} variant="bg-warning" text="Échu"/>);
+        }else if (item.nbHoursLate != 0 && this.props.template.options.showHoursLate == 1){
+            let text = `En retard de ${item.nbHoursLate}h`;
+            let variant = 'bg-warning';
+            if (item.nbHoursLate < 0){
+                text = `En avance de ${0-item.nbHoursLate}h`
+                variant = 'bg-success';
+            }
+            text = 
+            <OverlayTrigger overlay={<Tooltip>Le calcul des heures en retard ou en avance compare les deux valeurs ci-dessus: h temps consacré = h/semaine * nombre de semaines écoulées. Temps attendu = h par semaine * nombre de semaines h temps consacré</Tooltip>}>
+              <span className="d-inline-block">
+                {text} <FontAwesomeIcon icon={faInfoCircle}/>
+              </span>
+            </OverlayTrigger>;
+            result.push(<CustomBadge key={result.length} variant={variant} text={text}/>);
+        }else if(item.completionState == 2){
             result.push(<CustomBadge key={result.length} variant="late"/>);
         }
 

@@ -436,7 +436,7 @@ class WorkPlanAssignmentsView extends Component{
                                             <div className='text-muted'>{`Échéance: ${UtilsDateTime.getDate(item.endDate)}`}</div>
                                         </div>
                                         <div className='w-100-mobile'>
-                                            <AssignmentFollowUp data={item}/>
+                                            <AssignmentFollowUp data={item} template={this.props.data.template}/>
                                         </div>
                                         <div className="p-2 text-muted d-flex" style={{alignItems: 'center', justifyContent: 'flex-end'}}>
                                             <CustomBadgeCompletion title="Le nombre d'affectations complétées / le nombre d'activités avec une durée plus grande que 0" stats={progressText}/>

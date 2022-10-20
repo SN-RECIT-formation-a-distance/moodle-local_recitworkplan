@@ -68161,7 +68161,7 @@ var CustomButton = /*#__PURE__*/function (_Component4) {
   _createClass(CustomButton, [{
     key: "render",
     value: function render() {
-      var className = this.props.rounded ? 'rounded-circle' : 'rounded';
+      var className = (this.props.rounded ? 'rounded-circle' : 'rounded') + ' ' + this.props.className;
 
       var main = /*#__PURE__*/_react.default.createElement(_reactBootstrap.Button, {
         disabled: this.props.disabled,
@@ -68189,6 +68189,7 @@ _defineProperty(CustomButton, "defaultProps", {
   children: null,
   faIcon: null,
   disabled: false,
+  className: '',
   rounded: true
 });
 
@@ -68493,7 +68494,37 @@ var AssignmentFollowUp = /*#__PURE__*/function (_Component9) {
         }));
       }
 
-      if (item.completionState == 2) {
+      var enddate = new Date(item.endDate);
+      var now = new Date();
+
+      if (enddate < now) {
+        result.push( /*#__PURE__*/_react.default.createElement(CustomBadge, {
+          key: result.length,
+          variant: "bg-warning",
+          text: "\xC9chu"
+        }));
+      } else if (item.nbHoursLate != 0 && this.props.template.options.showHoursLate == 1) {
+        var text = "En retard de ".concat(item.nbHoursLate, "h");
+        var variant = 'bg-warning';
+
+        if (item.nbHoursLate < 0) {
+          text = "En avance de ".concat(0 - item.nbHoursLate, "h");
+          variant = 'bg-success';
+        }
+
+        text = /*#__PURE__*/_react.default.createElement(_reactBootstrap.OverlayTrigger, {
+          overlay: /*#__PURE__*/_react.default.createElement(_reactBootstrap.Tooltip, null, "Le calcul des heures en retard ou en avance compare les deux valeurs ci-dessus: h temps consacr\xE9 = h/semaine * nombre de semaines \xE9coul\xE9es. Temps attendu = h par semaine * nombre de semaines h temps consacr\xE9")
+        }, /*#__PURE__*/_react.default.createElement("span", {
+          className: "d-inline-block"
+        }, text, " ", /*#__PURE__*/_react.default.createElement(_reactFontawesome.FontAwesomeIcon, {
+          icon: _freeSolidSvgIcons.faInfoCircle
+        })));
+        result.push( /*#__PURE__*/_react.default.createElement(CustomBadge, {
+          key: result.length,
+          variant: variant,
+          text: text
+        }));
+      } else if (item.completionState == 2) {
         result.push( /*#__PURE__*/_react.default.createElement(CustomBadge, {
           key: result.length,
           variant: "late"
@@ -68553,6 +68584,7 @@ exports.AssignmentFollowUp = AssignmentFollowUp;
 
 _defineProperty(AssignmentFollowUp, "defaultProps", {
   data: null,
+  template: null,
   userActivity: null
 });
 },{"react":"../node_modules/react/index.js","react-bootstrap":"../node_modules/react-bootstrap/esm/index.js","../libs/utils/Utils":"libs/utils/Utils.js","@fortawesome/react-fontawesome":"../node_modules/@fortawesome/react-fontawesome/index.es.js","@fortawesome/free-solid-svg-icons":"../node_modules/@fortawesome/free-solid-svg-icons/index.es.js","../common/common":"common/common.js","../libs/components/Feedback":"libs/components/Feedback.js"}],"views/TemplateView.js":[function(require,module,exports) {
@@ -68808,7 +68840,7 @@ var ActivityPicker = /*#__PURE__*/function (_Component) {
           style: {
             width: '100px'
           },
-          type: "text",
+          type: "number",
           placeholder: "Dur\xE9e",
           value: item.nbHoursCompletion,
           onBlur: function onBlur() {
@@ -69176,7 +69208,8 @@ var WorkPlanTemplateView = /*#__PURE__*/function (_Component2) {
     _this5 = _super2.call(this, props);
     _this5.onSave = _this5.onSave.bind(_assertThisInitialized(_this5));
     _this5.state = {
-      editModal: false
+      editModal: false,
+      optionModal: false
     };
 
     if (_this5.props.data.template.id === 0) {
@@ -69251,7 +69284,7 @@ var WorkPlanTemplateView = /*#__PURE__*/function (_Component2) {
 
       var main = /*#__PURE__*/_react.default.createElement(_react.default.Fragment, null, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Card, null, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Card.Body, null, /*#__PURE__*/_react.default.createElement(_Components2.CustomHeader, {
         title: "Description",
-        btnAfter: /*#__PURE__*/_react.default.createElement(_Components2.CustomButton, {
+        btnAfter: /*#__PURE__*/_react.default.createElement(_react.default.Fragment, null, /*#__PURE__*/_react.default.createElement(_Components2.CustomButton, {
           disabled: _common.WorkPlanUtils.isArchived(_Utils.JsNx.at(data.assignments, 0, null)),
           title: "\xC9diter",
           onClick: function onClick() {
@@ -69261,7 +69294,18 @@ var WorkPlanTemplateView = /*#__PURE__*/function (_Component2) {
           }
         }, /*#__PURE__*/_react.default.createElement(_reactFontawesome.FontAwesomeIcon, {
           icon: _freeSolidSvgIcons.faPencilAlt
-        }))
+        })), /*#__PURE__*/_react.default.createElement(_Components2.CustomButton, {
+          className: "ml-2",
+          disabled: _common.WorkPlanUtils.isArchived(_Utils.JsNx.at(data.assignments, 0, null)),
+          title: "Options",
+          onClick: function onClick() {
+            return _this6.setState({
+              optionModal: true
+            });
+          }
+        }, /*#__PURE__*/_react.default.createElement(_reactFontawesome.FontAwesomeIcon, {
+          icon: _freeSolidSvgIcons.faWrench
+        })))
       }), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Row, {
         className: "m-2"
       }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Col, {
@@ -69321,6 +69365,14 @@ var WorkPlanTemplateView = /*#__PURE__*/function (_Component2) {
           });
         },
         onSave: this.onSave
+      }), this.state.optionModal && /*#__PURE__*/_react.default.createElement(ModalTemplateOptionForm, {
+        data: data,
+        onClose: function onClose() {
+          return _this6.setState({
+            optionModal: false
+          });
+        },
+        onSave: this.onSave
       }));
 
       return main;
@@ -69331,7 +69383,8 @@ var WorkPlanTemplateView = /*#__PURE__*/function (_Component2) {
       var _this7 = this;
 
       this.setState({
-        editModal: false
+        editModal: false,
+        optionModal: false
       }, function () {
         return _this7.props.onSave(template);
       });
@@ -69581,6 +69634,111 @@ var ModalTemplateForm = /*#__PURE__*/function (_Component3) {
 }(_react.Component);
 
 _defineProperty(ModalTemplateForm, "defaultProps", {
+  data: null,
+  onClose: null,
+  onSave: null
+});
+
+var ModalTemplateOptionForm = /*#__PURE__*/function (_Component4) {
+  _inherits(ModalTemplateOptionForm, _Component4);
+
+  var _super4 = _createSuper(ModalTemplateOptionForm);
+
+  function ModalTemplateOptionForm(props) {
+    var _this10;
+
+    _classCallCheck(this, ModalTemplateOptionForm);
+
+    _this10 = _super4.call(this, props);
+    _this10.onDataChange = _this10.onDataChange.bind(_assertThisInitialized(_this10));
+    _this10.onSave = _this10.onSave.bind(_assertThisInitialized(_this10));
+    _this10.state = {
+      data: _Utils.JsNx.clone(_this10.props.data)
+    };
+    return _this10;
+  }
+
+  _createClass(ModalTemplateOptionForm, [{
+    key: "render",
+    value: function render() {
+      var data = this.state.data;
+
+      if (data === null) {
+        return null;
+      }
+
+      var modalBody = /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form, null, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Group, {
+        as: _reactBootstrap.Row
+      }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Label, {
+        column: true,
+        sm: "2"
+      }, "Afficher le temps en retard"), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Col, {
+        sm: "10"
+      }, /*#__PURE__*/_react.default.createElement(_Components.ToggleButtons, {
+        name: "showHoursLate",
+        defaultValue: [data.template.options.showHoursLate],
+        onClick: this.onDataChange,
+        options: [{
+          value: 0,
+          text: "Non"
+        }, {
+          value: 1,
+          text: "Oui"
+        }]
+      }))));
+
+      var modalFooter = /*#__PURE__*/_react.default.createElement(_reactBootstrap.ButtonGroup, null, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Button, {
+        variant: "secondary",
+        className: "rounded",
+        onClick: this.props.onClose
+      }, "Annuler"), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Button, {
+        variant: "success",
+        className: "ml-2 rounded",
+        onClick: this.onSave
+      }, "Enregistrer"));
+
+      return /*#__PURE__*/_react.default.createElement(_Components.Modal, {
+        title: "Modifier gabarit",
+        body: modalBody,
+        onClose: this.props.onClose,
+        footer: modalFooter
+      });
+    }
+  }, {
+    key: "onDataChange",
+    value: function onDataChange(event) {
+      var data = this.state.data;
+
+      if (data.template.options[event.target.name] !== event.target.value) {
+        data.template.options[event.target.name] = event.target.value;
+        this.setState({
+          data: data
+        });
+      }
+    }
+  }, {
+    key: "onSave",
+    value: function onSave() {
+      var that = this;
+
+      var callback = function callback(result) {
+        if (!result.success) {
+          _common.$glVars.feedback.showError(_common.$glVars.i18n.tags.appName, result.msg);
+
+          return;
+        }
+
+        that.props.onSave(result.data);
+      };
+
+      _common.$glVars.webApi.saveTemplate(this.state.data.template, callback);
+    }
+  }]);
+
+  return ModalTemplateOptionForm;
+}(_react.Component);
+
+_defineProperty(ModalTemplateOptionForm, "defaultProps", {
   data: null,
   onClose: null,
   onSave: null
@@ -70920,7 +71078,8 @@ var StudentTemplateDetail = /*#__PURE__*/function (_Component4) {
         href: reportData.template.communicationUrl,
         target: "_blank"
       }, "Contacter"))), /*#__PURE__*/_react.default.createElement(_Components2.AssignmentFollowUp, {
-        data: this.state.assignment
+        data: this.state.assignment,
+        template: reportData.template
       }), /*#__PURE__*/_react.default.createElement("div", null, /*#__PURE__*/_react.default.createElement(_Components2.CustomBadgeCompletion, {
         title: "Le nombre d'activit\xE9s compl\xE9t\xE9es / le nombre d'activit\xE9s",
         stats: progressText
@@ -71794,7 +71953,8 @@ var WorkPlanAssignmentsView = /*#__PURE__*/function (_Component5) {
         }, "\xC9ch\xE9ance: ".concat(_Utils.UtilsDateTime.getDate(item.endDate)))), /*#__PURE__*/_react.default.createElement("div", {
           className: "w-100-mobile"
         }, /*#__PURE__*/_react.default.createElement(_Components2.AssignmentFollowUp, {
-          data: item
+          data: item,
+          template: _this7.props.data.template
         })), /*#__PURE__*/_react.default.createElement("div", {
           className: "p-2 text-muted d-flex",
           style: {
@@ -72715,7 +72875,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "60482" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "59852" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

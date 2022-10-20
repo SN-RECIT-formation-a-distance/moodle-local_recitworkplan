@@ -268,8 +268,8 @@ class PersistCtrl extends MoodlePersistCtrl
                 }
             }
             $collaboratorids = implode(',', $collaboratorids);
-            $fields = array("name", "description", "communication_url", "collaboratorids", "lastupdate", "state");
-            $values = array($data->name, $data->description, $data->communicationUrl, $collaboratorids, time(), $data->state);
+            $fields = array("name", "description", "communication_url", "collaboratorids", "lastupdate", "state", "options");
+            $values = array($data->name, $data->description, $data->communicationUrl, $collaboratorids, time(), $data->state, json_encode($data->options));
 
             if($data->id == 0){
                 $fields[] = "creatorid";
@@ -562,7 +562,7 @@ class PersistCtrl extends MoodlePersistCtrl
         }
 
         $query = "select t1.id, t1.nb_hours_per_week as nbhoursperweek, from_unixtime(t1.startdate) as startdate, 
-        t1.completionstate as wpcompletionstate, t2.id as templateid, t2.creatorid, t2.name as templatename, t2.state as templatestate, 
+        t1.completionstate as wpcompletionstate, t2.id as templateid, t2.creatorid, t2.name as templatename, t2.state as templatestate, t2.options as templateoptions,
         t7.fullname as coursename, t7.id as courseid, t2.description as templatedesc, from_unixtime(t2.lastupdate) as lastupdate, t3.cmid,
         t3.nb_hours_completion as nb_hours_completion, count(*) OVER() AS total_count, t6.completionstate as activitycompletionstate, 
         t1.assignorid, t2.collaboratorids, 
@@ -614,6 +614,7 @@ class PersistCtrl extends MoodlePersistCtrl
             }  
     
             $result->setAssignmentsEndDate();       
+            $result->setHoursLate();
             $result->stats = $this->getWorkPlanStats($templateId);
         }
 
@@ -890,6 +891,7 @@ class Template{
     public $lastUpdate = null;
     //@array of TemplateActivity
     public $activities = array();
+    public $options = array('showHoursLate' => false);
 
     public function __construct(){
     }
@@ -903,6 +905,12 @@ class Template{
         $result->communicationUrl = $dbData->communication_url;
         $result->lastUpdate = $dbData->lastupdate;
         $result->state = $dbData->templatestate;
+        if (isset($dbData->templateoptions)){
+            try {
+                $result->options = json_decode($dbData->templateoptions);
+            }catch(\Exception $e){
+            }
+        }
         
         if((isset($dbData->creatorid)) && ($dbData->creatorid != 0)){
             $creator = $DB->get_record('user', array('id' => $dbData->creatorid));
@@ -1005,6 +1013,7 @@ class Assignment{
     public $startDate = null;
     public $endDate = null;
     public $nbHoursPerWeek = 0;
+    public $nbHoursLate = 0;
     public $templateId = 0;
     public $comment = "";
     /**
@@ -1152,6 +1161,28 @@ class Assignment{
         $this->endDate = clone $this->startDate;
         $this->endDate->modify("+$nbWeeks week");
     }
+
+    public function setHoursLate($template){
+        if($this->nbHoursPerWeek == 0){ return; }
+        if(empty($template)){ return;}
+        if($this->endDate->diff(new DateTime())->days < 0){return;} //If enddate passed we do nothing
+
+        $nbHoursCompletion = 0;
+        $nbHoursCompleted = 0;
+        foreach($template->activities as $item){
+            $nbHoursCompletion += $item->nbHoursCompletion;
+            foreach($this->user->activities as $item2){
+                if ($item->cmId == $item2->cmId && $item2->completionState !== 0){
+                    $nbHoursCompleted += $item->nbHoursCompletion;
+                    break;
+                }
+            }
+        }
+
+        $nbWeeksElapsed = floor($this->startDate->diff(new DateTime())->days/7); //Round to lowest number
+        $nbHoursElapsed = $nbWeeksElapsed * $this->nbHoursPerWeek;
+        $this->nbHoursLate = $nbHoursElapsed - $nbHoursCompleted;
+    }
 }
 
 class WorkPlan{
@@ -1191,6 +1222,14 @@ class WorkPlan{
         foreach($this->assignments as $item){
             if($item != null){
                 $item->setEndDate($this->template);
+            }
+        }
+    }
+
+    public function setHoursLate(){
+        foreach($this->assignments as $item){
+            if($item != null){
+                $item->setHoursLate($this->template);
             }
         }
     }

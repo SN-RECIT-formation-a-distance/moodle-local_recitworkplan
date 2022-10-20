@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { Collapse, Row, Button, Form, FormGroup, InputGroup, FormControl, Col, Table, Badge, Card, ButtonGroup} from 'react-bootstrap';
-import { faPencilAlt,  faTrashAlt, faPlusSquare,  faSearch, faCopy, faSync, faMinus, faPlus, faArrowsAlt, faArrowRight} from '@fortawesome/free-solid-svg-icons';
+import { faPencilAlt,  faTrashAlt, faPlusSquare,  faSearch, faCopy, faSync, faMinus, faPlus, faArrowsAlt, faArrowRight, faToolbox, faWrench} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {ComboBoxPlus, FeedbackCtrl, DataGrid, Modal, Pagination, ToggleButtons} from '../libs/components/Components';
 import {$glVars, WorkPlanUtils} from '../common/common';
@@ -133,7 +133,7 @@ export class ActivityPicker extends Component{
                                                             <div>
                                                                 <div><strong>{item.cmName}</strong><span className='ml-2 text-muted'>{item.courseName}</span></div>
                                                                 <div className='d-flex align-items-center'>
-                                                                    <CustomFormControl className='mr-3' style={{width: '100px'}} type="text" placeholder="Durée" value={item.nbHoursCompletion} onBlur={() => this.onSaveTplAct(item)} name="nbHoursCompletion" onChange={(event) => this.onDataChange(event, index)} />
+                                                                    <CustomFormControl className='mr-3' style={{width: '100px'}} type="number" placeholder="Durée" value={item.nbHoursCompletion} onBlur={() => this.onSaveTplAct(item)} name="nbHoursCompletion" onChange={(event) => this.onDataChange(event, index)} />
                                                                     <span className='text-muted'>heures</span>
                                                                 </div>
                                                             </div>
@@ -365,7 +365,7 @@ export class WorkPlanTemplateView extends Component{
 
         this.onSave = this.onSave.bind(this);
 
-        this.state = {editModal: false};
+        this.state = {editModal: false, optionModal: false};
         if (this.props.data.template.id === 0){
             this.state.editModal = true;
         }
@@ -404,7 +404,10 @@ export class WorkPlanTemplateView extends Component{
             <>
                 <Card>
                     <Card.Body>
-                        <CustomHeader title="Description" btnAfter={<CustomButton disabled={WorkPlanUtils.isArchived(JsNx.at(data.assignments, 0, null))} title="Éditer" onClick={() => this.setState({editModal:true})}><FontAwesomeIcon icon={faPencilAlt}/></CustomButton>}/>
+                        <CustomHeader title="Description" btnAfter={<>
+                        <CustomButton disabled={WorkPlanUtils.isArchived(JsNx.at(data.assignments, 0, null))} title="Éditer" onClick={() => this.setState({editModal:true})}><FontAwesomeIcon icon={faPencilAlt}/></CustomButton>
+                        <CustomButton className='ml-2' disabled={WorkPlanUtils.isArchived(JsNx.at(data.assignments, 0, null))} title="Options" onClick={() => this.setState({optionModal:true})}><FontAwesomeIcon icon={faWrench}/></CustomButton>
+                        </>}/>
                         <Row className='m-2'>
                             <Col className='text-muted' sm={2}>Nom</Col>
                             <Col sm={10} className='bg-light border border-secondary p-2 rounded'>{data.template.name}</Col>
@@ -434,13 +437,14 @@ export class WorkPlanTemplateView extends Component{
                     </Card.Body>
                 </Card>
                 {this.state.editModal && <ModalTemplateForm data={data} onClose={() => this.setState({editModal:false})} onSave={this.onSave}/>}
+                {this.state.optionModal && <ModalTemplateOptionForm data={data} onClose={() => this.setState({optionModal:false})} onSave={this.onSave}/>}
             </>      
             
         return (main);
     }
 
     onSave(template){
-        this.setState({editModal:false}, () => this.props.onSave(template));
+        this.setState({editModal:false, optionModal:false}, () => this.props.onSave(template));
     }
 }
 
@@ -542,6 +546,76 @@ class ModalTemplateForm extends Component{
             else{
                 data.template[event.target.name] = event.target.value;
             }
+            
+            this.setState({data:data});
+        }
+    }
+
+    onSave(){
+        let that = this;
+        let callback = function(result){
+            if(!result.success){
+                $glVars.feedback.showError($glVars.i18n.tags.appName, result.msg);
+                return;
+            }
+            that.props.onSave(result.data);            
+        }
+        
+        $glVars.webApi.saveTemplate(this.state.data.template, callback);
+    }
+}
+
+
+class ModalTemplateOptionForm extends Component{
+    static defaultProps = {        
+        data: null,
+        onClose: null,
+        onSave: null
+    };
+
+    constructor(props){
+        super(props);
+
+        this.onDataChange = this.onDataChange.bind(this);
+        this.onSave = this.onSave.bind(this);
+
+        this.state = {data: JsNx.clone(this.props.data)}
+        
+    }
+
+    render(){
+        let data = this.state.data;
+
+        if(data === null){ return null;}
+
+        let modalBody = 
+            <Form>
+                <Form.Group as={Row}>
+                    <Form.Label column sm="2">{"Afficher le temps en retard"}</Form.Label>
+                    <Col sm="10">
+                        <ToggleButtons name="showHoursLate" defaultValue={[data.template.options.showHoursLate]} onClick={this.onDataChange}
+                                options={[
+                                    {value: 0, text:"Non"},
+                                    {value: 1, text:"Oui"}
+                                ]}/>
+                    </Col>
+                </Form.Group>
+            </Form>;
+
+        let modalFooter = 
+            <ButtonGroup>
+                    <Button variant='secondary'  className='rounded' onClick={this.props.onClose}>Annuler</Button>
+                    <Button variant='success' className='ml-2 rounded' onClick={this.onSave}>Enregistrer</Button>
+            </ButtonGroup>;
+
+        return <Modal title="Modifier gabarit" body={modalBody} onClose={this.props.onClose} footer={modalFooter}/>
+    }
+
+    onDataChange(event){
+        let data = this.state.data;
+
+        if(data.template.options[event.target.name] !== event.target.value){
+            data.template.options[event.target.name] = event.target.value;           
             
             this.setState({data:data});
         }
