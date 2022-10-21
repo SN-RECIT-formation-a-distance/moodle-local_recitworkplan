@@ -89,6 +89,16 @@ export class AppWebApi extends WebApi
         this.post(this.gateway, data, onSuccess);
     }
 
+    getAssignmentAdditionalHours(assignmentId, onSuccess){
+        let data = {assignmentId: assignmentId, service: "getAssignmentAdditionalHours"};
+        this.post(this.gateway, data, onSuccess);
+    }
+
+    addAssignmentAdditionalHours(data, onSuccess){
+        let options = {data: data, service: "addAssignmentAdditionalHours"};
+        this.post(this.gateway, options, onSuccess);
+    }
+
     getTemplateFormFormKit(templateId, onSuccess){
         let data = {templateId: templateId, service: "getTemplateFormFormKit"};
         this.post(this.gateway, data, onSuccess);

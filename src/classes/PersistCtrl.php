@@ -561,7 +561,7 @@ class PersistCtrl extends MoodlePersistCtrl
             $where = " and t1.userid = $userId";
         }
 
-        $query = "select t1.id, t1.nb_hours_per_week as nbhoursperweek, from_unixtime(t1.startdate) as startdate, 
+        $query = "select t1.id, t1.nb_hours_per_week as nbhoursperweek, t1_1.nb_additional_hours, from_unixtime(t1.startdate) as startdate, 
         t1.completionstate as wpcompletionstate, t2.id as templateid, t2.creatorid, t2.name as templatename, t2.state as templatestate, t2.options as templateoptions,
         t7.fullname as coursename, t7.id as courseid, t2.description as templatedesc, from_unixtime(t2.lastupdate) as lastupdate, t3.cmid,
         t3.nb_hours_completion as nb_hours_completion, count(*) OVER() AS total_count, t6.completionstate as activitycompletionstate, 
@@ -571,6 +571,7 @@ class PersistCtrl extends MoodlePersistCtrl
         t1.userid, users.firstname, users.lastname, users.picture, users.imagealt, users.email, users.firstnamephonetic, users.lastnamephonetic, users.alternatename, FROM_UNIXTIME(users.lastaccess) as lastaccess, g.grouplist
         from {$this->prefix}recit_wp_tpl as t2
         left join {$this->prefix}recit_wp_tpl_assign as t1 on t1.templateid = t2.id
+        left join (select sum(nb_additional_hours) as nb_additional_hours,assignmentid from {$this->prefix}recit_wp_additional_hours group by assignmentid) as t1_1 on t1_1.assignmentid = t1.id
         left join {$this->prefix}recit_wp_tpl_act as t3 on t3.templateid = t2.id
         left join {$this->prefix}course_modules as t5 on t3.cmid = t5.id
         left join (".$this->getWorkFollowUpStmt($templateId).") as fup on t3.cmid = fup.cmId and t1.userid = fup.userid
@@ -653,7 +654,7 @@ class PersistCtrl extends MoodlePersistCtrl
             $where = "(t1.completionstate in (0,2,3,4))";
         }
         
-        $query = "select t1.id, t1.nb_hours_per_week as nbhoursperweek, from_unixtime(t1.startdate) as startdate, 
+        $query = "select t1.id, t1.nb_hours_per_week as nbhoursperweek, t1_1.nb_additional_hours, from_unixtime(t1.startdate) as startdate, 
         t1.completionstate as wpcompletionstate, t2.id as templateid, t2.creatorid as creatorid, t2.name as templatename, 
         t7.fullname as coursename, t7.id as courseid, t2.description as templatedesc, t2.communication_url as communication_url, 
         from_unixtime(t2.lastupdate) as lastupdate, t3.cmid, t3.nb_hours_completion as nb_hours_completion, count(*) OVER() AS total_count,
@@ -663,6 +664,7 @@ class PersistCtrl extends MoodlePersistCtrl
         from {$this->prefix}recit_wp_tpl as t2
         left join {$this->prefix}recit_wp_tpl_assign as t1 on t1.templateid = t2.id
         left join {$this->prefix}recit_wp_tpl_act as t3 on t3.templateid = t2.id
+        left join (select sum(nb_additional_hours) as nb_additional_hours,assignmentid from {$this->prefix}recit_wp_additional_hours group by assignmentid) as t1_1 on t1_1.assignmentid = t1.id
         left join {$this->prefix}user as t4 on t1.userid = t4.id
         left join {$this->prefix}user as assignor on t1.assignorid = assignor.id
         left join {$this->prefix}course_modules as t5 on t3.cmid = t5.id
@@ -754,6 +756,36 @@ class PersistCtrl extends MoodlePersistCtrl
             }
 
             return $data->id;
+        }
+        catch(\Exception $ex){
+            throw $ex;
+        }
+    }
+
+    public function addAssignmentAdditionalHours($data){
+        try{
+
+            $fields = array("assignmentid", "assignorid", "nb_additional_hours", "lastupdate", "comment");
+            $values = array($data->id, $this->signedUser->id, $data->nbAdditionalHours, time(), $data->additionalHoursReason);
+
+            $query = $this->mysqlConn->prepareStmt("insert", "{$this->prefix}recit_wp_additional_hours", $fields, $values);
+            $this->mysqlConn->execSQL($query);
+            
+
+            return true;
+        }
+        catch(\Exception $ex){
+            throw $ex;
+        }
+    }
+
+    public function getAssignmentAdditionalHours($assignmentId){
+        global $DB;
+        try{
+            $rst = $DB->get_records_sql('select t1.id,concat(users.firstname, " ", users.lastname) assignorname, t1.nb_additional_hours, t1.lastupdate, t1.comment from {recit_wp_additional_hours} t1
+            inner join {user} as users on users.id = t1.assignorid
+            where assignmentid=:id order by t1.lastupdate', array('id' => $assignmentId));
+            return array_values($rst);
         }
         catch(\Exception $ex){
             throw $ex;
@@ -1013,6 +1045,7 @@ class Assignment{
     public $startDate = null;
     public $endDate = null;
     public $nbHoursPerWeek = 0;
+    public $nbAdditionalHours = 0;
     public $nbHoursLate = 0;
     public $templateId = 0;
     public $comment = "";
@@ -1087,6 +1120,7 @@ class Assignment{
         }
 
         $result->nbHoursPerWeek = $dbData->nbhoursperweek;
+        $result->nbAdditionalHours = $dbData->nb_additional_hours;
         $result->comment = $dbData->comment;
         $result->completionState = $dbData->wpcompletionstate;
 
@@ -1155,6 +1189,7 @@ class Assignment{
         foreach($template->activities as $item){
             $nbHoursCompletion += $item->nbHoursCompletion;
         }
+        $nbHoursCompletion += $this->nbAdditionalHours;
 
         $nbWeeks = ceil($nbHoursCompletion / $this->nbHoursPerWeek); //Round to highest number
 

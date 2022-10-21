@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { Card, Tabs, Tab, Button, Form, DropdownButton, Dropdown, ButtonGroup, ToggleButtonGroup, ToggleButton} from 'react-bootstrap';
-import { faPencilAlt,  faPlus, faTrashAlt, faCopy, faCheck, faArrowLeft, faEllipsisV, faSyncAlt, faBookmark, faChevronUp, faChevronDown, faArchive, faChalkboardTeacher, faRedoAlt, faUserFriends, faUserAltSlash, faUserAlt} from '@fortawesome/free-solid-svg-icons';
+import { faPencilAlt,  faPlus, faTrashAlt, faCopy, faCheck, faArrowLeft, faEllipsisV, faSyncAlt, faBookmark, faChevronUp, faChevronDown, faArchive, faChalkboardTeacher, faRedoAlt, faUserFriends, faUserAltSlash, faUserAlt, faClock, faAmericanSignLanguageInterpreting, faCogs} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { FeedbackCtrl, ToggleButtons, Modal } from '../libs/components/Components';
 import {$glVars, WorkPlanUtils} from '../common/common';
@@ -8,7 +8,7 @@ import { JsNx, UtilsString, UtilsDateTime } from '../libs/utils/Utils';
 import { Pagination } from '../libs/components/Pagination';
 import {ActivityPicker, WorkPlanTemplateView} from './TemplateView';
 import { UserActivityList, CustomCard, CustomHeader, CustomButton, CustomBadge, CustomBadgeCompletion, CustomFormControl, FollowUpCard, AssignmentFollowUp  } from './Components';
-import { ModalAssignmentPicker, ModalAssignmentForm } from './AssignmentView';
+import { ModalAssignmentPicker, ModalAssignmentForm, ModalAssignmentAdditionalHoursForm, ModalAssignmentMassActions, ModalAssignmentAdditionalHoursHistory } from './AssignmentView';
 import {StudentWorkPlanList} from './StudentView';
 
 export class AdminView extends Component {
@@ -137,6 +137,7 @@ export class WorkPlanListView extends Component{
             }
 
            that.getData();
+           $glVars.feedback.showInfo($glVars.i18n.tags.appName, $glVars.i18n.tags.msgSuccess, 3);
         }
 
         if(window.confirm($glVars.i18n.tags.msgConfirmDeletion)){
@@ -153,6 +154,7 @@ export class WorkPlanListView extends Component{
             }
 
            that.getData();
+           $glVars.feedback.showInfo($glVars.i18n.tags.appName, $glVars.i18n.tags.msgSuccess, 3);
         }
 
         if(window.confirm($glVars.i18n.tags.msgConfirmArchive)){
@@ -331,7 +333,7 @@ class WorkPlanAssignmentsView extends Component{
         this.onSearch = this.onSearch.bind(this);
         this.onFilterChange = this.onFilterChange.bind(this);
 
-        this.state = {queryStr: "", detail: -1, showAssignments: false, filter: ['late','ongoing'], editAssignment: null, sortAssignment: 0, showUser: null};
+        this.state = {queryStr: "", detail: -1, showAssignments: false, filter: ['late','ongoing'], editAssignment: null, editAssignmentAdditionalHours: null, showAssignmentMassActions: null, showAssignmentAdditionalHours: null, sortAssignment: 0, showUser: null};
     }
 
     render(){
@@ -393,7 +395,10 @@ class WorkPlanAssignmentsView extends Component{
 
         let main =  
             <>     
-                <CustomHeader title="Affectations" btnAfter={<CustomButton  disabled={WorkPlanUtils.isArchived(JsNx.at(data.assignments, 0, null))} title='Attribuer un plan de travail.'  onClick={() => this.onShowAssignments(true)}><FontAwesomeIcon icon={faPlus}/></CustomButton>}>
+                <CustomHeader title="Affectations" btnAfter={<>
+                    <CustomButton disabled={WorkPlanUtils.isArchived(JsNx.at(data.assignments, 0, null))} title='Attribuer un plan de travail.' onClick={() => this.onShowAssignments(true)}><FontAwesomeIcon icon={faPlus}/></CustomButton>
+                    <CustomButton disabled={WorkPlanUtils.isArchived(JsNx.at(data.assignments, 0, null))} className='ml-2' title='Actions en lot' onClick={() => this.setState({showAssignmentMassActions: true})}><FontAwesomeIcon icon={faCogs}/></CustomButton>
+                    </>}>
                     <div className='d-flex align-items-center d-block-mobile w-100-mobile' >
                         Filtrer par <CustomFormControl className='w-100-mobile' style={{display:'inline',width:'200px',marginRight:'10px', marginLeft:'10px'}} onChange={this.onSearch} type="search" value={this.state.queryStr} name='queryStr' placeholder="Nom, groupe..."/>
                         Trier par <select type="select" className='form-control rounded ml-2 mr-2' style={{width:'115px'}} onChange={(e) => this.setState({sortAssignment:e.target.value})}>
@@ -419,6 +424,7 @@ class WorkPlanAssignmentsView extends Component{
                             for (let act of this.props.data.template.activities){
                                 nbHoursCompletionTotal = nbHoursCompletionTotal + parseFloat(act.nbHoursCompletion);
                             }
+                            nbHoursCompletionTotal = nbHoursCompletionTotal + item.nbAdditionalHours;
                             let txtDuration = (item.nbHoursPerWeek > 0 ? `${Math.ceil(nbHoursCompletionTotal / item.nbHoursPerWeek)} semaines` : '');
 
                             let card = 
@@ -433,6 +439,7 @@ class WorkPlanAssignmentsView extends Component{
                                             <div className='text-muted'>Dernière connexion: {item.user.lastAccess}</div>
                                             <div className='text-muted'>{`Début: ${UtilsDateTime.getDate(item.startDate)} (${item.nbHoursPerWeek} h/semaine)`}</div>
                                             <div className='text-muted'>{`Durée: ${txtDuration}`}</div>
+                                            <div className='text-muted'><a href='#' onClick={() => this.setState({showAssignmentAdditionalHours: item})}>{`Heures supplémentaires: ${item.nbAdditionalHours}`}</a></div>
                                             <div className='text-muted'>{`Échéance: ${UtilsDateTime.getDate(item.endDate)}`}</div>
                                         </div>
                                         <div className='w-100-mobile'>
@@ -441,15 +448,16 @@ class WorkPlanAssignmentsView extends Component{
                                         <div className="p-2 text-muted d-flex" style={{alignItems: 'center', justifyContent: 'flex-end'}}>
                                             <CustomBadgeCompletion title="Le nombre d'affectations complétées / le nombre d'activités avec une durée plus grande que 0" stats={progressText}/>
                                             <DropdownButton disabled={WorkPlanUtils.isArchived(JsNx.at(data.assignments, 0, null))} className='mr-3' bsPrefix='rounded btn btn-sm btn-outline-primary' variant='' title={<span><FontAwesomeIcon icon={faEllipsisV}  />{" "}</span>} id={`optionsAssignments${item.id}`}>
-                                                <Dropdown.Item onClick={() => this.setState({editAssignment: item})}><FontAwesomeIcon icon={faPencilAlt}  />{" Modifier"}</Dropdown.Item>
+                                                <Dropdown.Item onClick={() => this.setState({editAssignment: item})}><FontAwesomeIcon icon={faPencilAlt} />{" Modifier"}</Dropdown.Item>
+                                                <Dropdown.Item onClick={() => this.setState({editAssignmentAdditionalHours: item})}><FontAwesomeIcon icon={faClock} />{" Heures supplémentaires"}</Dropdown.Item>
                                                 <Dropdown.Item onClick={() => this.onSetInactiveAssignment(item)}>
                                                     {item.completionState == 4 ? 
-                                                        <><FontAwesomeIcon icon={faUserAlt}  />{"  Mettre actif"}</>
+                                                        <><FontAwesomeIcon icon={faUserAlt}/>{" Mettre actif"}</>
                                                          : 
-                                                        <><FontAwesomeIcon icon={faUserAltSlash}  />{" Mettre inactif"}</>
+                                                        <><FontAwesomeIcon icon={faUserAltSlash}/>{" Mettre inactif"}</>
                                                     }
                                                     </Dropdown.Item>
-                                                <Dropdown.Item onClick={() => this.onDeleteAssignment(item.id)}><FontAwesomeIcon icon={faTrashAlt}  />{" Supprimer"}</Dropdown.Item>
+                                                <Dropdown.Item onClick={() => this.onDeleteAssignment(item.id)}><FontAwesomeIcon icon={faTrashAlt} />{" Supprimer"}</Dropdown.Item>
                                             </DropdownButton>
                                         </div>
                                     </div>
@@ -472,6 +480,9 @@ class WorkPlanAssignmentsView extends Component{
                 </div>
                 {this.state.showAssignments && <ModalAssignmentPicker data={data} onClose={(refresh) => this.onShowAssignments(false, refresh)}/>}
                 {this.state.editAssignment !== null && <ModalAssignmentForm data={this.state.editAssignment} onClose={(refresh) => this.onShowAssignments(false, refresh)}/>}
+                {this.state.showAssignmentMassActions !== null && <ModalAssignmentMassActions data={data} onClose={(refresh) => this.onShowAssignments(false, refresh)}/>}
+                {this.state.editAssignmentAdditionalHours !== null && <ModalAssignmentAdditionalHoursForm templateId={data.template.id} data={this.state.editAssignmentAdditionalHours} onClose={(refresh) => this.onShowAssignments(false, refresh)}/>}
+                {this.state.showAssignmentAdditionalHours !== null && <ModalAssignmentAdditionalHoursHistory data={this.state.showAssignmentAdditionalHours} onClose={(refresh) => this.onShowAssignments(false, refresh)}/>}
             </>;
 
             let studentView = null;
@@ -527,7 +538,7 @@ class WorkPlanAssignmentsView extends Component{
     onShowAssignments(value, refresh){
         refresh = (typeof refresh === 'undefined' ? false : refresh);
         let callback = (refresh ? this.props.onRefresh : null);
-        this.setState({showAssignments: value, editAssignment: null}, callback);
+        this.setState({showAssignments: value, editAssignment: null, editAssignmentAdditionalHours: null, showAssignmentMassActions: null, showAssignmentAdditionalHours: null}, callback);
     }
 
     onDeleteAssignment(assignmentId){
@@ -539,6 +550,7 @@ class WorkPlanAssignmentsView extends Component{
             }
 
             that.props.onRefresh();
+            $glVars.feedback.showInfo($glVars.i18n.tags.appName, $glVars.i18n.tags.msgSuccess, 3);
         }
 
         if(window.confirm($glVars.i18n.tags.msgConfirmDeletion)){
@@ -656,6 +668,7 @@ class WorkPlanActivitiesView extends Component{
             }
 
             that.props.onRefresh();
+            $glVars.feedback.showInfo($glVars.i18n.tags.appName, $glVars.i18n.tags.msgSuccess, 3);
         }
 
         if (this.props.data.template.activities.length > 1){

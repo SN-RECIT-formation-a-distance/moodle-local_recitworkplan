@@ -202,6 +202,39 @@ class WebApi extends MoodleApi
             return new WebApiResult(false, false, $ex->GetMessage());
         }
     }
+
+    public function getAssignmentAdditionalHours($request){
+        try{
+            $this->canUserAccess('a');
+            $assignmentId = intval($request['assignmentId']);
+            $result = $this->ctrl->getAssignmentAdditionalHours($assignmentId);
+            return new WebApiResult(true, $result);
+        }
+        catch(Exception $ex){
+            return new WebApiResult(false, false, $ex->GetMessage());
+        }
+    }
+
+    public function addAssignmentAdditionalHours($request){
+        try{
+            $this->canUserAccess('a');
+            $data = json_decode(json_encode($request['data']), FALSE);
+            $result = array();
+
+            foreach ($data as $item){
+                $result[] = $this->ctrl->addAssignmentAdditionalHours($item);
+            }
+
+            if(count($data) > 0){
+                $this->ctrl->processWorkPlan(current($data)->templateId);
+            }
+            
+            return new WebApiResult(true, $result);
+        }
+        catch(Exception $ex){
+            return new WebApiResult(false, false, $ex->GetMessage());
+        }
+    }
     
     public function getCatCourseSectionActivityList($request){   
         try{

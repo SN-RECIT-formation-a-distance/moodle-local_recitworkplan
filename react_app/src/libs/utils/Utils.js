@@ -285,6 +285,11 @@ export class UtilsDateTime
             return 0;
         }
     }
+
+    static toTimeString(timestamp){
+        let d = new Date(parseInt(timestamp)*1000);
+        return d.toLocaleString();
+    }
     
     /**
     * Transform the shift minutes to the time string

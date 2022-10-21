@@ -210,15 +210,20 @@ export class CustomFormControl extends Component{
         onBlur: null,
         type: '',
         as: '',
-        rows: null
+        rows: null,
+        max: 0
     };
 
     render(){
+        let spreadAttr = {};
+        if (this.props.max > 0){
+            spreadAttr.maxLength = this.props.max;
+        }
         let textArea = <Form.Control as={this.props.as} rows={this.props.rows} className={`rounded ${this.props.className}`} style={this.props.style} 
-                placeholder={this.props.placeholder} value={this.props.value} 
+                placeholder={this.props.placeholder} value={this.props.value} {...spreadAttr}
                 onBlur={this.props.onBlur} name={this.props.name} onChange={this.props.onChange} />;
 
-        let input = <Form.Control className={`rounded ${this.props.className}`} style={this.props.style} 
+        let input = <Form.Control className={`rounded ${this.props.className}`} style={this.props.style} {...spreadAttr}
                 type={this.props.type} placeholder={this.props.placeholder} value={this.props.value} 
                 onBlur={this.props.onBlur} name={this.props.name} onChange={this.props.onChange} />;
 
@@ -299,9 +304,6 @@ export class AssignmentFollowUp extends Component{
         let item = this.props.data;
         let result = [];
 
-        if(item.completionState == 0){
-            result.push(<CustomBadge key={result.length} variant="bg-success" text="En cours"/>);
-        }
 
         if(item.completionState == 1){
             result.push(<CustomBadge key={result.length} variant="bg-info" text="Archivé"/>);
@@ -327,6 +329,8 @@ export class AssignmentFollowUp extends Component{
             result.push(<CustomBadge key={result.length} variant={variant} text={text}/>);
         }else if(item.completionState == 2){
             result.push(<CustomBadge key={result.length} variant="late"/>);
+        }else if(item.completionState == 0){
+            result.push(<CustomBadge key={result.length} variant="bg-success" text="En cours"/>);
         }
 
         if(item.completionState == 3){

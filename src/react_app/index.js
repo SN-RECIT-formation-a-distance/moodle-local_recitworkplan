@@ -67140,6 +67140,12 @@ var UtilsDateTime = /*#__PURE__*/function () {
         return 0;
       }
     }
+  }, {
+    key: "toTimeString",
+    value: function toTimeString(timestamp) {
+      var d = new Date(parseInt(timestamp) * 1000);
+      return d.toLocaleString();
+    }
     /**
     * Transform the shift minutes to the time string
     * @param {type} time 
@@ -67636,6 +67642,24 @@ var AppWebApi = /*#__PURE__*/function (_WebApi) {
       this.post(this.gateway, data, onSuccess);
     }
   }, {
+    key: "getAssignmentAdditionalHours",
+    value: function getAssignmentAdditionalHours(assignmentId, onSuccess) {
+      var data = {
+        assignmentId: assignmentId,
+        service: "getAssignmentAdditionalHours"
+      };
+      this.post(this.gateway, data, onSuccess);
+    }
+  }, {
+    key: "addAssignmentAdditionalHours",
+    value: function addAssignmentAdditionalHours(data, onSuccess) {
+      var options = {
+        data: data,
+        service: "addAssignmentAdditionalHours"
+      };
+      this.post(this.gateway, options, onSuccess);
+    }
+  }, {
     key: "getTemplateFormFormKit",
     value: function getTemplateFormFormKit(templateId, onSuccess) {
       var data = {
@@ -67958,6 +67982,8 @@ function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "functio
 function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 
 function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+function _extends() { _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends.apply(this, arguments); }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -68317,28 +68343,36 @@ var CustomFormControl = /*#__PURE__*/function (_Component7) {
   _createClass(CustomFormControl, [{
     key: "render",
     value: function render() {
-      var textArea = /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Control, {
+      var spreadAttr = {};
+
+      if (this.props.max > 0) {
+        spreadAttr.maxLength = this.props.max;
+      }
+
+      var textArea = /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Control, _extends({
         as: this.props.as,
         rows: this.props.rows,
         className: "rounded ".concat(this.props.className),
         style: this.props.style,
         placeholder: this.props.placeholder,
-        value: this.props.value,
+        value: this.props.value
+      }, spreadAttr, {
         onBlur: this.props.onBlur,
         name: this.props.name,
         onChange: this.props.onChange
-      });
+      }));
 
-      var input = /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Control, {
+      var input = /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Control, _extends({
         className: "rounded ".concat(this.props.className),
-        style: this.props.style,
+        style: this.props.style
+      }, spreadAttr, {
         type: this.props.type,
         placeholder: this.props.placeholder,
         value: this.props.value,
         onBlur: this.props.onBlur,
         name: this.props.name,
         onChange: this.props.onChange
-      });
+      }));
 
       return this.props.as === 'textarea' ? textArea : input;
     }
@@ -68359,7 +68393,8 @@ _defineProperty(CustomFormControl, "defaultProps", {
   onBlur: null,
   type: '',
   as: '',
-  rows: null
+  rows: null,
+  max: 0
 });
 
 var FollowUpCard = /*#__PURE__*/function (_Component8) {
@@ -68478,14 +68513,6 @@ var AssignmentFollowUp = /*#__PURE__*/function (_Component9) {
       var item = this.props.data;
       var result = [];
 
-      if (item.completionState == 0) {
-        result.push( /*#__PURE__*/_react.default.createElement(CustomBadge, {
-          key: result.length,
-          variant: "bg-success",
-          text: "En cours"
-        }));
-      }
-
       if (item.completionState == 1) {
         result.push( /*#__PURE__*/_react.default.createElement(CustomBadge, {
           key: result.length,
@@ -68528,6 +68555,12 @@ var AssignmentFollowUp = /*#__PURE__*/function (_Component9) {
         result.push( /*#__PURE__*/_react.default.createElement(CustomBadge, {
           key: result.length,
           variant: "late"
+        }));
+      } else if (item.completionState == 0) {
+        result.push( /*#__PURE__*/_react.default.createElement(CustomBadge, {
+          key: result.length,
+          variant: "bg-success",
+          text: "En cours"
         }));
       }
 
@@ -69912,7 +69945,7 @@ _defineProperty(DateInput, "defaultProps", {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.ModalAssignmentForm = exports.ModalAssignmentPicker = void 0;
+exports.ModalAssignmentAdditionalHoursHistory = exports.ModalAssignmentAdditionalHoursForm = exports.ModalAssignmentForm = exports.ModalAssignmentMassActions = exports.ModalAssignmentPicker = void 0;
 
 var _react = _interopRequireWildcard(require("react"));
 
@@ -69994,8 +70027,7 @@ var ModalAssignmentPicker = /*#__PURE__*/function (_Component) {
       },
       flags: {
         dataChanged: false
-      },
-      rhythme: ''
+      }
     };
     return _this;
   }
@@ -70201,17 +70233,16 @@ var ModalAssignmentPicker = /*#__PURE__*/function (_Component) {
         var row = /*#__PURE__*/_react.default.createElement("tr", {
           key: index
         }, /*#__PURE__*/_react.default.createElement("td", null, /*#__PURE__*/_react.default.createElement("div", {
-          className: "d-flex align-items-center",
-          style: {
-            justifyContent: 'space-between'
-          }
+          className: "d-flex"
         }, /*#__PURE__*/_react.default.createElement("div", {
-          className: "w-100"
+          className: "col-md-11"
         }, /*#__PURE__*/_react.default.createElement("div", null, /*#__PURE__*/_react.default.createElement("span", {
           dangerouslySetInnerHTML: {
             __html: item.user.avatar
           }
-        }), /*#__PURE__*/_react.default.createElement("strong", null, "".concat(item.user.firstName, " ").concat(item.user.lastName)))), /*#__PURE__*/_react.default.createElement("div", null, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Button, {
+        }), /*#__PURE__*/_react.default.createElement("strong", null, "".concat(item.user.firstName, " ").concat(item.user.lastName)))), /*#__PURE__*/_react.default.createElement("div", {
+          className: "col-md-1"
+        }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Button, {
           variant: "link",
           title: "Supprimer",
           onClick: function onClick() {
@@ -70223,29 +70254,14 @@ var ModalAssignmentPicker = /*#__PURE__*/function (_Component) {
 
         return row;
       })))))), /*#__PURE__*/_react.default.createElement("div", {
-        className: "col-12"
-      }, /*#__PURE__*/_react.default.createElement(_Components2.CustomFormControl, {
-        style: {
-          width: '180px',
-          display: 'inline'
-        },
-        onChange: function onChange(e) {
-          return _this3.setState({
-            rhythme: e.target.value
-          });
-        },
-        type: "number",
-        value: this.state.rhythme,
-        name: "rhythme",
-        placeholder: "Rythme (h/semaine)"
-      }), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Button, {
-        variant: "link",
+        className: "col-6 p-3"
+      }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Button, {
+        variant: "primary",
+        className: "w-100",
         onClick: function onClick() {
           return _this3.onAddSelected();
         }
-      }, "Ajouter tous les utilisateurs ", /*#__PURE__*/_react.default.createElement(_reactFontawesome.FontAwesomeIcon, {
-        icon: _freeSolidSvgIcons.faArrowRight
-      })))));
+      }, "Ajouter tous les utilisateurs "))));
 
       var main = /*#__PURE__*/_react.default.createElement(_Components.Modal, {
         title: 'Attribuer un plan de travail',
@@ -70284,6 +70300,7 @@ var ModalAssignmentPicker = /*#__PURE__*/function (_Component) {
         comment: '',
         startDate: new Date()
       };
+      if (isNaN(result.nbHoursPerWeek)) result.nbHoursPerWeek = 0;
       return result;
     }
   }, {
@@ -70352,6 +70369,8 @@ var ModalAssignmentPicker = /*#__PURE__*/function (_Component) {
             dataChanged: true
           }
         });
+
+        _common.$glVars.feedback.showInfo(_common.$glVars.i18n.tags.appName, _common.$glVars.i18n.tags.msgSuccess, 3);
       };
 
       if (window.confirm(_common.$glVars.i18n.tags.msgConfirmDeletion)) {
@@ -70407,6 +70426,8 @@ var ModalAssignmentPicker = /*#__PURE__*/function (_Component) {
         } finally {
           _iterator5.f();
         }
+
+        _common.$glVars.feedback.showInfo(_common.$glVars.i18n.tags.appName, _common.$glVars.i18n.tags.msgSuccess, 3);
       };
 
       if (this.state.flags.dataChanged) {
@@ -70430,27 +70451,369 @@ _defineProperty(ModalAssignmentPicker, "defaultProps", {
   onClose: null
 });
 
-var ModalAssignmentForm = /*#__PURE__*/function (_Component2) {
-  _inherits(ModalAssignmentForm, _Component2);
+var ModalAssignmentMassActions = /*#__PURE__*/function (_Component2) {
+  _inherits(ModalAssignmentMassActions, _Component2);
 
-  var _super2 = _createSuper(ModalAssignmentForm);
+  var _super2 = _createSuper(ModalAssignmentMassActions);
 
-  function ModalAssignmentForm(props) {
+  function ModalAssignmentMassActions(props) {
     var _this6;
 
-    _classCallCheck(this, ModalAssignmentForm);
+    _classCallCheck(this, ModalAssignmentMassActions);
 
     _this6 = _super2.call(this, props);
     _this6.onSave = _this6.onSave.bind(_assertThisInitialized(_this6));
-    _this6.onDataChange = _this6.onDataChange.bind(_assertThisInitialized(_this6));
     _this6.onClose = _this6.onClose.bind(_assertThisInitialized(_this6));
     _this6.state = {
+      data: props.data,
+      flags: {
+        dataChanged: false
+      },
+      rhythme: 0,
+      nbAdditionalHours: 0,
+      additionalHoursReason: ''
+    };
+    return _this6;
+  }
+
+  _createClass(ModalAssignmentMassActions, [{
+    key: "render",
+    value: function render() {
+      var _this7 = this;
+
+      if (this.state.data === null) {
+        return null;
+      }
+
+      var body = /*#__PURE__*/_react.default.createElement("div", null, /*#__PURE__*/_react.default.createElement("div", {
+        className: "mt-4 row"
+      }, /*#__PURE__*/_react.default.createElement("div", {
+        className: "col-md-6"
+      }, /*#__PURE__*/_react.default.createElement("div", null, /*#__PURE__*/_react.default.createElement("h6", null, "\xC9l\xE8ves assign\xE9s ", /*#__PURE__*/_react.default.createElement(_reactBootstrap.Badge, {
+        variant: "warning",
+        className: "p-2 rounded"
+      }, "".concat(this.state.data.assignments.length))), /*#__PURE__*/_react.default.createElement("div", {
+        style: {
+          maxHeight: 500,
+          overflowY: 'scroll'
+        }
+      }, /*#__PURE__*/_react.default.createElement("div", {
+        style: {
+          display: 'flex',
+          flexFlow: 'wrap'
+        }
+      }, this.state.data.assignments.map(function (item, index) {
+        var row = /*#__PURE__*/_react.default.createElement("div", {
+          key: index,
+          className: "border m-3 p-3",
+          style: {
+            width: '220px'
+          }
+        }, /*#__PURE__*/_react.default.createElement("div", null, /*#__PURE__*/_react.default.createElement("span", {
+          dangerouslySetInnerHTML: {
+            __html: item.user.avatar
+          }
+        }), /*#__PURE__*/_react.default.createElement("strong", null, "".concat(item.user.firstName, " ").concat(item.user.lastName)), /*#__PURE__*/_react.default.createElement("br", null), /*#__PURE__*/_react.default.createElement("span", null, "Rythme: ", item.nbHoursPerWeek, "h/semaine"), /*#__PURE__*/_react.default.createElement("br", null), /*#__PURE__*/_react.default.createElement("span", null, item.nbAdditionalHours, "h suppl\xE9mentaires")));
+
+        return row;
+      }))))), /*#__PURE__*/_react.default.createElement("div", {
+        className: "col-md-6"
+      }, /*#__PURE__*/_react.default.createElement("span", {
+        className: "bold mb-3"
+      }, "Actions en lot pour tous les \xE9l\xE8ves assign\xE9s"), /*#__PURE__*/_react.default.createElement("div", {
+        className: "p-3 mb-3 border"
+      }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Group, {
+        as: _reactBootstrap.Row
+      }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Label, {
+        column: true,
+        sm: "5"
+      }, "Rythme (h/semaine)"), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Col, {
+        sm: "7"
+      }, /*#__PURE__*/_react.default.createElement(_Components2.CustomFormControl, {
+        style: {
+          display: 'inline'
+        },
+        onChange: function onChange(e) {
+          return _this7.setState({
+            rhythme: e.target.value
+          });
+        },
+        type: "number",
+        value: this.state.rhythme,
+        name: "rhythme",
+        placeholder: "Rythme (h/semaine)"
+      }))), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Group, {
+        as: _reactBootstrap.Row
+      }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Col, {
+        sm: "5"
+      }), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Col, {
+        sm: "7"
+      }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Button, {
+        variant: "primary",
+        onClick: function onClick() {
+          return _this7.onSetRythme();
+        }
+      }, "Assigner le rythme ")))), /*#__PURE__*/_react.default.createElement("div", {
+        className: "p-3 mb-3 border"
+      }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Group, {
+        as: _reactBootstrap.Row
+      }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Label, {
+        column: true,
+        sm: "5"
+      }, "Heures supplémentaires"), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Col, {
+        sm: "7"
+      }, /*#__PURE__*/_react.default.createElement(_Components2.CustomFormControl, {
+        style: {
+          display: 'inline'
+        },
+        onChange: function onChange(e) {
+          return _this7.setState({
+            nbAdditionalHours: e.target.value
+          });
+        },
+        type: "number",
+        value: this.state.nbAdditionalHours,
+        placeholder: "Heures"
+      }))), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Group, {
+        as: _reactBootstrap.Row
+      }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Label, {
+        column: true,
+        sm: "5"
+      }, "Raison de l'ajout d'heures supplémentaires"), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Col, {
+        sm: "7"
+      }, /*#__PURE__*/_react.default.createElement(_Components2.CustomFormControl, {
+        style: {
+          display: 'inline'
+        },
+        max: "250",
+        onChange: function onChange(e) {
+          return _this7.setState({
+            additionalHoursReason: e.target.value
+          });
+        },
+        type: "text",
+        value: this.state.additionalHoursReason
+      }))), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Group, {
+        as: _reactBootstrap.Row
+      }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Col, {
+        sm: "5"
+      }), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Col, {
+        sm: "7"
+      }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Button, {
+        variant: "primary",
+        disabled: this.state.additionalHoursReason.length == 0,
+        onClick: function onClick() {
+          return _this7.onAddAdditionalHours();
+        }
+      }, "Ajouter des heures supplémentaires ")))))));
+
+      var main = /*#__PURE__*/_react.default.createElement(_Components.Modal, {
+        title: 'Actions en lot',
+        body: body,
+        style: {
+          maxWidth: 900,
+          width: 'auto'
+        },
+        onClose: this.onClose
+      });
+
+      return main;
+    }
+  }, {
+    key: "onSetRythme",
+    value: function onSetRythme() {
+      var _this8 = this;
+
+      if (!confirm('Êtes-vous sûre de vouloir assigné ce rythme à tous les utilisateurs? Cette opération est irréversible!')) return;
+      var newItems = [];
+
+      var _iterator6 = _createForOfIteratorHelper(this.state.data.assignments),
+          _step6;
+
+      try {
+        for (_iterator6.s(); !(_step6 = _iterator6.n()).done;) {
+          var item = _step6.value;
+          item.nbHoursPerWeek = this.state.rhythme;
+          newItems.push(item);
+        }
+      } catch (err) {
+        _iterator6.e(err);
+      } finally {
+        _iterator6.f();
+      }
+
+      this.setState({
+        flags: {
+          dataChanged: true
+        }
+      }, function () {
+        return _this8.onSave(newItems);
+      });
+    }
+  }, {
+    key: "onAddAdditionalHours",
+    value: function onAddAdditionalHours() {
+      var _this9 = this;
+
+      if (!confirm('Êtes-vous sûre de vouloir d\'ajouter des heures supplémentaires à tous les utilisateurs? Cette opération est irréversible!')) return;
+      var newItems = [];
+
+      var _iterator7 = _createForOfIteratorHelper(this.state.data.assignments),
+          _step7;
+
+      try {
+        for (_iterator7.s(); !(_step7 = _iterator7.n()).done;) {
+          var item = _step7.value;
+          var add = {};
+          add.id = item.id;
+          add.nbAdditionalHours = parseInt(this.state.nbAdditionalHours);
+          add.additionalHoursReason = this.state.additionalHoursReason;
+          add.templateId = this.state.data.template.id;
+          newItems.push(add);
+          item.nbAdditionalHours += add.nbAdditionalHours; //Update local cache
+        }
+      } catch (err) {
+        _iterator7.e(err);
+      } finally {
+        _iterator7.f();
+      }
+
+      this.setState({
+        flags: {
+          dataChanged: true
+        }
+      }, function () {
+        return _this9.onSaveAdditionalHours(newItems);
+      });
+    }
+  }, {
+    key: "onSave",
+    value: function onSave(data) {
+      var that = this;
+
+      var callback = function callback(result) {
+        if (!result.success) {
+          _common.$glVars.feedback.showError(_common.$glVars.i18n.tags.appName, result.msg);
+
+          return;
+        }
+
+        var index = 0;
+
+        var _iterator8 = _createForOfIteratorHelper(data),
+            _step8;
+
+        try {
+          for (_iterator8.s(); !(_step8 = _iterator8.n()).done;) {
+            var item = _step8.value;
+
+            if (parseInt(item.id, 10) === 0) {
+              item.id = result.data[index];
+              var tmp = that.state.data;
+              tmp.assignments.push(item);
+              that.setState({
+                data: tmp
+              });
+            }
+
+            index++;
+          }
+        } catch (err) {
+          _iterator8.e(err);
+        } finally {
+          _iterator8.f();
+        }
+
+        _common.$glVars.feedback.showInfo(_common.$glVars.i18n.tags.appName, _common.$glVars.i18n.tags.msgSuccess, 3);
+      };
+
+      if (this.state.flags.dataChanged) {
+        _common.$glVars.webApi.saveAssignment(data, callback);
+      }
+    }
+  }, {
+    key: "onSaveAdditionalHours",
+    value: function onSaveAdditionalHours(data) {
+      var that = this;
+
+      var callback = function callback(result) {
+        if (!result.success) {
+          _common.$glVars.feedback.showError(_common.$glVars.i18n.tags.appName, result.msg);
+
+          return;
+        }
+
+        var index = 0;
+
+        var _iterator9 = _createForOfIteratorHelper(data),
+            _step9;
+
+        try {
+          for (_iterator9.s(); !(_step9 = _iterator9.n()).done;) {
+            var item = _step9.value;
+
+            if (parseInt(item.id, 10) === 0) {
+              item.id = result.data[index];
+              var tmp = that.state.data;
+              tmp.assignments.push(item);
+              that.setState({
+                data: tmp
+              });
+            }
+
+            index++;
+          }
+        } catch (err) {
+          _iterator9.e(err);
+        } finally {
+          _iterator9.f();
+        }
+
+        _common.$glVars.feedback.showInfo(_common.$glVars.i18n.tags.appName, _common.$glVars.i18n.tags.msgSuccess, 3);
+      };
+
+      if (this.state.flags.dataChanged) {
+        _common.$glVars.webApi.addAssignmentAdditionalHours(data, callback);
+      }
+    }
+  }, {
+    key: "onClose",
+    value: function onClose() {
+      this.props.onClose(this.state.flags.dataChanged);
+    }
+  }]);
+
+  return ModalAssignmentMassActions;
+}(_react.Component);
+
+exports.ModalAssignmentMassActions = ModalAssignmentMassActions;
+
+_defineProperty(ModalAssignmentMassActions, "defaultProps", {
+  data: null,
+  onClose: null
+});
+
+var ModalAssignmentForm = /*#__PURE__*/function (_Component3) {
+  _inherits(ModalAssignmentForm, _Component3);
+
+  var _super3 = _createSuper(ModalAssignmentForm);
+
+  function ModalAssignmentForm(props) {
+    var _this10;
+
+    _classCallCheck(this, ModalAssignmentForm);
+
+    _this10 = _super3.call(this, props);
+    _this10.onSave = _this10.onSave.bind(_assertThisInitialized(_this10));
+    _this10.onDataChange = _this10.onDataChange.bind(_assertThisInitialized(_this10));
+    _this10.onClose = _this10.onClose.bind(_assertThisInitialized(_this10));
+    _this10.state = {
       data: _Utils.JsNx.clone(props.data),
       flags: {
         dataChanged: false
       }
     };
-    return _this6;
+    return _this10;
   }
 
   _createClass(ModalAssignmentForm, [{
@@ -70501,7 +70864,7 @@ var ModalAssignmentForm = /*#__PURE__*/function (_Component2) {
           display: 'inline'
         },
         className: "mr-3",
-        type: "text",
+        type: "number",
         value: item.nbHoursPerWeek,
         name: "nbHoursPerWeek",
         onChange: this.onDataChange
@@ -70553,6 +70916,8 @@ var ModalAssignmentForm = /*#__PURE__*/function (_Component2) {
         }
 
         that.props.onClose(that.state.flags.dataChanged);
+
+        _common.$glVars.feedback.showInfo(_common.$glVars.i18n.tags.appName, _common.$glVars.i18n.tags.msgSuccess, 3);
       };
 
       if (this.state.flags.dataChanged) {
@@ -70572,6 +70937,288 @@ var ModalAssignmentForm = /*#__PURE__*/function (_Component2) {
 exports.ModalAssignmentForm = ModalAssignmentForm;
 
 _defineProperty(ModalAssignmentForm, "defaultProps", {
+  data: null,
+  onClose: null
+});
+
+var ModalAssignmentAdditionalHoursForm = /*#__PURE__*/function (_Component4) {
+  _inherits(ModalAssignmentAdditionalHoursForm, _Component4);
+
+  var _super4 = _createSuper(ModalAssignmentAdditionalHoursForm);
+
+  function ModalAssignmentAdditionalHoursForm(props) {
+    var _this11;
+
+    _classCallCheck(this, ModalAssignmentAdditionalHoursForm);
+
+    _this11 = _super4.call(this, props);
+    _this11.onSave = _this11.onSave.bind(_assertThisInitialized(_this11));
+    _this11.onDataChange = _this11.onDataChange.bind(_assertThisInitialized(_this11));
+    _this11.onClose = _this11.onClose.bind(_assertThisInitialized(_this11));
+    _this11.state = {
+      data: {
+        id: props.data.id,
+        templateId: props.templateId,
+        nbAdditionalHours: 0,
+        additionalHoursReason: ''
+      },
+      flags: {
+        dataChanged: false
+      }
+    };
+    return _this11;
+  }
+
+  _createClass(ModalAssignmentAdditionalHoursForm, [{
+    key: "render",
+    value: function render() {
+      if (this.state.data === null) {
+        return null;
+      }
+
+      var item = this.state.data;
+
+      var body = /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form, null, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Group, {
+        as: _reactBootstrap.Row
+      }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Label, {
+        column: true,
+        sm: "5"
+      }, "Heures supplémentaires (peut être négatif)"), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Col, {
+        sm: "7"
+      }, /*#__PURE__*/_react.default.createElement(_Components2.CustomFormControl, {
+        style: {
+          width: '80px',
+          display: 'inline'
+        },
+        className: "mr-3",
+        type: "number",
+        value: item.nbAdditionalHours,
+        name: "nbAdditionalHours",
+        onChange: this.onDataChange
+      }))), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Group, {
+        as: _reactBootstrap.Row
+      }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Label, {
+        column: true,
+        sm: "5"
+      }, "Raison de l'ajout d'heures supplémentaires"), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Col, {
+        sm: "7"
+      }, /*#__PURE__*/_react.default.createElement(_Components2.CustomFormControl, {
+        style: {
+          display: 'inline'
+        },
+        onChange: this.onDataChange,
+        max: "250",
+        name: "additionalHoursReason",
+        type: "text",
+        value: item.additionalHoursReason
+      }))));
+
+      var modalFooter = /*#__PURE__*/_react.default.createElement(_reactBootstrap.ButtonGroup, null, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Button, {
+        variant: "secondary",
+        className: "rounded",
+        onClick: this.onClose
+      }, "Annuler"), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Button, {
+        disabled: !this.state.flags.dataChanged || item.additionalHoursReason.length == 0,
+        variant: "success",
+        className: "ml-2 rounded",
+        onClick: this.onSave
+      }, "Enregistrer"));
+
+      var main = /*#__PURE__*/_react.default.createElement(_Components.Modal, {
+        title: 'Ajout d\'heures supplémentaires',
+        body: body,
+        footer: modalFooter,
+        width: "800px",
+        onClose: this.onClose
+      });
+
+      return main;
+    }
+  }, {
+    key: "onDataChange",
+    value: function onDataChange(event, index) {
+      var data = this.state.data;
+      var flags = this.state.flags;
+      flags.dataChanged = data[event.target.name] != event.target.value;
+      data[event.target.name] = event.target.value;
+      this.setState({
+        data: data,
+        flags: flags
+      });
+    }
+  }, {
+    key: "onSave",
+    value: function onSave() {
+      var that = this;
+
+      var callback = function callback(result) {
+        if (!result.success) {
+          _common.$glVars.feedback.showError(_common.$glVars.i18n.tags.appName, result.msg);
+
+          return;
+        }
+
+        that.props.onClose(that.state.flags.dataChanged);
+
+        _common.$glVars.feedback.showInfo(_common.$glVars.i18n.tags.appName, _common.$glVars.i18n.tags.msgSuccess, 3);
+      };
+
+      if (this.state.flags.dataChanged) {
+        _common.$glVars.webApi.addAssignmentAdditionalHours([this.state.data], callback);
+      }
+    }
+  }, {
+    key: "onClose",
+    value: function onClose() {
+      this.props.onClose();
+    }
+  }]);
+
+  return ModalAssignmentAdditionalHoursForm;
+}(_react.Component);
+
+exports.ModalAssignmentAdditionalHoursForm = ModalAssignmentAdditionalHoursForm;
+
+_defineProperty(ModalAssignmentAdditionalHoursForm, "defaultProps", {
+  data: null,
+  templateId: null,
+  onClose: null
+});
+
+var ModalAssignmentAdditionalHoursHistory = /*#__PURE__*/function (_Component5) {
+  _inherits(ModalAssignmentAdditionalHoursHistory, _Component5);
+
+  var _super5 = _createSuper(ModalAssignmentAdditionalHoursHistory);
+
+  function ModalAssignmentAdditionalHoursHistory(props) {
+    var _this12;
+
+    _classCallCheck(this, ModalAssignmentAdditionalHoursHistory);
+
+    _this12 = _super5.call(this, props);
+    _this12.onClose = _this12.onClose.bind(_assertThisInitialized(_this12));
+    _this12.state = {
+      data: props.data,
+      history: null
+    };
+    return _this12;
+  }
+
+  _createClass(ModalAssignmentAdditionalHoursHistory, [{
+    key: "componentDidMount",
+    value: function componentDidMount() {
+      this.getData();
+    }
+  }, {
+    key: "render",
+    value: function render() {
+      if (this.state.history === null) {
+        return null;
+      }
+
+      var body = /*#__PURE__*/_react.default.createElement("div", {
+        style: {
+          maxHeight: '600px',
+          overflowY: 'auto'
+        }
+      }, /*#__PURE__*/_react.default.createElement(_Components.DataGrid, {
+        orderBy: true,
+        style: {
+          wordBreak: 'break-all'
+        }
+      }, /*#__PURE__*/_react.default.createElement(_Components.DataGrid.Header, null, /*#__PURE__*/_react.default.createElement(_Components.DataGrid.Header.Row, null, /*#__PURE__*/_react.default.createElement(_Components.DataGrid.Header.Cell, {
+        style: {
+          minWidth: "190px"
+        }
+      }, "Date"), /*#__PURE__*/_react.default.createElement(_Components.DataGrid.Header.Cell, {
+        style: {
+          minWidth: "100px"
+        }
+      }, "Heures"), /*#__PURE__*/_react.default.createElement(_Components.DataGrid.Header.Cell, {
+        style: {
+          minWidth: "150px"
+        }
+      }, "Responsable"), /*#__PURE__*/_react.default.createElement(_Components.DataGrid.Header.Cell, {
+        style: {
+          minWidth: "300px"
+        }
+      }, "Raison"))), /*#__PURE__*/_react.default.createElement(_Components.DataGrid.Body, null, this.state.history.map(function (item, index) {
+        // all items (children) need to be inside a single array otherwise the orderby won't work                                 
+        var items = [];
+
+        var date = _Utils.UtilsDateTime.toTimeString(item.lastupdate);
+
+        var cell = /*#__PURE__*/_react.default.createElement(_Components.DataGrid.Body.Cell, {
+          sortValue: date,
+          key: items.length,
+          freezing: true
+        }, date);
+
+        items.push(cell);
+        cell = /*#__PURE__*/_react.default.createElement(_Components.DataGrid.Body.Cell, {
+          sortValue: item.nb_additional_hours,
+          key: items.length,
+          freezing: true
+        }, item.nb_additional_hours, "h");
+        items.push(cell);
+        cell = /*#__PURE__*/_react.default.createElement(_Components.DataGrid.Body.Cell, {
+          sortValue: item.assignorname,
+          key: items.length,
+          freezing: true
+        }, item.assignorname);
+        items.push(cell);
+        cell = /*#__PURE__*/_react.default.createElement(_Components.DataGrid.Body.Cell, {
+          sortValue: item.comment,
+          key: items.length,
+          freezing: true
+        }, item.comment);
+        items.push(cell);
+        return /*#__PURE__*/_react.default.createElement(_Components.DataGrid.Body.Row, {
+          key: index
+        }, items);
+      }))));
+
+      var main = /*#__PURE__*/_react.default.createElement(_Components.Modal, {
+        title: 'Heures supplémentaires de ' + this.state.data.user.firstName + ' ' + this.state.data.user.lastName,
+        body: body,
+        width: "80vw",
+        onClose: this.onClose
+      });
+
+      return main;
+    }
+  }, {
+    key: "getData",
+    value: function getData() {
+      var that = this;
+
+      var callback = function callback(result) {
+        if (!result.success) {
+          _common.$glVars.feedback.showError(_common.$glVars.i18n.tags.appName, result.msg);
+
+          return;
+        }
+
+        that.setState({
+          history: result.data
+        });
+      };
+
+      _common.$glVars.webApi.getAssignmentAdditionalHours(this.state.data.id, callback);
+    }
+  }, {
+    key: "onClose",
+    value: function onClose() {
+      this.props.onClose();
+    }
+  }]);
+
+  return ModalAssignmentAdditionalHoursHistory;
+}(_react.Component);
+
+exports.ModalAssignmentAdditionalHoursHistory = ModalAssignmentAdditionalHoursHistory;
+
+_defineProperty(ModalAssignmentAdditionalHoursHistory, "defaultProps", {
   data: null,
   onClose: null
 });
@@ -71401,6 +72048,8 @@ var WorkPlanListView = /*#__PURE__*/function (_Component2) {
         }
 
         that.getData();
+
+        _common.$glVars.feedback.showInfo(_common.$glVars.i18n.tags.appName, _common.$glVars.i18n.tags.msgSuccess, 3);
       };
 
       if (window.confirm(_common.$glVars.i18n.tags.msgConfirmDeletion)) {
@@ -71420,6 +72069,8 @@ var WorkPlanListView = /*#__PURE__*/function (_Component2) {
         }
 
         that.getData();
+
+        _common.$glVars.feedback.showInfo(_common.$glVars.i18n.tags.appName, _common.$glVars.i18n.tags.msgSuccess, 3);
       };
 
       if (window.confirm(_common.$glVars.i18n.tags.msgConfirmArchive)) {
@@ -71756,6 +72407,9 @@ var WorkPlanAssignmentsView = /*#__PURE__*/function (_Component5) {
       showAssignments: false,
       filter: ['late', 'ongoing'],
       editAssignment: null,
+      editAssignmentAdditionalHours: null,
+      showAssignmentMassActions: null,
+      showAssignmentAdditionalHours: null,
       sortAssignment: 0,
       showUser: null
     };
@@ -71844,7 +72498,7 @@ var WorkPlanAssignmentsView = /*#__PURE__*/function (_Component5) {
 
       var main = /*#__PURE__*/_react.default.createElement(_react.default.Fragment, null, /*#__PURE__*/_react.default.createElement(_Components2.CustomHeader, {
         title: "Affectations",
-        btnAfter: /*#__PURE__*/_react.default.createElement(_Components2.CustomButton, {
+        btnAfter: /*#__PURE__*/_react.default.createElement(_react.default.Fragment, null, /*#__PURE__*/_react.default.createElement(_Components2.CustomButton, {
           disabled: _common.WorkPlanUtils.isArchived(_Utils.JsNx.at(data.assignments, 0, null)),
           title: "Attribuer un plan de travail.",
           onClick: function onClick() {
@@ -71852,7 +72506,18 @@ var WorkPlanAssignmentsView = /*#__PURE__*/function (_Component5) {
           }
         }, /*#__PURE__*/_react.default.createElement(_reactFontawesome.FontAwesomeIcon, {
           icon: _freeSolidSvgIcons.faPlus
-        }))
+        })), /*#__PURE__*/_react.default.createElement(_Components2.CustomButton, {
+          disabled: _common.WorkPlanUtils.isArchived(_Utils.JsNx.at(data.assignments, 0, null)),
+          className: "ml-2",
+          title: "Actions en lot",
+          onClick: function onClick() {
+            return _this7.setState({
+              showAssignmentMassActions: true
+            });
+          }
+        }, /*#__PURE__*/_react.default.createElement(_reactFontawesome.FontAwesomeIcon, {
+          icon: _freeSolidSvgIcons.faCogs
+        })))
       }, /*#__PURE__*/_react.default.createElement("div", {
         className: "d-flex align-items-center d-block-mobile w-100-mobile"
       }, "Filtrer par ", /*#__PURE__*/_react.default.createElement(_Components2.CustomFormControl, {
@@ -71921,6 +72586,7 @@ var WorkPlanAssignmentsView = /*#__PURE__*/function (_Component5) {
           _iterator2.f();
         }
 
+        nbHoursCompletionTotal = nbHoursCompletionTotal + item.nbAdditionalHours;
         var txtDuration = item.nbHoursPerWeek > 0 ? "".concat(Math.ceil(nbHoursCompletionTotal / item.nbHoursPerWeek), " semaines") : '';
 
         var card = /*#__PURE__*/_react.default.createElement(_Components2.CustomCard, {
@@ -71949,6 +72615,15 @@ var WorkPlanAssignmentsView = /*#__PURE__*/function (_Component5) {
         }, "D\xE9but: ".concat(_Utils.UtilsDateTime.getDate(item.startDate), " (").concat(item.nbHoursPerWeek, " h/semaine)")), /*#__PURE__*/_react.default.createElement("div", {
           className: "text-muted"
         }, "Dur\xE9e: ".concat(txtDuration)), /*#__PURE__*/_react.default.createElement("div", {
+          className: "text-muted"
+        }, /*#__PURE__*/_react.default.createElement("a", {
+          href: "#",
+          onClick: function onClick() {
+            return _this7.setState({
+              showAssignmentAdditionalHours: item
+            });
+          }
+        }, "Heures suppl\xE9mentaires: ".concat(item.nbAdditionalHours))), /*#__PURE__*/_react.default.createElement("div", {
           className: "text-muted"
         }, "\xC9ch\xE9ance: ".concat(_Utils.UtilsDateTime.getDate(item.endDate)))), /*#__PURE__*/_react.default.createElement("div", {
           className: "w-100-mobile"
@@ -71983,11 +72658,19 @@ var WorkPlanAssignmentsView = /*#__PURE__*/function (_Component5) {
           icon: _freeSolidSvgIcons.faPencilAlt
         }), " Modifier"), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Dropdown.Item, {
           onClick: function onClick() {
+            return _this7.setState({
+              editAssignmentAdditionalHours: item
+            });
+          }
+        }, /*#__PURE__*/_react.default.createElement(_reactFontawesome.FontAwesomeIcon, {
+          icon: _freeSolidSvgIcons.faClock
+        }), " Heures supplémentaires"), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Dropdown.Item, {
+          onClick: function onClick() {
             return _this7.onSetInactiveAssignment(item);
           }
         }, item.completionState == 4 ? /*#__PURE__*/_react.default.createElement(_react.default.Fragment, null, /*#__PURE__*/_react.default.createElement(_reactFontawesome.FontAwesomeIcon, {
           icon: _freeSolidSvgIcons.faUserAlt
-        }), "  Mettre actif") : /*#__PURE__*/_react.default.createElement(_react.default.Fragment, null, /*#__PURE__*/_react.default.createElement(_reactFontawesome.FontAwesomeIcon, {
+        }), " Mettre actif") : /*#__PURE__*/_react.default.createElement(_react.default.Fragment, null, /*#__PURE__*/_react.default.createElement(_reactFontawesome.FontAwesomeIcon, {
           icon: _freeSolidSvgIcons.faUserAltSlash
         }), " Mettre inactif")), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Dropdown.Item, {
           onClick: function onClick() {
@@ -72025,6 +72708,22 @@ var WorkPlanAssignmentsView = /*#__PURE__*/function (_Component5) {
         }
       }), this.state.editAssignment !== null && /*#__PURE__*/_react.default.createElement(_AssignmentView.ModalAssignmentForm, {
         data: this.state.editAssignment,
+        onClose: function onClose(refresh) {
+          return _this7.onShowAssignments(false, refresh);
+        }
+      }), this.state.showAssignmentMassActions !== null && /*#__PURE__*/_react.default.createElement(_AssignmentView.ModalAssignmentMassActions, {
+        data: data,
+        onClose: function onClose(refresh) {
+          return _this7.onShowAssignments(false, refresh);
+        }
+      }), this.state.editAssignmentAdditionalHours !== null && /*#__PURE__*/_react.default.createElement(_AssignmentView.ModalAssignmentAdditionalHoursForm, {
+        templateId: data.template.id,
+        data: this.state.editAssignmentAdditionalHours,
+        onClose: function onClose(refresh) {
+          return _this7.onShowAssignments(false, refresh);
+        }
+      }), this.state.showAssignmentAdditionalHours !== null && /*#__PURE__*/_react.default.createElement(_AssignmentView.ModalAssignmentAdditionalHoursHistory, {
+        data: this.state.showAssignmentAdditionalHours,
         onClose: function onClose(refresh) {
           return _this7.onShowAssignments(false, refresh);
         }
@@ -72124,7 +72823,10 @@ var WorkPlanAssignmentsView = /*#__PURE__*/function (_Component5) {
       var callback = refresh ? this.props.onRefresh : null;
       this.setState({
         showAssignments: value,
-        editAssignment: null
+        editAssignment: null,
+        editAssignmentAdditionalHours: null,
+        showAssignmentMassActions: null,
+        showAssignmentAdditionalHours: null
       }, callback);
     }
   }, {
@@ -72140,6 +72842,8 @@ var WorkPlanAssignmentsView = /*#__PURE__*/function (_Component5) {
         }
 
         that.props.onRefresh();
+
+        _common.$glVars.feedback.showInfo(_common.$glVars.i18n.tags.appName, _common.$glVars.i18n.tags.msgSuccess, 3);
       };
 
       if (window.confirm(_common.$glVars.i18n.tags.msgConfirmDeletion)) {
@@ -72341,6 +73045,8 @@ var WorkPlanActivitiesView = /*#__PURE__*/function (_Component6) {
         }
 
         that.props.onRefresh();
+
+        _common.$glVars.feedback.showInfo(_common.$glVars.i18n.tags.appName, _common.$glVars.i18n.tags.msgSuccess, 3);
       };
 
       if (this.props.data.template.activities.length > 1) {

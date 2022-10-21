@@ -2,9 +2,9 @@ import React, { Component } from 'react';
 import { ButtonGroup,  Button, Form, Col, Row, Table, Badge} from 'react-bootstrap';
 import { faTrashAlt, faArrowRight} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {ComboBoxPlus, FeedbackCtrl, Modal} from '../libs/components/Components';
+import {ComboBoxPlus, DataGrid, FeedbackCtrl, Modal} from '../libs/components/Components';
 import {$glVars} from '../common/common';
-import { JsNx } from '../libs/utils/Utils';
+import { JsNx, UtilsDateTime } from '../libs/utils/Utils';
 import {CustomFormControl} from './Components'
 import { DateInput } from '../libs/components/DateTime';
 
@@ -25,7 +25,7 @@ export class ModalAssignmentPicker extends Component{
         this.onDelete = this.onDelete.bind(this);
         this.onAdd = this.onAdd.bind(this);
 
-        this.state = {data: props.data, dropdownLists: {studentList: [], groupList: [], group: null, name: ''}, flags: {dataChanged: false}, rhythme: ''};
+        this.state = {data: props.data, dropdownLists: {studentList: [], groupList: [], group: null, name: ''}, flags: {dataChanged: false},};
     }
 
     componentDidMount(){
@@ -131,15 +131,15 @@ export class ModalAssignmentPicker extends Component{
                                                 let row =
                                                     <tr key={index}>
                                                         <td>
-                                                            <div className='d-flex align-items-center' style={{justifyContent: 'space-between'}}>
-                                                                <div className='w-100'>
+                                                            <div className='d-flex'>
+                                                                <div className='col-md-11'>
                                                                     <div>
                                                                         <span dangerouslySetInnerHTML={{__html: item.user.avatar}}></span>
                                                                         <strong>{`${item.user.firstName} ${item.user.lastName}`}</strong>
                                                                     </div>
                                                                     
                                                                 </div>
-                                                                <div>
+                                                                <div className='col-md-1'>
                                                                     <Button variant="link" title="Supprimer" onClick={() => this.onDelete(item.id)}><FontAwesomeIcon icon={faTrashAlt}/></Button>
                                                                 </div>
                                                             </div>
@@ -154,9 +154,8 @@ export class ModalAssignmentPicker extends Component{
                             </div>
                         </div>
                     </div>
-                    <div className='col-12'>
-                        <CustomFormControl style={{width:'180px', display:'inline'}} onChange={(e) => this.setState({rhythme:e.target.value})}  type="number" value={this.state.rhythme} name='rhythme' placeholder="Rythme (h/semaine)"/>
-                        <Button variant="link" onClick={() => this.onAddSelected()}>{"Ajouter tous les utilisateurs "}<FontAwesomeIcon icon={faArrowRight}/></Button>
+                    <div className='col-6 p-3'>
+                        <Button variant="primary" className='w-100' onClick={() => this.onAddSelected()}>{"Ajouter tous les utilisateurs "}</Button>
                     </div>
                 </div>
             </div>;
@@ -181,6 +180,7 @@ export class ModalAssignmentPicker extends Component{
             comment: '',
             startDate: new Date()
         };
+        if (isNaN(result.nbHoursPerWeek)) result.nbHoursPerWeek = 0;
 
         return result;
     }
@@ -210,6 +210,7 @@ export class ModalAssignmentPicker extends Component{
             let data = that.state.data;
             JsNx.removeItem(data.assignments, 'id', assignmentId);
             that.setState({data: data, flags: {dataChanged: true}});
+            $glVars.feedback.showInfo($glVars.i18n.tags.appName, $glVars.i18n.tags.msgSuccess, 3);
         }
 
         if(window.confirm($glVars.i18n.tags.msgConfirmDeletion)){
@@ -243,10 +244,185 @@ export class ModalAssignmentPicker extends Component{
                 }
                 index++;
             }
+            $glVars.feedback.showInfo($glVars.i18n.tags.appName, $glVars.i18n.tags.msgSuccess, 3);
         }
 
         if(this.state.flags.dataChanged){
             $glVars.webApi.saveAssignment(data, callback);
+        }
+    }
+
+    onClose(){
+        this.props.onClose(this.state.flags.dataChanged);
+    }
+}
+
+export class ModalAssignmentMassActions extends Component{
+    static defaultProps = {        
+        data: null,
+        onClose: null
+    };
+
+    constructor(props){
+        super(props);
+
+        this.onSave = this.onSave.bind(this);
+        this.onClose = this.onClose.bind(this);
+
+        this.state = {data: props.data, flags: {dataChanged: false}, rhythme: 0, nbAdditionalHours: 0, additionalHoursReason: ''};
+    }
+
+
+    render(){
+        if(this.state.data === null){ return null; }
+
+        let body = 
+            <div>
+                <div className='mt-4 row'>
+                    <div className='col-md-6'>
+                        <div>
+                            <h6>Élèves assignés <Badge variant="warning" className="p-2 rounded">{`${this.state.data.assignments.length}`}</Badge></h6>
+                            <div style={{maxHeight: 500, overflowY: 'scroll'}}>
+                                <div style={{display:'flex',flexFlow:'wrap'}}>
+                                        {this.state.data.assignments.map((item, index) => {
+                                                let row =
+                                                    <div key={index} className='border m-3 p-3' style={{width:'220px'}}>
+                                                        <div>
+                                                            <span dangerouslySetInnerHTML={{__html: item.user.avatar}}></span>
+                                                            <strong>{`${item.user.firstName} ${item.user.lastName}`}</strong><br/>
+                                                            <span>Rythme: {item.nbHoursPerWeek}h/semaine</span><br/>
+                                                            <span>{item.nbAdditionalHours}h supplémentaires</span>
+                                                        </div>      
+                                                    </div>;
+
+                                                return row;
+                                            }
+                                        )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div className='col-md-6'>
+                       <span className='bold mb-3'>Actions en lot pour tous les élèves assignés</span>
+                       <div className='p-3 mb-3 border'>
+                            <Form.Group as={Row}>
+                                <Form.Label column sm="5">{"Rythme (h/semaine)"}</Form.Label>
+                                <Col sm="7">
+                                    <CustomFormControl style={{display:'inline'}} onChange={(e) => this.setState({rhythme:e.target.value})}  type="number" value={this.state.rhythme} name='rhythme' placeholder="Rythme (h/semaine)"/>
+                                </Col>
+                            </Form.Group>
+                            <Form.Group as={Row}>
+                                <Col sm="5"></Col>
+                                <Col sm="7">
+                                    <Button variant="primary" onClick={() => this.onSetRythme()}>{"Assigner le rythme "}</Button>
+                                </Col>
+                            </Form.Group>
+                        </div>
+                       <div className='p-3 mb-3 border'>
+                            <Form.Group as={Row}>
+                                <Form.Label column sm="5">{"Heures supplémentaires"}</Form.Label>
+                                <Col sm="7">
+                                    <CustomFormControl style={{display:'inline'}} onChange={(e) => this.setState({nbAdditionalHours:e.target.value})}  type="number" value={this.state.nbAdditionalHours} placeholder="Heures"/>
+                                </Col>
+                            </Form.Group>
+                            <Form.Group as={Row}>
+                                <Form.Label column sm="5">{"Raison de l'ajout d'heures supplémentaires"}</Form.Label>
+                                <Col sm="7">
+                                    <CustomFormControl style={{display:'inline'}} max="250" onChange={(e) => this.setState({additionalHoursReason:e.target.value})}  type="text" value={this.state.additionalHoursReason}/>
+                                </Col>
+                            </Form.Group>
+                            <Form.Group as={Row}>
+                                <Col sm="5"></Col>
+                                <Col sm="7">
+                                    <Button variant="primary" disabled={this.state.additionalHoursReason.length == 0} onClick={() => this.onAddAdditionalHours()}>{"Ajouter des heures supplémentaires "}</Button>
+                                </Col>
+                            </Form.Group>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>;
+
+        let main = <Modal title={'Actions en lot'} body={body} style={{maxWidth:900, width:'auto'}} onClose={this.onClose} />;
+
+        return (main);
+    }
+
+
+    onSetRythme(){
+        if (!confirm('Êtes-vous sûre de vouloir assigné ce rythme à tous les utilisateurs? Cette opération est irréversible!')) return;
+        let newItems = []
+        for (let item of this.state.data.assignments){
+            item.nbHoursPerWeek = this.state.rhythme;
+            newItems.push(item);
+        }
+        this.setState({flags: {dataChanged: true}}, () => this.onSave(newItems))
+    }
+
+    onAddAdditionalHours(){
+        if (!confirm('Êtes-vous sûre de vouloir d\'ajouter des heures supplémentaires à tous les utilisateurs? Cette opération est irréversible!')) return;
+        let newItems = []
+        for (let item of this.state.data.assignments){
+            let add = {};
+            add.id = item.id;
+            add.nbAdditionalHours = parseInt(this.state.nbAdditionalHours);
+            add.additionalHoursReason = this.state.additionalHoursReason;
+            add.templateId = this.state.data.template.id;
+            newItems.push(add);
+            item.nbAdditionalHours += add.nbAdditionalHours; //Update local cache
+        }
+        this.setState({flags: {dataChanged: true}}, () => this.onSaveAdditionalHours(newItems))
+    }
+
+    onSave(data){
+        let that = this;
+        let callback = function(result){
+            if(!result.success){
+                $glVars.feedback.showError($glVars.i18n.tags.appName, result.msg);
+                return;
+            }
+
+            let index = 0;
+            for (let item of data){
+                if(parseInt(item.id,10) === 0){
+                    item.id = result.data[index];
+                    let tmp = that.state.data;
+                    tmp.assignments.push(item);
+                    that.setState({data: tmp});
+                }
+                index++;
+            }
+            $glVars.feedback.showInfo($glVars.i18n.tags.appName, $glVars.i18n.tags.msgSuccess, 3);
+        }
+
+        if(this.state.flags.dataChanged){
+            $glVars.webApi.saveAssignment(data, callback);
+        }
+    }
+
+    onSaveAdditionalHours(data){
+        let that = this;
+        let callback = function(result){
+            if(!result.success){
+                $glVars.feedback.showError($glVars.i18n.tags.appName, result.msg);
+                return;
+            }
+
+            let index = 0;
+            for (let item of data){
+                if(parseInt(item.id,10) === 0){
+                    item.id = result.data[index];
+                    let tmp = that.state.data;
+                    tmp.assignments.push(item);
+                    that.setState({data: tmp});
+                }
+                index++;
+            }
+            $glVars.feedback.showInfo($glVars.i18n.tags.appName, $glVars.i18n.tags.msgSuccess, 3);
+        }
+
+        if(this.state.flags.dataChanged){
+            $glVars.webApi.addAssignmentAdditionalHours(data, callback);
         }
     }
 
@@ -292,7 +468,7 @@ export class ModalAssignmentForm extends Component{
                 <Form.Group as={Row}>
                     <Form.Label column sm="2">{"h/semaine"}</Form.Label>
                     <Col sm="10">
-                        <CustomFormControl style={{width: '80px', display: 'inline'}} className="mr-3" type="text" value={item.nbHoursPerWeek} name="nbHoursPerWeek" onChange={this.onDataChange} />
+                        <CustomFormControl style={{width: '80px', display: 'inline'}} className="mr-3" type="number" value={item.nbHoursPerWeek} name="nbHoursPerWeek" onChange={this.onDataChange} />
                     </Col>
                 </Form.Group>
             </Form>;
@@ -326,11 +502,191 @@ export class ModalAssignmentForm extends Component{
             }
 
             that.props.onClose(that.state.flags.dataChanged);
+            $glVars.feedback.showInfo($glVars.i18n.tags.appName, $glVars.i18n.tags.msgSuccess, 3);
         }
 
         if(this.state.flags.dataChanged){
             $glVars.webApi.saveAssignment([this.state.data], callback);
         }
+    }
+
+    onClose(){
+        this.props.onClose();
+    }
+}
+
+
+export class ModalAssignmentAdditionalHoursForm extends Component{
+    static defaultProps = {        
+        data: null,
+        templateId: null,
+        onClose: null
+    };
+
+    constructor(props){
+        super(props);
+
+        this.onSave = this.onSave.bind(this);
+        this.onDataChange = this.onDataChange.bind(this);
+        this.onClose = this.onClose.bind(this);
+
+        this.state = {data: {id: props.data.id, templateId: props.templateId, nbAdditionalHours: 0, additionalHoursReason: ''}, flags: {dataChanged: false}};
+    }
+
+    render(){
+        if(this.state.data === null){ return null; }
+
+        let item = this.state.data;
+        let body = 
+            <Form>
+                <Form.Group as={Row}>
+                    <Form.Label column sm="5">{"Heures supplémentaires (peut être négatif)"}</Form.Label>
+                    <Col sm="7">
+                        <CustomFormControl style={{width: '80px', display: 'inline'}} className="mr-3" type="number" value={item.nbAdditionalHours} name="nbAdditionalHours" onChange={this.onDataChange} />
+                    </Col>
+                </Form.Group>
+                <Form.Group as={Row}>
+                    <Form.Label column sm="5">{"Raison de l'ajout d'heures supplémentaires"}</Form.Label>
+                    <Col sm="7">
+                        <CustomFormControl style={{display:'inline'}} onChange={this.onDataChange} max="250" name="additionalHoursReason" type="text" value={item.additionalHoursReason}/>
+                    </Col>
+                </Form.Group>
+            </Form>;
+
+        let modalFooter = 
+        <ButtonGroup>
+                <Button variant='secondary' className='rounded' onClick={this.onClose}>Annuler</Button>
+                <Button disabled={!this.state.flags.dataChanged || item.additionalHoursReason.length == 0} variant='success' className='ml-2 rounded' onClick={this.onSave}>Enregistrer</Button>
+        </ButtonGroup>;
+
+
+        let main = <Modal title={'Ajout d\'heures supplémentaires'} body={body} footer={modalFooter} width="800px" onClose={this.onClose} />;
+
+        return (main);
+    }
+
+    onDataChange(event, index){
+        let data = this.state.data;
+        let flags = this.state.flags;
+        flags.dataChanged = (data[event.target.name] != event.target.value);
+        data[event.target.name] = event.target.value;
+        this.setState({data: data, flags: flags});
+    }
+
+    onSave(){
+        let that = this;
+        let callback = function(result){
+            if(!result.success){
+                $glVars.feedback.showError($glVars.i18n.tags.appName, result.msg);
+                return;
+            }
+
+            that.props.onClose(that.state.flags.dataChanged);
+            $glVars.feedback.showInfo($glVars.i18n.tags.appName, $glVars.i18n.tags.msgSuccess, 3);
+        }
+
+        if(this.state.flags.dataChanged){
+            $glVars.webApi.addAssignmentAdditionalHours([this.state.data], callback);
+        }
+    }
+
+    onClose(){
+        this.props.onClose();
+    }
+}
+
+export class ModalAssignmentAdditionalHoursHistory extends Component{
+    static defaultProps = {        
+        data: null,
+        onClose: null
+    };
+
+    constructor(props){
+        super(props);
+
+        this.onClose = this.onClose.bind(this);
+
+        this.state = {data: props.data, history: null};
+    }
+
+    componentDidMount(){
+        this.getData();
+    }
+
+    render(){
+        if(this.state.history === null){ return null; }
+
+        let body = 
+            <div style={{maxHeight:'600px',overflowY:'auto'}}>
+                    <DataGrid orderBy={true} style={{wordBreak:'break-all'}}>
+                        <DataGrid.Header>
+                            <DataGrid.Header.Row>
+                                <DataGrid.Header.Cell style={{minWidth: "190px"}}>Date</DataGrid.Header.Cell>
+                                <DataGrid.Header.Cell style={{minWidth: "100px"}}>Heures</DataGrid.Header.Cell>
+                                <DataGrid.Header.Cell style={{minWidth: "150px"}}>Responsable</DataGrid.Header.Cell>
+                                <DataGrid.Header.Cell style={{minWidth: "300px"}}>Raison</DataGrid.Header.Cell>
+                            </DataGrid.Header.Row>
+                        </DataGrid.Header>
+                        <DataGrid.Body>
+                            {this.state.history.map((item, index) => {   
+                                // all items (children) need to be inside a single array otherwise the orderby won't work                                 
+                                    let items =  [];
+                                    let date = UtilsDateTime.toTimeString(item.lastupdate)
+
+                                    let cell = 
+                                        <DataGrid.Body.Cell sortValue={date}  key={items.length} freezing={true}>
+                                            {date}
+                                        </DataGrid.Body.Cell>;
+
+                                    items.push(cell);
+
+                                    cell = 
+                                        <DataGrid.Body.Cell sortValue={item.nb_additional_hours}  key={items.length} freezing={true}>
+                                            {item.nb_additional_hours}h
+                                        </DataGrid.Body.Cell>;
+
+                                    items.push(cell);
+
+
+                                    cell = 
+                                        <DataGrid.Body.Cell sortValue={item.assignorname}  key={items.length} freezing={true}>
+                                            {item.assignorname}
+                                        </DataGrid.Body.Cell>;
+
+                                    items.push(cell);
+
+                                    cell = 
+                                        <DataGrid.Body.Cell sortValue={item.comment}  key={items.length} freezing={true}>
+                                            {item.comment}
+                                        </DataGrid.Body.Cell>;
+
+                                    items.push(cell);
+                                        
+                                    return (<DataGrid.Body.Row key={index}>{items}</DataGrid.Body.Row>);                                    
+                                }
+                            )}
+                        </DataGrid.Body>
+                    </DataGrid>
+            </div>;
+
+
+        let main = <Modal title={'Heures supplémentaires de '+this.state.data.user.firstName+' '+this.state.data.user.lastName} body={body} width="80vw" onClose={this.onClose} />;
+
+        return (main);
+    }
+
+    getData(){
+        let that = this;
+        let callback = function(result){
+            if(!result.success){
+                $glVars.feedback.showError($glVars.i18n.tags.appName, result.msg);
+                return;
+            }
+
+            that.setState({history: result.data})
+        }
+
+        $glVars.webApi.getAssignmentAdditionalHours(this.state.data.id, callback);
     }
 
     onClose(){
