@@ -10,8 +10,7 @@ export const $glVars = {
     i18n: new I18n(),
     webApi: new AppWebApi(),
     urlParams: {},
-    recitDashboardUrl: M.cfg.wwwroot + "/local/recitdashboard/view.php",
-    recitWorkPlanUrl: M.cfg.wwwroot + "/local/recitworkplan/view.php"
+    context: {},
 }
 
 export class WorkPlanUtils {

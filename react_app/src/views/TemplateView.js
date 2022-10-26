@@ -453,7 +453,7 @@ class ModalTemplateForm extends Component{
     static defaultProps = {        
         data: null,
         onClose: null,
-        onSave: null
+        onSave: null,
     };
 
     constructor(props){
@@ -462,12 +462,22 @@ class ModalTemplateForm extends Component{
         this.onDataChange = this.onDataChange.bind(this);
         this.onSave = this.onSave.bind(this);
 
-        this.state = {data: JsNx.clone(this.props.data), teachers: []}
+        let data = JsNx.clone(this.props.data);
+        this.state = {data: data, teachers: []}
         let collaborators = [];
-        for (let t of this.state.data.template.collaboratorList){
+        for (let t of data.template.collaboratorList){
             collaborators.push({label: t.firstName+' '+t.lastName, value: parseInt(t.userId), data: t})
         }
         this.state.collaborators = collaborators;
+
+        switch ($glVars.context.activeWorkPlanStateTab){
+            case 'template':
+                data.template.state = 1;
+                break
+            case 'ongoing':
+                data.template.state = 0;
+                break;
+        }
     }
 
     componentDidMount(){

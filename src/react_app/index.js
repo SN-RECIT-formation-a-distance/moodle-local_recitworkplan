@@ -67415,6 +67415,8 @@ function _defineProperties(target, props) { for (var i = 0; i < props.length; i+
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 var Options = /*#__PURE__*/function () {
   function Options() {
     _classCallCheck(this, Options);
@@ -67441,6 +67443,10 @@ var Options = /*#__PURE__*/function () {
 }();
 
 exports.Options = Options;
+
+_defineProperty(Options, "recitDashboardUrl", M.cfg.wwwroot + "/local/recitdashboard/view.php");
+
+_defineProperty(Options, "recitWorkPlanUrl", M.cfg.wwwroot + "/local/recitworkplan/view.php");
 },{"../../package.json":"../package.json"}],"common/AppWebApi.js":[function(require,module,exports) {
 "use strict";
 
@@ -67777,8 +67783,7 @@ var $glVars = {
   i18n: new _Utils.I18n(),
   webApi: new _AppWebApi.AppWebApi(),
   urlParams: {},
-  recitDashboardUrl: M.cfg.wwwroot + "/local/recitdashboard/view.php",
-  recitWorkPlanUrl: M.cfg.wwwroot + "/local/recitworkplan/view.php"
+  context: {}
 };
 exports.$glVars = $glVars;
 
@@ -69453,13 +69458,16 @@ var ModalTemplateForm = /*#__PURE__*/function (_Component3) {
     _this8 = _super3.call(this, props);
     _this8.onDataChange = _this8.onDataChange.bind(_assertThisInitialized(_this8));
     _this8.onSave = _this8.onSave.bind(_assertThisInitialized(_this8));
+
+    var data = _Utils.JsNx.clone(_this8.props.data);
+
     _this8.state = {
-      data: _Utils.JsNx.clone(_this8.props.data),
+      data: data,
       teachers: []
     };
     var collaborators = [];
 
-    var _iterator6 = _createForOfIteratorHelper(_this8.state.data.template.collaboratorList),
+    var _iterator6 = _createForOfIteratorHelper(data.template.collaboratorList),
         _step6;
 
     try {
@@ -69478,6 +69486,17 @@ var ModalTemplateForm = /*#__PURE__*/function (_Component3) {
     }
 
     _this8.state.collaborators = collaborators;
+
+    switch (_common.$glVars.context.activeWorkPlanStateTab) {
+      case 'template':
+        data.template.state = 1;
+        break;
+
+      case 'ongoing':
+        data.template.state = 0;
+        break;
+    }
+
     return _this8;
   }
 
@@ -71947,6 +71966,7 @@ var WorkPlanListView = /*#__PURE__*/function (_Component2) {
     value: function render() {
       var _this2 = this;
 
+      _common.$glVars.context.activeWorkPlanStateTab = this.state.activeTab;
       var dataProvider = this.state.dataProvider;
 
       var main = /*#__PURE__*/_react.default.createElement("div", null, /*#__PURE__*/_react.default.createElement(_Components2.CustomHeader, {
@@ -72012,7 +72032,7 @@ var WorkPlanListView = /*#__PURE__*/function (_Component2) {
 
       var form = /*#__PURE__*/_react.default.createElement(WorkPlanView, {
         templateId: this.state.templateId,
-        activeTab: this.state.editTab,
+        editTab: this.state.editTab,
         onClose: this.onClose
       });
 
@@ -72274,7 +72294,7 @@ var WorkPlanView = /*#__PURE__*/function (_Component4) {
     _this4.getData = _this4.getData.bind(_assertThisInitialized(_this4));
     _this4.onSaveTemplate = _this4.onSaveTemplate.bind(_assertThisInitialized(_this4));
     _this4.state = {
-      tab: _this4.props.activeTab,
+      tab: _this4.props.editTab,
       data: null
     };
     return _this4;
@@ -72288,9 +72308,9 @@ var WorkPlanView = /*#__PURE__*/function (_Component4) {
   }, {
     key: "componentDidUpdate",
     value: function componentDidUpdate(prevProps) {
-      if (prevProps.activeTab !== this.props.activeTab) {
+      if (prevProps.editTab !== this.props.editTab) {
         this.setState({
-          tab: this.props.activeTab
+          tab: this.props.editTab
         });
       }
     }
@@ -72337,8 +72357,8 @@ var WorkPlanView = /*#__PURE__*/function (_Component4) {
         onSave: this.onSaveTemplate
       }), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Tabs, {
         id: "workPlanTabs",
-        className: "mt-3 bg-light",
-        variant: "pills",
+        className: "mt-5 bg-light workplantabs",
+        variant: "tabs",
         fill: true,
         activeKey: this.state.tab,
         onSelect: this.onTabChange
@@ -72388,7 +72408,7 @@ var WorkPlanView = /*#__PURE__*/function (_Component4) {
 
 _defineProperty(WorkPlanView, "defaultProps", {
   templateId: 0,
-  activeTab: 'activities',
+  editTab: 'activities',
   onClose: null
 });
 
@@ -73157,7 +73177,7 @@ var StudentBlockView = /*#__PURE__*/function (_Component) {
         item_per_page: 25
       }
     };
-    _this.viewUrl = _common.$glVars.recitWorkPlanUrl;
+    _this.viewUrl = _common.Options.recitWorkPlanUrl;
     return _this;
   }
 
@@ -73319,7 +73339,7 @@ var AdminBlockView = /*#__PURE__*/function (_Component2) {
 
         return card;
       }), this.state.dataProvider.length === 0 && /*#__PURE__*/_react.default.createElement("a", {
-        href: _common.$glVars.recitWorkPlanUrl,
+        href: _common.Options.recitWorkPlanUrl,
         className: "h5"
       }, "Cr\xE9er un plan de travail..."));
 
@@ -73357,7 +73377,7 @@ var WorkPlanCardBlock = /*#__PURE__*/function (_Component3) {
           justifyContent: 'space-between'
         }
       }, /*#__PURE__*/_react.default.createElement("a", {
-        href: _common.$glVars.recitWorkPlanUrl + '?id=' + workPlan.template.id,
+        href: _common.Options.recitWorkPlanUrl + '?id=' + workPlan.template.id,
         className: "h3"
       }, workPlan.template.name)), workPlan.stats && workPlan.stats.nbStudents > 0 && /*#__PURE__*/_react.default.createElement("div", {
         className: "p-2 text-muted row"

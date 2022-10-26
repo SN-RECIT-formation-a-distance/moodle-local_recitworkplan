@@ -123,6 +123,11 @@ button.dropdown-toggle {
   height: 40px;
 }
 
+.workplantabs .nav-link {
+  border: 1px solid #c6c6c6;
+  font-size: 16px;
+}
+
 /**********************************************************
 / tablets layout
 /*********************************************************/

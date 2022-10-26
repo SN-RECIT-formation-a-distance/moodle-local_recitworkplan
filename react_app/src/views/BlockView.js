@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { FeedbackCtrl } from '../libs/components/Components';
-import {$glVars, WorkPlanUtils} from '../common/common';
+import {$glVars, Options, WorkPlanUtils} from '../common/common';
 import {  UtilsDateTime  } from '../libs/utils/Utils';
 import { FollowUpCard, CustomCard, CustomBadgeCompletion, CustomBadge  } from './Components';
 
@@ -15,7 +15,7 @@ export class StudentBlockView extends Component{
         this.getDataResult = this.getDataResult.bind(this);
 
         this.state = {dataProvider: [], templateId: -1, pagination: {current_page: 1, count: 0, item_per_page: 25}};
-        this.viewUrl = $glVars.recitWorkPlanUrl;
+        this.viewUrl = Options.recitWorkPlanUrl;
     }
 
     componentDidMount(){
@@ -128,7 +128,7 @@ export class AdminBlockView extends Component {
                 )}
 
                 {this.state.dataProvider.length === 0 && 
-                        <a  href={$glVars.recitWorkPlanUrl} className='h5'>Créer un plan de travail...</a>}
+                        <a  href={Options.recitWorkPlanUrl} className='h5'>Créer un plan de travail...</a>}
             </div>;
 
         return (main);
@@ -147,7 +147,7 @@ export class WorkPlanCardBlock extends Component{
         let main =
             <CustomCard progressText={`${this.props.progress}%`} progressValue={`${this.props.progress}%`}>
                 <div className='d-flex' style={{justifyContent: 'space-between'}}>
-                    <a href={$glVars.recitWorkPlanUrl + '?id=' + workPlan.template.id} className='h3'>{workPlan.template.name}</a>
+                    <a href={Options.recitWorkPlanUrl + '?id=' + workPlan.template.id} className='h3'>{workPlan.template.name}</a>
                 </div>              
                 {workPlan.stats && workPlan.stats.nbStudents > 0 && 
                     <div className="p-2 text-muted row">

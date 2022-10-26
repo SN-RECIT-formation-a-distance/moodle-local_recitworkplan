@@ -79,6 +79,7 @@ export class WorkPlanListView extends Component{
     }
 
     render(){
+        $glVars.context.activeWorkPlanStateTab = this.state.activeTab;
         let dataProvider = this.state.dataProvider;
         
         let main = 
@@ -110,7 +111,7 @@ export class WorkPlanListView extends Component{
                 {false && <Pagination pagination={this.state.pagination} onChangePage={(p) => this.changePage(p)}/>}                
             </div>;
 
-        let form = <WorkPlanView templateId={this.state.templateId} activeTab={this.state.editTab} onClose={this.onClose}/>;
+        let form = <WorkPlanView templateId={this.state.templateId} editTab={this.state.editTab} onClose={this.onClose}/>;
 
         return (this.state.templateId >= 0 ? form : main);
     }
@@ -246,7 +247,7 @@ class WorkPlanCard extends Component{
 class WorkPlanView extends Component{
     static defaultProps = {        
         templateId: 0,
-        activeTab: 'activities',
+        editTab: 'activities',
         onClose: null
     };
  
@@ -258,7 +259,7 @@ class WorkPlanView extends Component{
         this.getData = this.getData.bind(this);
         this.onSaveTemplate = this.onSaveTemplate.bind(this); 
 
-        this.state = {tab: this.props.activeTab, data: null};
+        this.state = {tab: this.props.editTab, data: null};
     }
 
     componentDidMount(){
@@ -266,8 +267,8 @@ class WorkPlanView extends Component{
     }
 
     componentDidUpdate(prevProps) {
-        if (prevProps.activeTab !== this.props.activeTab) {
-          this.setState({tab:this.props.activeTab});
+        if (prevProps.editTab !== this.props.editTab) {
+          this.setState({tab:this.props.editTab});
         }
     }
 
@@ -294,7 +295,7 @@ class WorkPlanView extends Component{
 
                 <WorkPlanTemplateView data={this.state.data} onSave={this.onSaveTemplate} />
                     
-                <Tabs id="workPlanTabs" className="mt-3 bg-light" variant="pills" fill  activeKey={this.state.tab} onSelect={this.onTabChange}>
+                <Tabs id="workPlanTabs" className="mt-5 bg-light workplantabs" variant="tabs" fill activeKey={this.state.tab} onSelect={this.onTabChange}>
                     <Tab eventKey="activities" title="Activités">
                        <WorkPlanActivitiesView data={this.state.data} onClose={this.props.onClose} onRefresh={() => this.getData(this.state.data.template.id)}/>
                     </Tab>
