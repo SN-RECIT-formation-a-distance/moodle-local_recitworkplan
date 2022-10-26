@@ -68816,7 +68816,13 @@ var ActivityPicker = /*#__PURE__*/function (_Component) {
       }, /*#__PURE__*/_react.default.createElement("tbody", null, tmpActivityList.map(function (item, index) {
         var row = /*#__PURE__*/_react.default.createElement("tr", {
           key: index
-        }, /*#__PURE__*/_react.default.createElement("td", null, item.cmName, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Button, {
+        }, /*#__PURE__*/_react.default.createElement("td", null, /*#__PURE__*/_react.default.createElement("img", {
+          src: item.cmPix,
+          className: "activityicon mr-1"
+        }), /*#__PURE__*/_react.default.createElement("a", {
+          href: item.cmUrl,
+          target: "_blank"
+        }, item.cmName), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Button, {
           onClick: function onClick() {
             return _this2.onAddTplAct(item);
           },
@@ -73581,7 +73587,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "59852" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "50093" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

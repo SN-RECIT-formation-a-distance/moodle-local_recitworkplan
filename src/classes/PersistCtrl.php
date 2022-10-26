@@ -144,7 +144,10 @@ class PersistCtrl extends MoodlePersistCtrl
                 if($lastCourseId != $item->courseId){
                     $modinfo = get_fast_modinfo($item->courseId);
                 }
-                $item->cmname = $this->getCmNameFromCmId($item->cmid, $item->courseId, $modinfo);
+                $cm = $this->getCmFromCmId($item->cmid, $item->courseId, $modinfo);
+                $item->cmname = $cm->name;
+                $item->cmUrl = $cm->url->out();
+                $item->cmPix = $cm->get_icon_url()->out();
 
                 $item->sectionId = $item->sectionid; unset($item->sectionid);
                 $item->sectionName = $item->sectionname; unset($item->sectionname);

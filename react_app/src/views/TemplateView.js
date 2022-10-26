@@ -102,7 +102,8 @@ export class ActivityPicker extends Component{
                                             let row =
                                                 <tr key={index}>
                                                     <td>
-                                                        {item.cmName}
+                                                        <img src={item.cmPix} className='activityicon mr-1'/>
+                                                        <a href={item.cmUrl} target='_blank'>{item.cmName}</a>
                                                         <Button onClick={() => this.onAddTplAct(item)} variant="link" title="Ajouter" className="mr-2 float-right"><FontAwesomeIcon icon={faArrowRight}/></Button>
                                                     </td>
                                                 </tr>

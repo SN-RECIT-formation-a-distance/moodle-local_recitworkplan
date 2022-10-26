@@ -56,4 +56,14 @@ abstract class MoodlePersistCtrl extends APersistCtrl{
             }
         }
     }
+
+    public function getCmFromCmId($cmId, $courseId, $modData = false){
+        if (!$modData) $modData = get_fast_modinfo($courseId);
+        
+        foreach ($modData->cms as $cm) {
+            if ($cmId == $cm->id){
+                return $cm;
+            }
+        }
+    }
 }
