@@ -67,13 +67,15 @@ export class WorkPlanUtils {
         let nbAwaitingGrade = 0;
         let nbFails = 0;
         for (let assignment of workPlan.assignments){
-            for (let act of assignment.user.activities){
-                if (!activity || act.cmId == activity.cmId){
-                    if (act.followup == 1){
-                        nbAwaitingGrade++;
-                    }
-                    if (act.passed == 0){
-                        nbFails++;
+            if (assignment.user?.activities){
+                for (let act of assignment.user.activities){
+                    if (!activity || act.cmId == activity.cmId){
+                        if (act.followup == 1){
+                            nbAwaitingGrade++;
+                        }
+                        if (act.passed == 0){
+                            nbFails++;
+                        }
                     }
                 }
             }

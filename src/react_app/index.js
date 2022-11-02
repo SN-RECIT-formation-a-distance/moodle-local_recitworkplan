@@ -67882,29 +67882,33 @@ var WorkPlanUtils = /*#__PURE__*/function () {
 
       try {
         for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
+          var _assignment$user;
+
           var assignment = _step3.value;
 
-          var _iterator4 = _createForOfIteratorHelper(assignment.user.activities),
-              _step4;
+          if ((_assignment$user = assignment.user) !== null && _assignment$user !== void 0 && _assignment$user.activities) {
+            var _iterator4 = _createForOfIteratorHelper(assignment.user.activities),
+                _step4;
 
-          try {
-            for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
-              var act = _step4.value;
+            try {
+              for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
+                var act = _step4.value;
 
-              if (!activity || act.cmId == activity.cmId) {
-                if (act.followup == 1) {
-                  nbAwaitingGrade++;
-                }
+                if (!activity || act.cmId == activity.cmId) {
+                  if (act.followup == 1) {
+                    nbAwaitingGrade++;
+                  }
 
-                if (act.passed == 0) {
-                  nbFails++;
+                  if (act.passed == 0) {
+                    nbFails++;
+                  }
                 }
               }
+            } catch (err) {
+              _iterator4.e(err);
+            } finally {
+              _iterator4.f();
             }
-          } catch (err) {
-            _iterator4.e(err);
-          } finally {
-            _iterator4.f();
           }
         }
       } catch (err) {
