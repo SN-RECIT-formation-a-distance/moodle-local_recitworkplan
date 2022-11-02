@@ -68278,7 +68278,7 @@ var CustomBadge = /*#__PURE__*/function (_Component5) {
           break;
       }
 
-      text = this.props.nbIndicator > 1 ? /*#__PURE__*/_react.default.createElement(_react.default.Fragment, null, "$", text, ": $", this.props.nbIndicator) : text;
+      text = this.props.nbIndicator > 1 ? /*#__PURE__*/_react.default.createElement(_react.default.Fragment, null, text, ": ", this.props.nbIndicator) : text;
 
       var main = /*#__PURE__*/_react.default.createElement("span", {
         className: "badge rounded m-1 ".concat(variant)

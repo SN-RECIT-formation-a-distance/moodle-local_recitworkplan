@@ -164,7 +164,7 @@ export class CustomBadge extends Component{
                 break;
         }
 
-        text = (this.props.nbIndicator > 1 ? <>${text}: ${this.props.nbIndicator}</> : text);
+        text = (this.props.nbIndicator > 1 ? <>{text}: {this.props.nbIndicator}</> : text);
 
 
         let main = 
