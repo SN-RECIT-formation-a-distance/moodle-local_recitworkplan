@@ -68747,8 +68747,8 @@ var ActivityPicker = /*#__PURE__*/function (_Component) {
       }
 
       var tmpActivityList = this.state.dropdownLists.activityList.filter(function (item) {
-        if (!_this2.state.showActivityNoAchievement && parseInt(item.cmcompletion) == 0) return false;
-        return _Utils.JsNx.getItem(_this2.state.data.activities, 'cmId', item.cmId, null) === null && item.sectionId === _this2.state.dropdownLists.sectionId;
+        if (!_this2.state.showActivityNoAchievement && parseInt(item.completion) == 0) return false;
+        return _Utils.JsNx.getItem(_this2.state.data.activities, 'cmId', item.id, null) === null && item.sectionId === _this2.state.dropdownLists.sectionId;
       });
       var tmpCourseList = this.state.dropdownLists.courseList.filter(function (item) {
         return item.data.categoryId === _this2.state.dropdownLists.categoryId;
@@ -68828,13 +68828,13 @@ var ActivityPicker = /*#__PURE__*/function (_Component) {
       }, /*#__PURE__*/_react.default.createElement("tbody", null, tmpActivityList.map(function (item, index) {
         var row = /*#__PURE__*/_react.default.createElement("tr", {
           key: index
-        }, /*#__PURE__*/_react.default.createElement("td", null, /*#__PURE__*/_react.default.createElement("img", {
-          src: item.cmPix,
+        }, /*#__PURE__*/_react.default.createElement("td", null, item.pixUrl && /*#__PURE__*/_react.default.createElement("img", {
+          src: item.pixUrl,
           className: "activityicon mr-1"
         }), /*#__PURE__*/_react.default.createElement("a", {
-          href: item.cmUrl,
+          href: item.url,
           target: "_blank"
-        }, item.cmName), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Button, {
+        }, item.name), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Button, {
           onClick: function onClick() {
             return _this2.onAddTplAct(item);
           },
@@ -68951,16 +68951,21 @@ var ActivityPicker = /*#__PURE__*/function (_Component) {
 
       try {
         for (_iterator.s(); !(_step = _iterator.n()).done;) {
-          var item = _step.value;
+          var cat = _step.value;
 
-          if (_Utils.JsNx.getItem(list.courseList, 'value', item.courseId, null) === null) {
-            var isDisabled = !item.roles && !item.categoryroles;
-            list.courseList.push({
-              label: item.courseName,
-              value: item.courseId,
-              data: item,
-              isDisabled: isDisabled
-            });
+          for (var i in cat.courseList) {
+            var item = cat.courseList[i];
+
+            if (_Utils.JsNx.getItem(list.courseList, 'value', item.id, null) === null) {
+              var isDisabled = !cat.roles && !item.roles;
+              item.categoryId = cat.id;
+              list.courseList.push({
+                label: item.name,
+                value: item.id,
+                data: item,
+                isDisabled: isDisabled
+              });
+            }
           }
         }
       } catch (err) {
@@ -68980,11 +68985,11 @@ var ActivityPicker = /*#__PURE__*/function (_Component) {
       list.categoryList = [];
 
       var setParent = function setParent(el, child) {
-        if (parseInt(el.parentCatId, 10) > 0) {
-          var parent = _Utils.JsNx.getItem(result.data.catCourseList, 'categoryId', el.parentCatId);
+        if (parseInt(el.parent, 10) > 0) {
+          var parent = _Utils.JsNx.getItem(result.data.catCourseList, 'id', el.parent);
 
           if (parent) {
-            child.label = "".concat(parent.categoryName, " / ").concat(child.label);
+            child.label = "".concat(parent.name, " / ").concat(child.label);
             setParent(parent, child);
           }
         }
@@ -68997,12 +69002,12 @@ var ActivityPicker = /*#__PURE__*/function (_Component) {
         for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
           var item = _step2.value;
 
-          var index = _Utils.JsNx.getItemIndex(list.categoryList, 'value', item.categoryId);
+          var index = _Utils.JsNx.getItemIndex(list.categoryList, 'value', item.id);
 
           if (index === -1) {
             index = list.categoryList.push({
-              label: item.categoryName,
-              value: item.categoryId
+              label: item.name,
+              value: item.id
             }) - 1;
             setParent(item, list.categoryList[index]);
           }
@@ -69056,8 +69061,8 @@ var ActivityPicker = /*#__PURE__*/function (_Component) {
       var newItem = {};
       newItem.id = 0;
       newItem.slot = this.state.data.activities.length + 1;
-      newItem.cmId = item.cmId;
-      newItem.cmName = item.cmName;
+      newItem.cmId = item.id;
+      newItem.cmName = item.name;
       newItem.courseName = item.courseName;
       newItem.templateId = this.state.data.id;
       newItem.nbHoursCompletion = 0;
@@ -69130,31 +69135,31 @@ var ActivityPicker = /*#__PURE__*/function (_Component) {
         }
       }
 
-      if (item.courseId !== "0") {
+      if (item.courseId !== "0" && event.target.name == 'courseId') {
         _common.$glVars.webApi.getCatCourseSectionActivityList(false, item.categoryId, item.courseId, function (result) {
-          item.activityList = result.data;
+          var _result$data$;
+
+          item.activityList = [];
           item.sectionList = [];
+          var course = (_result$data$ = result.data[0]) === null || _result$data$ === void 0 ? void 0 : _result$data$.courseList[item.courseId];
 
-          var _iterator3 = _createForOfIteratorHelper(result.data),
-              _step3;
+          for (var i in course.sectionList) {
+            var v = course.sectionList[i];
 
-          try {
-            for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
-              var v = _step3.value;
+            if (_Utils.JsNx.getItem(item.sectionList, 'value', v.id, null) === null) {
+              item.sectionList.push({
+                label: v.name,
+                value: v.id,
+                courseId: item.courseId
+              });
 
-              if (_Utils.JsNx.getItem(item.sectionList, 'value', v.sectionId, null) === null) {
-                var sectionName = v.sectionName;
-                item.sectionList.push({
-                  label: sectionName,
-                  value: v.sectionId,
-                  courseId: v.courseId
-                });
+              for (var ii in v.cmList) {
+                var act = v.cmList[ii];
+                act.sectionId = v.id;
+                act.courseName = course.name;
+                item.activityList.push(act);
               }
             }
-          } catch (err) {
-            _iterator3.e(err);
-          } finally {
-            _iterator3.f();
           }
 
           that.setState({
@@ -69295,12 +69300,12 @@ var WorkPlanTemplateView = /*#__PURE__*/function (_Component2) {
       var collaboratorList = "";
       var categories = [];
 
-      var _iterator4 = _createForOfIteratorHelper(template.activities),
-          _step4;
+      var _iterator3 = _createForOfIteratorHelper(template.activities),
+          _step3;
 
       try {
-        for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
-          var act = _step4.value;
+        for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
+          var act = _step3.value;
 
           if (!categories.includes(act.categoryName)) {
             categories.push(act.categoryName);
@@ -69310,25 +69315,25 @@ var WorkPlanTemplateView = /*#__PURE__*/function (_Component2) {
           nbHoursCompletionTotal = nbHoursCompletionTotal + parseFloat(act.nbHoursCompletion);
         }
       } catch (err) {
-        _iterator4.e(err);
+        _iterator3.e(err);
       } finally {
-        _iterator4.f();
+        _iterator3.f();
       }
 
       catList = catList.substring(0, catList.length - 2);
 
-      var _iterator5 = _createForOfIteratorHelper(data.template.collaboratorList),
-          _step5;
+      var _iterator4 = _createForOfIteratorHelper(data.template.collaboratorList),
+          _step4;
 
       try {
-        for (_iterator5.s(); !(_step5 = _iterator5.n()).done;) {
-          var u = _step5.value;
+        for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
+          var u = _step4.value;
           collaboratorList = collaboratorList + u.firstName + " " + u.lastName + ", ";
         }
       } catch (err) {
-        _iterator5.e(err);
+        _iterator4.e(err);
       } finally {
-        _iterator5.f();
+        _iterator4.f();
       }
 
       collaboratorList = collaboratorList.substring(0, collaboratorList.length - 2);
@@ -69474,12 +69479,12 @@ var ModalTemplateForm = /*#__PURE__*/function (_Component3) {
     };
     var collaborators = [];
 
-    var _iterator6 = _createForOfIteratorHelper(data.template.collaboratorList),
-        _step6;
+    var _iterator5 = _createForOfIteratorHelper(data.template.collaboratorList),
+        _step5;
 
     try {
-      for (_iterator6.s(); !(_step6 = _iterator6.n()).done;) {
-        var t = _step6.value;
+      for (_iterator5.s(); !(_step5 = _iterator5.n()).done;) {
+        var t = _step5.value;
         collaborators.push({
           label: t.firstName + ' ' + t.lastName,
           value: parseInt(t.userId),
@@ -69487,9 +69492,9 @@ var ModalTemplateForm = /*#__PURE__*/function (_Component3) {
         });
       }
     } catch (err) {
-      _iterator6.e(err);
+      _iterator5.e(err);
     } finally {
-      _iterator6.f();
+      _iterator5.f();
     }
 
     _this8.state.collaborators = collaborators;
@@ -69515,12 +69520,12 @@ var ModalTemplateForm = /*#__PURE__*/function (_Component3) {
       _common.$glVars.webApi.getTeacherList(this.state.data.template.id, function (result) {
         var teachers = [];
 
-        var _iterator7 = _createForOfIteratorHelper(result.data),
-            _step7;
+        var _iterator6 = _createForOfIteratorHelper(result.data),
+            _step6;
 
         try {
-          for (_iterator7.s(); !(_step7 = _iterator7.n()).done;) {
-            var t = _step7.value;
+          for (_iterator6.s(); !(_step6 = _iterator6.n()).done;) {
+            var t = _step6.value;
             teachers.push({
               label: t.firstName + ' ' + t.lastName,
               value: parseInt(t.userId),
@@ -69528,9 +69533,9 @@ var ModalTemplateForm = /*#__PURE__*/function (_Component3) {
             });
           }
         } catch (err) {
-          _iterator7.e(err);
+          _iterator6.e(err);
         } finally {
-          _iterator7.f();
+          _iterator6.f();
         }
 
         _this9.setState({
@@ -69650,20 +69655,20 @@ var ModalTemplateForm = /*#__PURE__*/function (_Component3) {
           });
           var collaboratorList = [];
 
-          var _iterator8 = _createForOfIteratorHelper(event.target.value),
-              _step8;
+          var _iterator7 = _createForOfIteratorHelper(event.target.value),
+              _step7;
 
           try {
-            for (_iterator8.s(); !(_step8 = _iterator8.n()).done;) {
-              var u = _step8.value;
+            for (_iterator7.s(); !(_step7 = _iterator7.n()).done;) {
+              var u = _step7.value;
               collaboratorList.push({
                 userId: u.value
               });
             }
           } catch (err) {
-            _iterator8.e(err);
+            _iterator7.e(err);
           } finally {
-            _iterator8.f();
+            _iterator7.f();
           }
 
           data.template.collaboratorList = collaboratorList;

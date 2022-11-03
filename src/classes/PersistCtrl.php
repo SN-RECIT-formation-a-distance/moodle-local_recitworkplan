@@ -92,10 +92,7 @@ class PersistCtrl extends MoodlePersistCtrl
         }
 
         if($courseId > 0){
-            $extraFields = ", t3.id as sectionid, if(length(coalesce(t3.name, '')) = 0, concat('Section ', t3.section), t3.name) as sectionname, t4.id as cmid, 'unknown' as cmname, t4.deletioninprogress as deletioninprogress, t3.section as section, t4.completion as cmcompletion ";
-            $extraJoin = " inner join {course_sections} as t3 on t2.id = t3.course inner join {course_modules} as t4 on t3.id = t4.section ";
-            $whereStmt .= " and (courseid =:courseid) and (deletioninprogress = 0) ";
-            $extraOrder = ", section asc";
+            $whereStmt .= " and (courseid =:courseid)";
             $params['courseid'] = $courseId;
         }
         $params['userid2'] = $this->signedUser->id;
@@ -107,7 +104,7 @@ class PersistCtrl extends MoodlePersistCtrl
         $DB->execute("set @uniqueId = 0");
 
         $query = "select * from
-        (select @uniqueId := @uniqueId + 1 as uniqueId, t1.id as categoryid, t1.name as categoryname, t2.id as courseid, t2.shortname as coursename, t1.parent, t1.depth,
+        (select @uniqueId := @uniqueId + 1 as uniqueId, t1.id as categoryid, t1.name as categoryname, t2.id as courseid, t2.shortname as coursename, t1.parent, t1.depth, t2.sortorder as sortorder,
         (select group_concat(distinct st3.capability) from {role_capabilities} as st3 inner join {role_assignments} as st4 on st3.roleid = st4.roleid where st4.contextid in (select id from {context} where instanceid = t2.id and contextlevel = 50) and st4.userid =:userid2 and (st3.capability=:cap1 or st3.capability=:cap2)) as roles,
         (select group_concat(distinct st3.capability) from {role_capabilities} as st3 inner join {role_assignments} as st4 on st3.roleid = st4.roleid where st4.contextid in (select id from {context} where instanceid = t2.category and contextlevel = 40) and st4.userid =:userid3 and st3.capability=:cap3) as categoryroles
         $extraFields
@@ -116,71 +113,26 @@ class PersistCtrl extends MoodlePersistCtrl
         left join {course} as t2 on t1.id = t2.category and t2.visible = 1
         $extraJoin) as tab
         where $whereStmt
-        order by courseid asc".$extraOrder;
-        // order by courseid because of get_fast_modinfo
+        order by depth, sortorder asc".$extraOrder;
         
         $rst = $DB->get_records_sql($query, $params);
 
-        $lastCourseId = null;
-        $modinfo = null;
         $result = array();
-		foreach($rst as $item){                        
-            unset($item->uniqueid);
-            $item->categoryId = $item->categoryid; unset($item->categoryid);
-            $item->categoryName = $item->categoryname; unset($item->categoryname);
-            $item->courseId = $item->courseid; unset($item->courseid);
-            $item->courseName = $item->coursename; unset($item->coursename);
-            $item->parentCatId = $item->parent; unset($item->parent);
-           
-            if(isset($item->roles)){
-                $item->roles = explode(",", $item->roles);
+		foreach($rst as $item){
+            if (!isset($result[$item->categoryid])){
+                $result[$item->categoryid] = MoodleCategory::create($item);
             }
+            $course = MoodleCourse::create($item);
+            $result[$item->categoryid]->addCourse($course);
 
-            if(isset($item->categoryroles)){
-                $item->categoryroles = explode(",", $item->categoryroles);
+            if($courseId > 0){
+                $modinfo = get_fast_modinfo($item->courseid);
+                $course->addCourseData($modinfo);
             }
-
-            if(isset($item->cmid)){
-                if($lastCourseId != $item->courseId){
-                    $modinfo = get_fast_modinfo($item->courseId);
-                }
-                $cm = $this->getCmFromCmId($item->cmid, $item->courseId, $modinfo);
-                $item->cmname = $cm->name;
-                if ($cm->url){
-                    $item->cmUrl = $cm->url->out();
-                    $item->cmPix = $cm->get_icon_url()->out();
-                }
-
-                $item->sectionId = $item->sectionid; unset($item->sectionid);
-                $item->sectionName = $item->sectionname; unset($item->sectionname);
-                $item->cmId = $item->cmid; unset($item->cmid);
-                $item->cmName = $item->cmname; unset($item->cmname);
-            }
-
-            $result[] = $item;
         }
         
-        // order by depth, categoryName, courseName, sectionName
-        usort($result, 
-            function ($a, $b) {
-                $result = strcmp($a->depth, $b->depth);
-                if($result == 0){
-                    $result = strcmp($a->categoryName, $b->categoryName);
 
-                    if($result == 0){
-                        $result = strcmp($a->courseName, $b->courseName);
-
-                        if($result == 0 && isset($a->cmid)){
-                            $result = strcmp($a->sectionName, $b->sectionName);
-                        }
-                    }
-                }
-
-                return $result;
-            }
-        );
-
-        return $result;
+        return array_values($result);
     }
 
     public function getTemplateList($userId, $limit = 0, $offset = 0){
@@ -302,7 +254,7 @@ class PersistCtrl extends MoodlePersistCtrl
             $this->mysqlConn->beginTransaction();
 
             if (!is_numeric($state)){
-                $query = "insert into {$this->prefix}recit_wp_tpl (creatorid, name, description, communication_url, lastupdate, state) select creatorid, concat(name, ' (copie)'), description, communication_url,  " . time() . ", state from {$this->prefix}recit_wp_tpl where id = $templateId";
+                $query = "insert into {$this->prefix}recit_wp_tpl (creatorid, name, description, communication_url, lastupdate, state) select {$this->signedUser->id}, concat(name, ' (copie)'), description, communication_url,  " . time() . ", state from {$this->prefix}recit_wp_tpl where id = $templateId";
             }else{
                 $query = "insert into {$this->prefix}recit_wp_tpl (creatorid, name, description, communication_url, lastupdate, state) select {$this->signedUser->id}, concat(name, ' (copie)'), description, communication_url, " . time() . ", $state from {$this->prefix}recit_wp_tpl where id = $templateId";
             }
@@ -1279,4 +1231,98 @@ class Pagination {
     public $total_count;
     public $current_offset;
     public $items;
+}
+
+class MoodleCategory {
+    public $id;
+    public $name;
+    public $roles;
+    public $parent;
+    public $depth;
+    public $courseList = array();
+
+
+    public static function create($dbData){
+        $cat = new MoodleCategory();
+        $cat->id = $dbData->categoryid;
+        $cat->name = $dbData->categoryname;
+        $cat->roles = $dbData->categoryroles;
+        $cat->parent = $dbData->parent;
+        $cat->depth = $dbData->depth;
+        return $cat;
+    }
+
+    public function addCourse($course){
+        $this->courseList[$course->id] = $course;
+    }
+
+}
+
+class MoodleCourse {
+    public $id;
+    public $name;
+    public $roles;
+    public $sectionList = array();
+
+
+    public static function create($dbData){
+        $c = new MoodleCourse();
+        $c->id = $dbData->courseid;
+        $c->name = $dbData->coursename;
+        $c->roles = $dbData->roles;
+        return $c;
+    }
+
+    public function addCourseData($modinfo){
+        foreach($modinfo->get_section_info_all() as $sec){
+            if (isset($modinfo->sections[$sec->section])){
+                
+                $section = MoodleSection::create($sec, $this->id);
+                $this->sectionList[$section->id] = $section;
+                foreach ($modinfo->sections[$sec->section] as $modnumber){
+                    $cm = $modinfo->cms[$modnumber];
+                    $mod = MoodleCourseModule::create($cm);
+                    $section->addCm($mod);
+                }
+            }
+        }
+    }
+}
+
+class MoodleSection {
+    public $id;
+    public $name;
+    public $cmList = array();
+
+
+    public static function create($section, $courseId){
+        $c = new MoodleSection();
+        $c->id = $section->section;
+        $c->name = get_section_name($courseId, $section->section);
+        return $c;
+    }
+
+    public function addCm($cm){
+        $this->cmList[$cm->id] = $cm;
+    }
+}
+
+class MoodleCourseModule {
+    public $id;
+    public $name;
+    public $completion;
+    public $pixUrl;
+    public $url;
+    
+    public static function create($cm){
+        $c = new MoodleCourseModule();
+        $c->name = $cm->name;
+        $c->id = $cm->id;
+        $c->completion = $cm->completion;
+        if ($cm->url){
+            $c->url = $cm->url->out();
+            $c->pixUrl = $cm->get_icon_url()->out();
+        }
+        return $c;
+    }
 }

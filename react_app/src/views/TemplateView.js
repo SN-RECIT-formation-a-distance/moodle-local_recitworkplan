@@ -57,8 +57,8 @@ export class ActivityPicker extends Component{
         if(this.state.data === null){ return null; }
 
         let tmpActivityList = this.state.dropdownLists.activityList.filter(item => {
-            if (!this.state.showActivityNoAchievement && parseInt(item.cmcompletion) == 0) return false;
-            return (JsNx.getItem(this.state.data.activities, 'cmId', item.cmId, null) === null && item.sectionId === this.state.dropdownLists.sectionId); 
+            if (!this.state.showActivityNoAchievement && parseInt(item.completion) == 0) return false;
+            return (JsNx.getItem(this.state.data.activities, 'cmId', item.id, null) === null && item.sectionId === this.state.dropdownLists.sectionId); 
         });
 
         let tmpCourseList = this.state.dropdownLists.courseList.filter(item => (item.data.categoryId === this.state.dropdownLists.categoryId));
@@ -102,8 +102,8 @@ export class ActivityPicker extends Component{
                                             let row =
                                                 <tr key={index}>
                                                     <td>
-                                                        <img src={item.cmPix} className='activityicon mr-1'/>
-                                                        <a href={item.cmUrl} target='_blank'>{item.cmName}</a>
+                                                        {item.pixUrl && <img src={item.pixUrl} className='activityicon mr-1'/>}
+                                                        <a href={item.url} target='_blank'>{item.name}</a>
                                                         <Button onClick={() => this.onAddTplAct(item)} variant="link" title="Ajouter" className="mr-2 float-right"><FontAwesomeIcon icon={faArrowRight}/></Button>
                                                     </td>
                                                 </tr>
@@ -175,10 +175,14 @@ export class ActivityPicker extends Component{
         this.createCategoryTree(list, result);
       
         list.courseList = [];
-        for(let item of result.data.catCourseList){
-            if(JsNx.getItem(list.courseList, 'value', item.courseId, null) === null){
-                let isDisabled = !item.roles && !item.categoryroles;
-                list.courseList.push({label: item.courseName, value: item.courseId, data: item, isDisabled: isDisabled});
+        for(let cat of result.data.catCourseList){
+            for (let i in cat.courseList){
+                let item = cat.courseList[i];
+                if(JsNx.getItem(list.courseList, 'value', item.id, null) === null){
+                    let isDisabled = !cat.roles && !item.roles;
+                    item.categoryId = cat.id;
+                    list.courseList.push({label: item.name, value: item.id, data: item, isDisabled: isDisabled});
+                }
             }
         }
 
@@ -192,21 +196,21 @@ export class ActivityPicker extends Component{
         list.categoryList = [];
 
         let setParent = function(el, child){
-            if(parseInt(el.parentCatId, 10) > 0){
-                let parent = JsNx.getItem(result.data.catCourseList, 'categoryId', el.parentCatId);
+            if(parseInt(el.parent, 10) > 0){
+                let parent = JsNx.getItem(result.data.catCourseList, 'id', el.parent);
                 
                 if(parent){
-                    child.label = `${parent.categoryName} / ${child.label}`;
+                    child.label = `${parent.name} / ${child.label}`;
                     setParent(parent, child);
                 }
             }
         }
 
         for(let item of result.data.catCourseList){
-            let index = JsNx.getItemIndex(list.categoryList, 'value', item.categoryId);
+            let index = JsNx.getItemIndex(list.categoryList, 'value', item.id);
 
             if(index === -1){
-                index = list.categoryList.push({ label: item.categoryName, value: item.categoryId}) - 1;
+                index = list.categoryList.push({ label: item.name, value: item.id}) - 1;
 
                 setParent(item, list.categoryList[index]);
             }
@@ -238,8 +242,8 @@ export class ActivityPicker extends Component{
         let newItem = {};
         newItem.id = 0;
         newItem.slot = this.state.data.activities.length + 1;
-        newItem.cmId = item.cmId;
-        newItem.cmName = item.cmName;
+        newItem.cmId = item.id;
+        newItem.cmName = item.name;
         newItem.courseName = item.courseName;
         newItem.templateId = this.state.data.id;
         newItem.nbHoursCompletion = 0;
@@ -290,14 +294,22 @@ export class ActivityPicker extends Component{
             }
         }
 
-        if(item.courseId !== "0"){
+        if(item.courseId !== "0" && event.target.name == 'courseId'){
             $glVars.webApi.getCatCourseSectionActivityList(false, item.categoryId, item.courseId, (result) => {
-                item.activityList = result.data;
+                item.activityList = [];
                 item.sectionList = [];
-                for (let v of result.data){
-                    if(JsNx.getItem(item.sectionList, 'value', v.sectionId, null) === null){
-                        let sectionName = v.sectionName;
-                        item.sectionList.push({label: sectionName, value: v.sectionId, courseId: v.courseId});
+                let course = result.data[0]?.courseList[item.courseId];
+                
+                for (let i in course.sectionList){
+                    let v = course.sectionList[i];
+                    if(JsNx.getItem(item.sectionList, 'value', v.id, null) === null){
+                        item.sectionList.push({label: v.name, value: v.id, courseId: item.courseId});
+                        for (let ii in v.cmList){
+                            let act = v.cmList[ii];
+                            act.sectionId = v.id;
+                            act.courseName = course.name;
+                            item.activityList.push(act);
+                        }
                     }
                 }
                 that.setState({dropdownLists: item});
