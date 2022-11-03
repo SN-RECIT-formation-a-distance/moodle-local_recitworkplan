@@ -65460,6 +65460,7 @@ var InputNumber = /*#__PURE__*/function (_Component) {
     value: function render() {
       var main = /*#__PURE__*/_react.default.createElement(_reactBootstrap.FormControl, {
         ref: this.inputRef,
+        style: this.props.style,
         autoFocus: this.props.autoFocus,
         className: "InputNumber",
         name: this.props.name,
@@ -65585,8 +65586,9 @@ _defineProperty(InputNumber, "defaultProps", {
   value: 0,
   min: null,
   max: null,
-  nbDecimals: 0,
+  nbDecimals: 2,
   placeholder: "",
+  style: "",
   onChange: null,
   onKeyDown: null,
   autoFocus: false,
@@ -70558,7 +70560,7 @@ var ModalAssignmentMassActions = /*#__PURE__*/function (_Component2) {
         sm: "5"
       }, "Rythme (h/semaine)"), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Col, {
         sm: "7"
-      }, /*#__PURE__*/_react.default.createElement(_Components2.CustomFormControl, {
+      }, /*#__PURE__*/_react.default.createElement(_Components.InputNumber, {
         style: {
           display: 'inline'
         },
@@ -70567,7 +70569,6 @@ var ModalAssignmentMassActions = /*#__PURE__*/function (_Component2) {
             rhythme: e.target.value
           });
         },
-        type: "number",
         value: this.state.rhythme,
         name: "rhythme",
         placeholder: "Rythme (h/semaine)"
@@ -70591,7 +70592,7 @@ var ModalAssignmentMassActions = /*#__PURE__*/function (_Component2) {
         sm: "5"
       }, "Heures supplémentaires"), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Col, {
         sm: "7"
-      }, /*#__PURE__*/_react.default.createElement(_Components2.CustomFormControl, {
+      }, /*#__PURE__*/_react.default.createElement(_Components.InputNumber, {
         style: {
           display: 'inline'
         },
@@ -70600,7 +70601,6 @@ var ModalAssignmentMassActions = /*#__PURE__*/function (_Component2) {
             nbAdditionalHours: e.target.value
           });
         },
-        type: "number",
         value: this.state.nbAdditionalHours,
         placeholder: "Heures"
       }))), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Group, {
@@ -70887,13 +70887,12 @@ var ModalAssignmentForm = /*#__PURE__*/function (_Component3) {
         sm: "2"
       }, "h/semaine"), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Col, {
         sm: "10"
-      }, /*#__PURE__*/_react.default.createElement(_Components2.CustomFormControl, {
+      }, /*#__PURE__*/_react.default.createElement(_Components.InputNumber, {
         style: {
           width: '80px',
           display: 'inline'
         },
         className: "mr-3",
-        type: "number",
         value: item.nbHoursPerWeek,
         name: "nbHoursPerWeek",
         onChange: this.onDataChange
@@ -71014,7 +71013,7 @@ var ModalAssignmentAdditionalHoursForm = /*#__PURE__*/function (_Component4) {
         sm: "5"
       }, "Heures supplémentaires (peut être négatif)"), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Col, {
         sm: "7"
-      }, /*#__PURE__*/_react.default.createElement(_Components2.CustomFormControl, {
+      }, /*#__PURE__*/_react.default.createElement(_Components.InputNumber, {
         style: {
           width: '80px',
           display: 'inline'

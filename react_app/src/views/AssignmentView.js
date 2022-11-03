@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { ButtonGroup,  Button, Form, Col, Row, Table, Badge} from 'react-bootstrap';
 import { faTrashAlt, faArrowRight} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {ComboBoxPlus, DataGrid, FeedbackCtrl, Modal} from '../libs/components/Components';
+import {ComboBoxPlus, DataGrid, FeedbackCtrl, InputNumber, Modal} from '../libs/components/Components';
 import {$glVars} from '../common/common';
 import { JsNx, UtilsDateTime } from '../libs/utils/Utils';
 import {CustomFormControl} from './Components'
@@ -308,7 +308,7 @@ export class ModalAssignmentMassActions extends Component{
                             <Form.Group as={Row}>
                                 <Form.Label column sm="5">{"Rythme (h/semaine)"}</Form.Label>
                                 <Col sm="7">
-                                    <CustomFormControl style={{display:'inline'}} onChange={(e) => this.setState({rhythme:e.target.value})}  type="number" value={this.state.rhythme} name='rhythme' placeholder="Rythme (h/semaine)"/>
+                                    <InputNumber style={{display:'inline'}} onChange={(e) => this.setState({rhythme:e.target.value})} value={this.state.rhythme} name='rhythme' placeholder="Rythme (h/semaine)"/>
                                 </Col>
                             </Form.Group>
                             <Form.Group as={Row}>
@@ -322,7 +322,7 @@ export class ModalAssignmentMassActions extends Component{
                             <Form.Group as={Row}>
                                 <Form.Label column sm="5">{"Heures supplémentaires"}</Form.Label>
                                 <Col sm="7">
-                                    <CustomFormControl style={{display:'inline'}} onChange={(e) => this.setState({nbAdditionalHours:e.target.value})}  type="number" value={this.state.nbAdditionalHours} placeholder="Heures"/>
+                                    <InputNumber style={{display:'inline'}} onChange={(e) => this.setState({nbAdditionalHours:e.target.value})} value={this.state.nbAdditionalHours} placeholder="Heures"/>
                                 </Col>
                             </Form.Group>
                             <Form.Group as={Row}>
@@ -468,7 +468,7 @@ export class ModalAssignmentForm extends Component{
                 <Form.Group as={Row}>
                     <Form.Label column sm="2">{"h/semaine"}</Form.Label>
                     <Col sm="10">
-                        <CustomFormControl style={{width: '80px', display: 'inline'}} className="mr-3" type="number" value={item.nbHoursPerWeek} name="nbHoursPerWeek" onChange={this.onDataChange} />
+                        <InputNumber style={{width: '80px', display: 'inline'}} className="mr-3" value={item.nbHoursPerWeek} name="nbHoursPerWeek" onChange={this.onDataChange} />
                     </Col>
                 </Form.Group>
             </Form>;
@@ -542,7 +542,7 @@ export class ModalAssignmentAdditionalHoursForm extends Component{
                 <Form.Group as={Row}>
                     <Form.Label column sm="5">{"Heures supplémentaires (peut être négatif)"}</Form.Label>
                     <Col sm="7">
-                        <CustomFormControl style={{width: '80px', display: 'inline'}} className="mr-3" type="number" value={item.nbAdditionalHours} name="nbAdditionalHours" onChange={this.onDataChange} />
+                        <InputNumber style={{width: '80px', display: 'inline'}} className="mr-3" type="number" value={item.nbAdditionalHours} name="nbAdditionalHours" onChange={this.onDataChange} />
                     </Col>
                 </Form.Group>
                 <Form.Group as={Row}>

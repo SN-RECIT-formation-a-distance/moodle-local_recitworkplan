@@ -8,8 +8,9 @@ export class InputNumber extends Component {
         value: 0,
         min: null,
         max: null,
-        nbDecimals: 0,
+        nbDecimals: 2,
         placeholder: "",
+        style: "",
         onChange: null,
         onKeyDown: null,
         autoFocus: false,
@@ -48,7 +49,7 @@ export class InputNumber extends Component {
     }
     
     render() {       
-        let main = <FormControl ref={this.inputRef} autoFocus={this.props.autoFocus} className={"InputNumber"} name={this.props.name} type="text" 
+        let main = <FormControl ref={this.inputRef} style={this.props.style} autoFocus={this.props.autoFocus} className={"InputNumber"} name={this.props.name} type="text" 
                     value={this.state.value} placeholder={this.props.placeholder} onChange={this.onChange} onBlur={this.onFocusOut} onKeyDown={this.onKeyDown}
                     disabled={this.props.disabled}/>
         return (main);
