@@ -67948,7 +67948,8 @@ var i18n = _common.$glVars.i18n;
 i18n.setLang("fr");
 i18n.addTag("appName", "RÉCIT Work Plan", "Plan de travail RÉCIT");
 i18n.addTag("search", "Search", "Rechercher");
-i18n.addTag("msgConfirmArchive", "Do you confirm the archive?", "Confirmez-vous l'archivage?");
+i18n.addTag("msgConfirmArchive", "Are you sure you want to archive this?", "Confirmez-vous l'archivage?");
+i18n.addTag("msgConfirmUnArchive", "Are you sure you want to unarchive this?", "Confirmez-vous le désarchivage?");
 i18n.addTag("msgConfirmDeletion", "Do you confirm the deletion?", "Confirmez-vous la suppression? Cette opération est irréversible.");
 i18n.addTag("msgConfirm", "Are you sure you want to proceed?", "Êtes-vous sur de vouloir continuer?");
 i18n.addTag("msgConfirmClone", "Are you sure you want to clone this?", "Êtes-vous sur de vouloir dupliquer ce gabarit?");
@@ -72087,7 +72088,7 @@ var WorkPlanListView = /*#__PURE__*/function (_Component2) {
     }
   }, {
     key: "onArchive",
-    value: function onArchive(template) {
+    value: function onArchive(template, archive) {
       var that = this;
 
       var callback = function callback(result) {
@@ -72102,7 +72103,7 @@ var WorkPlanListView = /*#__PURE__*/function (_Component2) {
         _common.$glVars.feedback.showInfo(_common.$glVars.i18n.tags.appName, _common.$glVars.i18n.tags.msgSuccess, 3);
       };
 
-      if (window.confirm(_common.$glVars.i18n.tags.msgConfirmArchive)) {
+      if (window.confirm(archive ? _common.$glVars.i18n.tags.msgConfirmArchive : _common.$glVars.i18n.tags.msgConfirmUnArchive)) {
         var assignments = [];
 
         var _iterator = _createForOfIteratorHelper(template.assignments),
@@ -72111,7 +72112,7 @@ var WorkPlanListView = /*#__PURE__*/function (_Component2) {
         try {
           for (_iterator.s(); !(_step = _iterator.n()).done;) {
             var a = _step.value;
-            a.completionState = 1;
+            a.completionState = archive ? 1 : 0;
             assignments.push(a);
           }
         } catch (err) {
@@ -72195,7 +72196,7 @@ var WorkPlanCard = /*#__PURE__*/function (_Component3) {
           icon: _freeSolidSvgIcons.faEllipsisV
         }),
         id: "optionsWorkPlan".concat(workPlan.template.id)
-      }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Dropdown.Item, {
+      }, _common.$glVars.context.activeWorkPlanStateTab != 'archive' && /*#__PURE__*/_react.default.createElement(_reactBootstrap.Dropdown.Item, {
         onClick: function onClick() {
           return _this3.props.onCopy(workPlan.template.id);
         }
@@ -72221,11 +72222,17 @@ var WorkPlanCard = /*#__PURE__*/function (_Component3) {
         icon: _freeSolidSvgIcons.faTrashAlt
       }), " Supprimer"), workPlan.assignments.length > 0 && !_common.WorkPlanUtils.isArchived(_Utils.JsNx.at(workPlan.assignments, 0, null)) && /*#__PURE__*/_react.default.createElement(_reactBootstrap.Dropdown.Item, {
         onClick: function onClick() {
-          return _this3.props.onArchive(workPlan);
+          return _this3.props.onArchive(workPlan, true);
         }
       }, /*#__PURE__*/_react.default.createElement(_reactFontawesome.FontAwesomeIcon, {
         icon: _freeSolidSvgIcons.faArchive
-      }), " Archiver")))), workPlan.stats && workPlan.stats.nbStudents > 0 && /*#__PURE__*/_react.default.createElement("div", {
+      }), " Archiver"), _common.$glVars.context.activeWorkPlanStateTab == 'archive' && /*#__PURE__*/_react.default.createElement(_reactBootstrap.Dropdown.Item, {
+        onClick: function onClick() {
+          return _this3.props.onArchive(workPlan, false);
+        }
+      }, /*#__PURE__*/_react.default.createElement(_reactFontawesome.FontAwesomeIcon, {
+        icon: _freeSolidSvgIcons.faArchive
+      }), " Désarchiver")))), workPlan.stats && workPlan.stats.nbStudents > 0 && /*#__PURE__*/_react.default.createElement("div", {
         className: "p-2 text-muted row"
       }, /*#__PURE__*/_react.default.createElement("div", {
         className: "col-md-5"

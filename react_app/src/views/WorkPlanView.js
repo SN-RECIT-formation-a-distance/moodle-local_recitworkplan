@@ -146,7 +146,7 @@ export class WorkPlanListView extends Component{
         }
     }
 
-    onArchive(template){
+    onArchive(template, archive){
         let that = this;
         let callback = function(result){
             if(!result.success){
@@ -158,10 +158,10 @@ export class WorkPlanListView extends Component{
            $glVars.feedback.showInfo($glVars.i18n.tags.appName, $glVars.i18n.tags.msgSuccess, 3);
         }
 
-        if(window.confirm($glVars.i18n.tags.msgConfirmArchive)){
+        if(window.confirm(archive ? $glVars.i18n.tags.msgConfirmArchive : $glVars.i18n.tags.msgConfirmUnArchive)){
             let assignments = [];
             for (let a of template.assignments){
-                a.completionState = 1;
+                a.completionState = (archive ? 1 : 0);
                 assignments.push(a);
             }
             $glVars.webApi.saveAssignment(assignments, callback);
@@ -206,11 +206,12 @@ class WorkPlanCard extends Component{
                     <a href='#' onClick={() => this.props.onEdit(workPlan.template.id, 'activities')} className='h4'>{workPlan.template.name}</a>
                     <ButtonGroup>
                         <DropdownButton bsPrefix='rounded btn btn-sm btn-outline-primary' variant='' title={<FontAwesomeIcon icon={faEllipsisV} />} id={`optionsWorkPlan${workPlan.template.id}`}>
-                            <Dropdown.Item onClick={() => this.props.onCopy(workPlan.template.id)}><FontAwesomeIcon icon={faCopy}  />{" Copier"}</Dropdown.Item>
+                            {$glVars.context.activeWorkPlanStateTab != 'archive' && <Dropdown.Item onClick={() => this.props.onCopy(workPlan.template.id)}><FontAwesomeIcon icon={faCopy}  />{" Copier"}</Dropdown.Item>}
                             {workPlan.template.state == 1 && <Dropdown.Item onClick={() => this.props.onCopy(workPlan.template.id, 0)}><FontAwesomeIcon icon={faBookmark}  />{" Utiliser ce gabarit"}</Dropdown.Item>}
                             {workPlan.template.state != 1 && <Dropdown.Item onClick={() => this.props.onCopy(workPlan.template.id, 1)}><FontAwesomeIcon icon={faBookmark}  />{" Enregistrer en tant que gabarit"}</Dropdown.Item>}
                             <Dropdown.Item onClick={() => this.props.onDelete(workPlan.template.id)}><FontAwesomeIcon icon={faTrashAlt}  />{" Supprimer"}</Dropdown.Item>
-                            {workPlan.assignments.length > 0 && !WorkPlanUtils.isArchived(JsNx.at(workPlan.assignments, 0, null)) &&  <Dropdown.Item onClick={() => this.props.onArchive(workPlan)}><FontAwesomeIcon icon={faArchive}  />{" Archiver"}</Dropdown.Item>}
+                            {workPlan.assignments.length > 0 && !WorkPlanUtils.isArchived(JsNx.at(workPlan.assignments, 0, null)) &&  <Dropdown.Item onClick={() => this.props.onArchive(workPlan, true)}><FontAwesomeIcon icon={faArchive}  />{" Archiver"}</Dropdown.Item>}
+                            {$glVars.context.activeWorkPlanStateTab == 'archive' && <Dropdown.Item onClick={() => this.props.onArchive(workPlan, false)}><FontAwesomeIcon icon={faArchive}  />{" Désarchiver"}</Dropdown.Item>}
                         </DropdownButton>
                     </ButtonGroup>
                 </div>
