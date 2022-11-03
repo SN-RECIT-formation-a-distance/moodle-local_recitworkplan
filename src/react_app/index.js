@@ -72361,9 +72361,8 @@ var WorkPlanView = /*#__PURE__*/function (_Component4) {
         onSave: this.onSaveTemplate
       }), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Tabs, {
         id: "workPlanTabs",
-        className: "mt-5 bg-light workplantabs",
+        className: "mt-5 workplantabs",
         variant: "tabs",
-        fill: true,
         activeKey: this.state.tab,
         onSelect: this.onTabChange
       }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Tab, {
@@ -72508,7 +72507,7 @@ var WorkPlanAssignmentsView = /*#__PURE__*/function (_Component5) {
       if (this.countFlag(2) > 0) {
         filters.push({
           value: 'late',
-          text: 'En retard (' + this.countFlag(2) + ')'
+          text: 'Risque de retard (' + this.countFlag(2) + ')'
         });
       }
 
@@ -72938,10 +72937,6 @@ var WorkPlanActivitiesView = /*#__PURE__*/function (_Component6) {
       var stats = this.props.data.stats;
       var template = this.props.data.template;
 
-      if (this.props.data.stats === null) {
-        return null;
-      }
-
       var regexp = _Utils.UtilsString.getRegExp(this.state.queryStr);
 
       if (this.state.queryStr.length > 0) {
@@ -72972,6 +72967,7 @@ var WorkPlanActivitiesView = /*#__PURE__*/function (_Component6) {
         name: "queryStr",
         placeholder: "Cat\xE9gories, cours..."
       }))), /*#__PURE__*/_react.default.createElement("div", null, activityList.map(function (item, index) {
+        if (!stats) return null;
         var progressValue = 0;
         var progressText = "0/".concat(stats.nbStudents);
 

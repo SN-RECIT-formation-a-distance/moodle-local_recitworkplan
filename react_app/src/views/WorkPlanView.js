@@ -295,7 +295,7 @@ class WorkPlanView extends Component{
 
                 <WorkPlanTemplateView data={this.state.data} onSave={this.onSaveTemplate} />
                     
-                <Tabs id="workPlanTabs" className="mt-5 bg-light workplantabs" variant="tabs" fill activeKey={this.state.tab} onSelect={this.onTabChange}>
+                <Tabs id="workPlanTabs" className="mt-5 workplantabs" variant="tabs" activeKey={this.state.tab} onSelect={this.onTabChange}>
                     <Tab eventKey="activities" title="Activités">
                        <WorkPlanActivitiesView data={this.state.data} onClose={this.props.onClose} onRefresh={() => this.getData(this.state.data.template.id)}/>
                     </Tab>
@@ -385,7 +385,7 @@ class WorkPlanAssignmentsView extends Component{
 
         let filters = [];
         if (this.countFlag(2) > 0){
-            filters.push({value:'late', text: 'En retard ('+this.countFlag(2)+')'});
+            filters.push({value:'late', text: 'Risque de retard ('+this.countFlag(2)+')'});
         }
         if (this.countFlag(0) > 0){
             filters.push({value:'ongoing', text: 'En cours ('+this.countFlag(0)+')'});
@@ -591,7 +591,6 @@ class WorkPlanActivitiesView extends Component{
         let activityList = this.props.data.template.activities;
         let stats = this.props.data.stats;
         let template = this.props.data.template;
-        if(this.props.data.stats === null){return null;}
 
         let regexp = UtilsString.getRegExp(this.state.queryStr);
 
@@ -603,13 +602,14 @@ class WorkPlanActivitiesView extends Component{
         
         let main =  
             <>      
-                <CustomHeader title="Activités" btnAfter={<CustomButton  disabled={WorkPlanUtils.isArchived(JsNx.at(this.props.data.assignments, 0, null))} title='Ajouter des activités.'  onClick={() => this.onShowActivities(true)}><FontAwesomeIcon icon={faPlus}/></CustomButton>}>
+                <CustomHeader title="Activités" btnAfter={<CustomButton disabled={WorkPlanUtils.isArchived(JsNx.at(this.props.data.assignments, 0, null))} title='Ajouter des activités.'  onClick={() => this.onShowActivities(true)}><FontAwesomeIcon icon={faPlus}/></CustomButton>}>
                     <div>
                         Filtrer par <CustomFormControl style={{width: '300px', display: 'inline-block'}} onChange={this.onSearch} type="search" value={this.state.queryStr} name='queryStr' placeholder="Catégories, cours..."/>
                     </div>
                 </CustomHeader>          
                 <div>
                     {activityList.map((item, index) => {
+                            if (!stats) return null;
                             let progressValue = 0;
                             let progressText  = `0/${stats.nbStudents}`;
                             if(stats.activitycompleted[`${item.cmId}`]){
