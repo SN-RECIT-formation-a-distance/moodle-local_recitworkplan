@@ -146,8 +146,10 @@ class PersistCtrl extends MoodlePersistCtrl
                 }
                 $cm = $this->getCmFromCmId($item->cmid, $item->courseId, $modinfo);
                 $item->cmname = $cm->name;
-                $item->cmUrl = $cm->url->out();
-                $item->cmPix = $cm->get_icon_url()->out();
+                if ($cm->url){
+                    $item->cmUrl = $cm->url->out();
+                    $item->cmPix = $cm->get_icon_url()->out();
+                }
 
                 $item->sectionId = $item->sectionid; unset($item->sectionid);
                 $item->sectionName = $item->sectionname; unset($item->sectionname);
@@ -191,8 +193,8 @@ class PersistCtrl extends MoodlePersistCtrl
         left join {$this->prefix}course_modules as t5 on t3.cmid = t5.id
         left join {$this->prefix}course as t7 on t7.id = t5.course
         left join {$this->prefix}course_categories as t8 on t7.category = t8.id
-        inner join (".$this->getAdminRolesStmt($userId, array(RECITWORKPLAN_ASSIGN_CAPABILITY, RECITWORKPLAN_MANAGE_CAPABILITY)).") as tblRoles on (t7.category = tblRoles.instanceid and tblRoles.contextlevel = 40) or (t5.course = tblRoles.instanceid and tblRoles.contextlevel = 50)
-        where t2.state = 1";
+        left join (".$this->getAdminRolesStmt($userId, array(RECITWORKPLAN_ASSIGN_CAPABILITY, RECITWORKPLAN_MANAGE_CAPABILITY)).") as tblRoles on (t7.category = tblRoles.instanceid and tblRoles.contextlevel = 40) or (t5.course = tblRoles.instanceid and tblRoles.contextlevel = 50)
+        where t2.state = 1";//--left join for templates with no activities, otherwise it'd return null
 
         if ($limit > 0){
             $offsetsql = $offset * $limit;
