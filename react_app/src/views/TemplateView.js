@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
-import { Collapse, Row, Button, Form, FormGroup, InputGroup, FormControl, Col, Table, Badge, Card, ButtonGroup} from 'react-bootstrap';
-import { faPencilAlt,  faTrashAlt, faPlusSquare,  faSearch, faCopy, faSync, faMinus, faPlus, faArrowsAlt, faArrowRight, faToolbox, faWrench} from '@fortawesome/free-solid-svg-icons';
+import { Collapse, Row, Button, Form, FormGroup, InputGroup, FormControl, Col, Table, Badge, Card, ButtonGroup, Dropdown, DropdownButton} from 'react-bootstrap';
+import { faPencilAlt,  faTrashAlt, faPlusSquare,  faSearch, faCopy, faSync, faMinus, faPlus, faArrowsAlt, faArrowRight, faToolbox, faWrench, faEllipsisV} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {ComboBoxPlus, FeedbackCtrl, DataGrid, Modal, Pagination, ToggleButtons} from '../libs/components/Components';
 import {$glVars, WorkPlanUtils} from '../common/common';
@@ -417,36 +417,44 @@ export class WorkPlanTemplateView extends Component{
             <>
                 <Card>
                     <Card.Body>
-                        <CustomHeader title="Description" btnAfter={<>
-                        <CustomButton disabled={WorkPlanUtils.isArchived(JsNx.at(data.assignments, 0, null))} title="Éditer" onClick={() => this.setState({editModal:true})}><FontAwesomeIcon icon={faPencilAlt}/></CustomButton>
-                        <CustomButton className='ml-2' disabled={WorkPlanUtils.isArchived(JsNx.at(data.assignments, 0, null))} title="Options" onClick={() => this.setState({optionModal:true})}><FontAwesomeIcon icon={faWrench}/></CustomButton>
-                        </>}/>
-                        <Row className='m-2'>
-                            <Col className='text-muted' sm={2}>Nom</Col>
-                            <Col sm={10} className='bg-light border border-secondary p-2 rounded'>{data.template.name}</Col>
-                        </Row>
-                        <Row className='m-2'>
-                            <Col className='text-muted' sm={2}>Description</Col>
-                            <Col sm={10} className='bg-light border border-secondary p-2 rounded'>{data.template.description}</Col>
-                        </Row>
-                        <Row className='m-2'>
-                            <Col className='text-muted' sm={2}>Collaborateur(s)</Col>
-                            <Col sm={10} className='bg-light border border-secondary p-2 rounded'>{collaboratorList}</Col>
-                        </Row>
-                        <Row className='m-2'>
-                            <Col className='text-muted' sm={2}>URL de communication</Col>
-                            <Col sm={10} className='bg-light border border-secondary p-2 rounded'><a target="_blank" href={data.template.communicationUrl}>{data.template.communicationUrl}</a></Col>
-                        </Row>             
-                        <Row className='m-2'>
-                            <Col className='text-muted' sm={2}>Temps à consacrer</Col>
-                            <Col sm={10} className='bg-light border border-secondary p-2 rounded'>{`${nbHoursCompletionTotal} heures`}</Col>
-                        </Row> 
-                        <Row className='m-2'>
-                            <Col className='text-muted' sm={2}>Catégories de cours</Col>
-                            <Col sm={10} className=' bg-light border border-secondary p-2 rounded'>
-                                {catList}
-                            </Col>
-                        </Row> 
+                        <ButtonGroup style={{float:'right'}}>
+                            <DropdownButton bsPrefix='rounded btn btn-sm btn-outline-primary' variant='' title={<FontAwesomeIcon icon={faEllipsisV} />}>
+                                <Dropdown.Item disabled={WorkPlanUtils.isArchived(JsNx.at(data.assignments, 0, null))} onClick={() => this.setState({editModal:true})}><FontAwesomeIcon icon={faPencilAlt} />{" Modifier"}</Dropdown.Item>
+                                <Dropdown.Item disabled={WorkPlanUtils.isArchived(JsNx.at(data.assignments, 0, null))} onClick={() => this.setState({optionModal:true})}><FontAwesomeIcon icon={faWrench} />{" Options"}</Dropdown.Item>
+                            </DropdownButton>
+                        </ButtonGroup>
+                        <div className='mt-5'>
+                            <Row className='m-4 border-bottom'>
+                                <Col className='text-muted' sm={2}>Nom</Col>
+                                <Col sm={10} className=''>{data.template.name}</Col>
+                            </Row>
+                            <Row className='m-4 border-bottom'>
+                                <Col className='text-muted' sm={2}>Description</Col>
+                                <Col sm={10} className=''>{data.template.description}</Col>
+                            </Row>
+                            <Row className='m-4 border-bottom'>
+                                <Col className='text-muted' sm={2}>Créateur</Col>
+                                <Col sm={10} className=''>{data.template.creator.firstName} {data.template.creator.lastName}</Col>
+                            </Row>
+                            <Row className='m-4 border-bottom'>
+                                <Col className='text-muted' sm={2}>Collaborateur(s)</Col>
+                                <Col sm={10} className=''>{collaboratorList}</Col>
+                            </Row>
+                            <Row className='m-4 border-bottom'>
+                                <Col className='text-muted' sm={2}>URL de communication</Col>
+                                <Col sm={10} className=''><a target="_blank" href={data.template.communicationUrl}>{data.template.communicationUrl}</a></Col>
+                            </Row>             
+                            <Row className='m-4 border-bottom'>
+                                <Col className='text-muted' sm={2}>Temps à consacrer</Col>
+                                <Col sm={10} className=''>{`${nbHoursCompletionTotal} heures`}</Col>
+                            </Row> 
+                            <Row className='m-4 border-bottom'>
+                                <Col className='text-muted' sm={2}>Catégories de cours</Col>
+                                <Col sm={10} className=''>
+                                    {catList}
+                                </Col>
+                            </Row>
+                        </div>
                     </Card.Body>
                 </Card>
                 {this.state.editModal && <ModalTemplateForm data={data} onClose={() => this.setState({editModal:false})} onSave={this.onSave}/>}

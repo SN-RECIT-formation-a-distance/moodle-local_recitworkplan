@@ -68165,7 +68165,7 @@ var CustomHeader = /*#__PURE__*/function (_Component3) {
         style: {
           alignItems: "center"
         }
-      }, this.props.btnBefore, /*#__PURE__*/_react.default.createElement("span", {
+      }, this.props.btnBefore, this.props.title.length > 0 && /*#__PURE__*/_react.default.createElement("span", {
         className: "h2 mr-3 ml-3"
       }, this.props.title), this.props.btnAfter), /*#__PURE__*/_react.default.createElement("div", null, this.props.children));
 
@@ -69338,82 +69338,96 @@ var WorkPlanTemplateView = /*#__PURE__*/function (_Component2) {
 
       collaboratorList = collaboratorList.substring(0, collaboratorList.length - 2);
 
-      var main = /*#__PURE__*/_react.default.createElement(_react.default.Fragment, null, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Card, null, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Card.Body, null, /*#__PURE__*/_react.default.createElement(_Components2.CustomHeader, {
-        title: "Description",
-        btnAfter: /*#__PURE__*/_react.default.createElement(_react.default.Fragment, null, /*#__PURE__*/_react.default.createElement(_Components2.CustomButton, {
-          disabled: _common.WorkPlanUtils.isArchived(_Utils.JsNx.at(data.assignments, 0, null)),
-          title: "\xC9diter",
-          onClick: function onClick() {
-            return _this6.setState({
-              editModal: true
-            });
-          }
-        }, /*#__PURE__*/_react.default.createElement(_reactFontawesome.FontAwesomeIcon, {
-          icon: _freeSolidSvgIcons.faPencilAlt
-        })), /*#__PURE__*/_react.default.createElement(_Components2.CustomButton, {
-          className: "ml-2",
-          disabled: _common.WorkPlanUtils.isArchived(_Utils.JsNx.at(data.assignments, 0, null)),
-          title: "Options",
-          onClick: function onClick() {
-            return _this6.setState({
-              optionModal: true
-            });
-          }
-        }, /*#__PURE__*/_react.default.createElement(_reactFontawesome.FontAwesomeIcon, {
-          icon: _freeSolidSvgIcons.faWrench
-        })))
-      }), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Row, {
-        className: "m-2"
+      var main = /*#__PURE__*/_react.default.createElement(_react.default.Fragment, null, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Card, null, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Card.Body, null, /*#__PURE__*/_react.default.createElement(_reactBootstrap.ButtonGroup, {
+        style: {
+          float: 'right'
+        }
+      }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.DropdownButton, {
+        bsPrefix: "rounded btn btn-sm btn-outline-primary",
+        variant: "",
+        title: /*#__PURE__*/_react.default.createElement(_reactFontawesome.FontAwesomeIcon, {
+          icon: _freeSolidSvgIcons.faEllipsisV
+        })
+      }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Dropdown.Item, {
+        disabled: _common.WorkPlanUtils.isArchived(_Utils.JsNx.at(data.assignments, 0, null)),
+        onClick: function onClick() {
+          return _this6.setState({
+            editModal: true
+          });
+        }
+      }, /*#__PURE__*/_react.default.createElement(_reactFontawesome.FontAwesomeIcon, {
+        icon: _freeSolidSvgIcons.faPencilAlt
+      }), " Modifier"), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Dropdown.Item, {
+        disabled: _common.WorkPlanUtils.isArchived(_Utils.JsNx.at(data.assignments, 0, null)),
+        onClick: function onClick() {
+          return _this6.setState({
+            optionModal: true
+          });
+        }
+      }, /*#__PURE__*/_react.default.createElement(_reactFontawesome.FontAwesomeIcon, {
+        icon: _freeSolidSvgIcons.faWrench
+      }), " Options"))), /*#__PURE__*/_react.default.createElement("div", {
+        className: "mt-5"
+      }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Row, {
+        className: "m-4 border-bottom"
       }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Col, {
         className: "text-muted",
         sm: 2
       }, "Nom"), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Col, {
         sm: 10,
-        className: "bg-light border border-secondary p-2 rounded"
+        className: ""
       }, data.template.name)), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Row, {
-        className: "m-2"
+        className: "m-4 border-bottom"
       }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Col, {
         className: "text-muted",
         sm: 2
       }, "Description"), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Col, {
         sm: 10,
-        className: "bg-light border border-secondary p-2 rounded"
+        className: ""
       }, data.template.description)), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Row, {
-        className: "m-2"
+        className: "m-4 border-bottom"
+      }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Col, {
+        className: "text-muted",
+        sm: 2
+      }, "Cr\xE9ateur"), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Col, {
+        sm: 10,
+        className: ""
+      }, data.template.creator.firstName, " ", data.template.creator.lastName)), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Row, {
+        className: "m-4 border-bottom"
       }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Col, {
         className: "text-muted",
         sm: 2
       }, "Collaborateur(s)"), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Col, {
         sm: 10,
-        className: "bg-light border border-secondary p-2 rounded"
+        className: ""
       }, collaboratorList)), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Row, {
-        className: "m-2"
+        className: "m-4 border-bottom"
       }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Col, {
         className: "text-muted",
         sm: 2
       }, "URL de communication"), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Col, {
         sm: 10,
-        className: "bg-light border border-secondary p-2 rounded"
+        className: ""
       }, /*#__PURE__*/_react.default.createElement("a", {
         target: "_blank",
         href: data.template.communicationUrl
       }, data.template.communicationUrl))), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Row, {
-        className: "m-2"
+        className: "m-4 border-bottom"
       }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Col, {
         className: "text-muted",
         sm: 2
       }, "Temps \xE0 consacrer"), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Col, {
         sm: 10,
-        className: "bg-light border border-secondary p-2 rounded"
+        className: ""
       }, "".concat(nbHoursCompletionTotal, " heures"))), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Row, {
-        className: "m-2"
+        className: "m-4 border-bottom"
       }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Col, {
         className: "text-muted",
         sm: 2
       }, "Cat\xE9gories de cours"), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Col, {
         sm: 10,
-        className: " bg-light border border-secondary p-2 rounded"
-      }, catList)))), this.state.editModal && /*#__PURE__*/_react.default.createElement(ModalTemplateForm, {
+        className: ""
+      }, catList))))), this.state.editModal && /*#__PURE__*/_react.default.createElement(ModalTemplateForm, {
         data: data,
         onClose: function onClose() {
           return _this6.setState({
@@ -72237,7 +72251,7 @@ var WorkPlanCard = /*#__PURE__*/function (_Component3) {
         }
       }, /*#__PURE__*/_react.default.createElement(_reactFontawesome.FontAwesomeIcon, {
         icon: _freeSolidSvgIcons.faArchive
-      }), " Désarchiver")))), workPlan.stats && workPlan.stats.nbStudents > 0 && /*#__PURE__*/_react.default.createElement("div", {
+      }), " Désarchiver")))), /*#__PURE__*/_react.default.createElement("div", {
         className: "p-2 text-muted row"
       }, /*#__PURE__*/_react.default.createElement("div", {
         className: "col-md-5"
@@ -72248,7 +72262,7 @@ var WorkPlanCard = /*#__PURE__*/function (_Component3) {
       }), /*#__PURE__*/_react.default.createElement("span", null, "Cr\xE9ateur ", workPlan.template.collaboratorList.length > 0 && /*#__PURE__*/_react.default.createElement(_reactFontawesome.FontAwesomeIcon, {
         icon: _freeSolidSvgIcons.faUserFriends,
         title: "Collaborateurs: ".concat(workPlan.template.collaboratorList[0].firstName, " ").concat(workPlan.template.collaboratorList[0].lastName, " et plus")
-      }), " "))), /*#__PURE__*/_react.default.createElement("div", {
+      }), " "))), workPlan.stats && workPlan.stats.nbStudents > 0 && /*#__PURE__*/_react.default.createElement("div", {
         className: "col-md-7 d-flex align-items-center"
       }, /*#__PURE__*/_react.default.createElement(_Components2.CustomBadgeCompletion, {
         title: "Le nombre d'\xE9l\xE8ves qui ont compl\xE9t\xE9 le plan de travail / le nombre total d'\xE9l\xE8ves assign\xE9 au plan de travail",
@@ -72537,19 +72551,17 @@ var WorkPlanAssignmentsView = /*#__PURE__*/function (_Component5) {
       }
 
       var main = /*#__PURE__*/_react.default.createElement(_react.default.Fragment, null, /*#__PURE__*/_react.default.createElement(_Components2.CustomHeader, {
-        title: "Affectations",
-        btnAfter: /*#__PURE__*/_react.default.createElement(_react.default.Fragment, null, /*#__PURE__*/_react.default.createElement(_Components2.CustomButton, {
+        title: "",
+        btnAfter: /*#__PURE__*/_react.default.createElement(_reactBootstrap.ButtonGroup, null, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Button, {
           disabled: _common.WorkPlanUtils.isArchived(_Utils.JsNx.at(data.assignments, 0, null)),
-          title: "Attribuer un plan de travail.",
           onClick: function onClick() {
             return _this7.onShowAssignments(true);
           }
         }, /*#__PURE__*/_react.default.createElement(_reactFontawesome.FontAwesomeIcon, {
           icon: _freeSolidSvgIcons.faPlus
-        })), /*#__PURE__*/_react.default.createElement(_Components2.CustomButton, {
+        }), " Attribuer un plan de travail"), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Button, {
           disabled: _common.WorkPlanUtils.isArchived(_Utils.JsNx.at(data.assignments, 0, null)),
           className: "ml-2",
-          title: "Actions en lot",
           onClick: function onClick() {
             return _this7.setState({
               showAssignmentMassActions: true
@@ -72557,7 +72569,7 @@ var WorkPlanAssignmentsView = /*#__PURE__*/function (_Component5) {
           }
         }, /*#__PURE__*/_react.default.createElement(_reactFontawesome.FontAwesomeIcon, {
           icon: _freeSolidSvgIcons.faCogs
-        })))
+        }), " Actions en lot"))
       }, /*#__PURE__*/_react.default.createElement("div", {
         className: "d-flex align-items-center d-block-mobile w-100-mobile"
       }, "Filtrer par ", /*#__PURE__*/_react.default.createElement(_Components2.CustomFormControl, {
@@ -72663,7 +72675,7 @@ var WorkPlanAssignmentsView = /*#__PURE__*/function (_Component5) {
               showAssignmentAdditionalHours: item
             });
           }
-        }, "Heures suppl\xE9mentaires: ".concat(item.nbAdditionalHours))), /*#__PURE__*/_react.default.createElement("div", {
+        }, "Heures suppl\xE9mentaires: ".concat(item.nbAdditionalHours, "h"))), /*#__PURE__*/_react.default.createElement("div", {
           className: "text-muted"
         }, "\xC9ch\xE9ance: ".concat(_Utils.UtilsDateTime.getDate(item.endDate)))), /*#__PURE__*/_react.default.createElement("div", {
           className: "w-100-mobile"
@@ -72957,16 +72969,15 @@ var WorkPlanActivitiesView = /*#__PURE__*/function (_Component6) {
       }
 
       var main = /*#__PURE__*/_react.default.createElement(_react.default.Fragment, null, /*#__PURE__*/_react.default.createElement(_Components2.CustomHeader, {
-        title: "Activit\xE9s",
-        btnAfter: /*#__PURE__*/_react.default.createElement(_Components2.CustomButton, {
+        title: "",
+        btnAfter: /*#__PURE__*/_react.default.createElement(_reactBootstrap.Button, {
           disabled: _common.WorkPlanUtils.isArchived(_Utils.JsNx.at(this.props.data.assignments, 0, null)),
-          title: "Ajouter des activit\xE9s.",
           onClick: function onClick() {
             return _this9.onShowActivities(true);
           }
         }, /*#__PURE__*/_react.default.createElement(_reactFontawesome.FontAwesomeIcon, {
           icon: _freeSolidSvgIcons.faPlus
-        }))
+        }), " Ajouter des activit\xE9s")
       }, /*#__PURE__*/_react.default.createElement("div", null, "Filtrer par ", /*#__PURE__*/_react.default.createElement(_Components2.CustomFormControl, {
         style: {
           width: '300px',
@@ -73618,7 +73629,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "50093" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "49781" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

@@ -215,7 +215,6 @@ class WorkPlanCard extends Component{
                         </DropdownButton>
                     </ButtonGroup>
                 </div>
-                {workPlan.stats && workPlan.stats.nbStudents > 0 && 
                     <div className="p-2 text-muted row">                        
                         <div className='col-md-5' >
                             <span>
@@ -223,11 +222,11 @@ class WorkPlanCard extends Component{
                                 <span>Créateur {workPlan.template.collaboratorList.length > 0 && <FontAwesomeIcon icon={faUserFriends} title={`Collaborateurs: ${workPlan.template.collaboratorList[0].firstName} ${workPlan.template.collaboratorList[0].lastName} et plus`}/>} </span>
                             </span>
                         </div>
+                        {workPlan.stats && workPlan.stats.nbStudents > 0 && 
                         <div className='col-md-7 d-flex align-items-center'>
                             <CustomBadgeCompletion title="Le nombre d'élèves qui ont complété le plan de travail / le nombre total d'élèves assigné au plan de travail" stats={`${workPlan.stats.workPlanCompletion}/${workPlan.stats.nbStudents}`}/>
-                        </div>
+                        </div>}
                     </div>
-                }
                 <div className="m-2 p-2">
                     {workPlan.assignments.map((assignment, index2) => {
                         return <span key={index2} style={{marginLeft: '-15px'}} dangerouslySetInnerHTML={{__html: assignment.user.avatar}}></span>;
@@ -397,10 +396,10 @@ class WorkPlanAssignmentsView extends Component{
 
         let main =  
             <>     
-                <CustomHeader title="Affectations" btnAfter={<>
-                    <CustomButton disabled={WorkPlanUtils.isArchived(JsNx.at(data.assignments, 0, null))} title='Attribuer un plan de travail.' onClick={() => this.onShowAssignments(true)}><FontAwesomeIcon icon={faPlus}/></CustomButton>
-                    <CustomButton disabled={WorkPlanUtils.isArchived(JsNx.at(data.assignments, 0, null))} className='ml-2' title='Actions en lot' onClick={() => this.setState({showAssignmentMassActions: true})}><FontAwesomeIcon icon={faCogs}/></CustomButton>
-                    </>}>
+                <CustomHeader title="" btnAfter={<ButtonGroup>
+                    <Button disabled={WorkPlanUtils.isArchived(JsNx.at(data.assignments, 0, null))} onClick={() => this.onShowAssignments(true)}><FontAwesomeIcon icon={faPlus}/> Attribuer un plan de travail</Button>
+                    <Button disabled={WorkPlanUtils.isArchived(JsNx.at(data.assignments, 0, null))} className='ml-2' onClick={() => this.setState({showAssignmentMassActions: true})}><FontAwesomeIcon icon={faCogs}/> Actions en lot</Button> 
+                    </ButtonGroup>}>
                     <div className='d-flex align-items-center d-block-mobile w-100-mobile' >
                         Filtrer par <CustomFormControl className='w-100-mobile' style={{display:'inline',width:'200px',marginRight:'10px', marginLeft:'10px'}} onChange={this.onSearch} type="search" value={this.state.queryStr} name='queryStr' placeholder="Nom, groupe..."/>
                         Trier par <select type="select" className='form-control rounded ml-2 mr-2' style={{width:'115px'}} onChange={(e) => this.setState({sortAssignment:e.target.value})}>
@@ -441,7 +440,7 @@ class WorkPlanAssignmentsView extends Component{
                                             <div className='text-muted'>Dernière connexion: {item.user.lastAccess}</div>
                                             <div className='text-muted'>{`Début: ${UtilsDateTime.getDate(item.startDate)} (${item.nbHoursPerWeek} h/semaine)`}</div>
                                             <div className='text-muted'>{`Durée: ${txtDuration}`}</div>
-                                            <div className='text-muted'><a href='#' onClick={() => this.setState({showAssignmentAdditionalHours: item})}>{`Heures supplémentaires: ${item.nbAdditionalHours}`}</a></div>
+                                            <div className='text-muted'><a href='#' onClick={() => this.setState({showAssignmentAdditionalHours: item})}>{`Heures supplémentaires: ${item.nbAdditionalHours}h`}</a></div>
                                             <div className='text-muted'>{`Échéance: ${UtilsDateTime.getDate(item.endDate)}`}</div>
                                         </div>
                                         <div className='w-100-mobile'>
@@ -603,7 +602,7 @@ class WorkPlanActivitiesView extends Component{
         
         let main =  
             <>      
-                <CustomHeader title="Activités" btnAfter={<CustomButton disabled={WorkPlanUtils.isArchived(JsNx.at(this.props.data.assignments, 0, null))} title='Ajouter des activités.'  onClick={() => this.onShowActivities(true)}><FontAwesomeIcon icon={faPlus}/></CustomButton>}>
+                <CustomHeader title="" btnAfter={<Button disabled={WorkPlanUtils.isArchived(JsNx.at(this.props.data.assignments, 0, null))} onClick={() => this.onShowActivities(true)}><FontAwesomeIcon icon={faPlus}/> Ajouter des activités</Button>}>
                     <div>
                         Filtrer par <CustomFormControl style={{width: '300px', display: 'inline-block'}} onChange={this.onSearch} type="search" value={this.state.queryStr} name='queryStr' placeholder="Catégories, cours..."/>
                     </div>

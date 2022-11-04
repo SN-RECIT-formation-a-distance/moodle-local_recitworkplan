@@ -88,7 +88,7 @@ export class CustomHeader extends Component{
         <div className='d-flex d-block-mobile' style={{justifyContent: "space-between", alignItems: "center"}}>
             <div className='d-flex' style={{alignItems: "center"}}>
                 {this.props.btnBefore}
-                <span className='h2 mr-3 ml-3'>{this.props.title}</span>
+                {this.props.title.length > 0 && <span className='h2 mr-3 ml-3'>{this.props.title}</span>}
                 {this.props.btnAfter}
             </div>
             <div>
