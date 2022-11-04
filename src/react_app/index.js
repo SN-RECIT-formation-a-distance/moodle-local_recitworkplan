@@ -69287,7 +69287,9 @@ var WorkPlanTemplateView = /*#__PURE__*/function (_Component2) {
   }, {
     key: "render",
     value: function render() {
-      var _this6 = this;
+      var _this6 = this,
+          _data$template$creato,
+          _data$template$creato2;
 
       if (this.state.data === null) {
         return null;
@@ -69392,7 +69394,7 @@ var WorkPlanTemplateView = /*#__PURE__*/function (_Component2) {
       }, "Cr\xE9ateur"), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Col, {
         sm: 10,
         className: ""
-      }, data.template.creator.firstName, " ", data.template.creator.lastName)), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Row, {
+      }, (_data$template$creato = data.template.creator) === null || _data$template$creato === void 0 ? void 0 : _data$template$creato.firstName, " ", (_data$template$creato2 = data.template.creator) === null || _data$template$creato2 === void 0 ? void 0 : _data$template$creato2.lastName)), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Row, {
         className: "m-4 border-bottom"
       }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Col, {
         className: "text-muted",

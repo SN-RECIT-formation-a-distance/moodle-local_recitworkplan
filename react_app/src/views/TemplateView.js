@@ -434,7 +434,7 @@ export class WorkPlanTemplateView extends Component{
                             </Row>
                             <Row className='m-4 border-bottom'>
                                 <Col className='text-muted' sm={2}>Créateur</Col>
-                                <Col sm={10} className=''>{data.template.creator.firstName} {data.template.creator.lastName}</Col>
+                                <Col sm={10} className=''>{data.template.creator?.firstName} {data.template.creator?.lastName}</Col>
                             </Row>
                             <Row className='m-4 border-bottom'>
                                 <Col className='text-muted' sm={2}>Collaborateur(s)</Col>
