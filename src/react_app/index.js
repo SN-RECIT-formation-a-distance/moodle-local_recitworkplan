@@ -70717,7 +70717,7 @@ var ModalAssignmentMassActions = /*#__PURE__*/function (_Component2) {
           var item = _step7.value;
           var add = {};
           add.id = item.id;
-          add.nbAdditionalHours = parseInt(this.state.nbAdditionalHours);
+          add.nbAdditionalHours = parseFloat(this.state.nbAdditionalHours);
           add.additionalHoursReason = this.state.additionalHoursReason;
           add.templateId = this.state.data.template.id;
           newItems.push(add);
