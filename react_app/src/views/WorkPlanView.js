@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
-import { Card, Tabs, Tab, Button, Form, DropdownButton, Dropdown, ButtonGroup, ToggleButtonGroup, ToggleButton} from 'react-bootstrap';
-import { faPencilAlt,  faPlus, faTrashAlt, faCopy, faCheck, faArrowLeft, faEllipsisV, faSyncAlt, faBookmark, faChevronUp, faChevronDown, faArchive, faChalkboardTeacher, faRedoAlt, faUserFriends, faUserAltSlash, faUserAlt, faClock, faAmericanSignLanguageInterpreting, faCogs} from '@fortawesome/free-solid-svg-icons';
+import { Card, Tabs, Tab, Button, Form, DropdownButton, Dropdown, ButtonGroup, ToggleButtonGroup, ToggleButton, OverlayTrigger, Tooltip} from 'react-bootstrap';
+import { faPencilAlt,  faPlus, faTrashAlt, faCopy, faCheck, faArrowLeft, faEllipsisV, faSyncAlt, faBookmark, faChevronUp, faChevronDown, faArchive, faChalkboardTeacher, faRedoAlt, faUserFriends, faUserAltSlash, faUserAlt, faClock, faAmericanSignLanguageInterpreting, faCogs, faInfoCircle} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { FeedbackCtrl, ToggleButtons, Modal } from '../libs/components/Components';
 import {$glVars, WorkPlanUtils} from '../common/common';
@@ -289,7 +289,7 @@ class WorkPlanView extends Component{
 
         let main =  
             <div>   
-                <CustomHeader title="Modifier le plan de travail" btnBefore={<CustomButton title="Revenir" onClick={this.props.onClose} faIcon={faArrowLeft}/>}>
+                <CustomHeader title={this.state.data.template.name} btnBefore={<CustomButton title="Revenir" onClick={this.props.onClose} faIcon={faArrowLeft}/>}>
                     {this.state.data.template.state == 1 && <CustomBadge variant='bg-warning' faIcon={faBookmark} text={"Gabarit"}/>}
                 </CustomHeader>
 
@@ -400,7 +400,7 @@ class WorkPlanAssignmentsView extends Component{
                     <Button disabled={WorkPlanUtils.isArchived(JsNx.at(data.assignments, 0, null))} onClick={() => this.onShowAssignments(true)}><FontAwesomeIcon icon={faPlus}/> Attribuer un plan de travail</Button>
                     <Button disabled={WorkPlanUtils.isArchived(JsNx.at(data.assignments, 0, null))} className='ml-2' onClick={() => this.setState({showAssignmentMassActions: true})}><FontAwesomeIcon icon={faCogs}/> Actions en lot</Button> 
                     </ButtonGroup>}>
-                    <div className='d-flex align-items-center d-block-mobile w-100-mobile' >
+                    <div className='d-flex align-items-center d-block-mobile w-100-mobile' style={{flexWrap:'wrap'}} >
                         Filtrer par <CustomFormControl className='w-100-mobile' style={{display:'inline',width:'200px',marginRight:'10px', marginLeft:'10px'}} onChange={this.onSearch} type="search" value={this.state.queryStr} name='queryStr' placeholder="Nom, groupe..."/>
                         Trier par <select type="select" className='form-control rounded ml-2 mr-2' style={{width:'115px'}} onChange={(e) => this.setState({sortAssignment:e.target.value})}>
                             <option value="lastname">Nom</option>
@@ -441,7 +441,15 @@ class WorkPlanAssignmentsView extends Component{
                                             <div className='text-muted'>{`Début: ${UtilsDateTime.getDate(item.startDate)} (${item.nbHoursPerWeek} h/semaine)`}</div>
                                             <div className='text-muted'>{`Durée: ${txtDuration}`}</div>
                                             <div className='text-muted'><a href='#' onClick={() => this.setState({showAssignmentAdditionalHours: item})}>{`Heures supplémentaires: ${item.nbAdditionalHours}h`}</a></div>
-                                            <div className='text-muted'>{`Échéance: ${UtilsDateTime.getDate(item.endDate)}`}</div>
+                                            <div className='text-muted'>
+                                            {`Échéance: ${UtilsDateTime.getDate(item.endDate)} `}<OverlayTrigger overlay={
+                                            <Tooltip>Le calcul de la date d'échéance s'éffectue de la façon suivante :<br/>
+                                            Nb. de semaines = Nb. d'heures du plan de travail / Rythme en h/semaine. Le résultat est arrondi à l'entier supérieur.<br/>
+                                            
+                                            Les heures supplémentaires sont ajoutées aux heures du plan de travail.</Tooltip>}>
+                                                <a><FontAwesomeIcon icon={faInfoCircle}/> </a>
+                                                </OverlayTrigger>
+                                            </div>
                                         </div>
                                         <div className='w-100-mobile'>
                                             <AssignmentFollowUp data={item} template={this.props.data.template}/>

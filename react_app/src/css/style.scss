@@ -49,6 +49,10 @@ button.dropdown-toggle {
         border: 1px solid #c6c6c6;
         font-size: 16px;
     }
+    &.nav-tabs .nav-item.show .nav-link, &.nav-tabs .nav-link.active {
+        color: #fff;
+        background-color: #0f6fc5;
+    }
 }
 
 /**********************************************************

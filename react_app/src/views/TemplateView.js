@@ -425,10 +425,6 @@ export class WorkPlanTemplateView extends Component{
                         </ButtonGroup>
                         <div className='mt-5'>
                             <Row className='m-4 border-bottom'>
-                                <Col className='text-muted' sm={2}>Nom</Col>
-                                <Col sm={10} className=''>{data.template.name}</Col>
-                            </Row>
-                            <Row className='m-4 border-bottom'>
                                 <Col className='text-muted' sm={2}>Description</Col>
                                 <Col sm={10} className=''>{data.template.description}</Col>
                             </Row>

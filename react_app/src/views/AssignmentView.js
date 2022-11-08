@@ -90,7 +90,7 @@ export class ModalAssignmentPicker extends Component{
             <div>
                 <div>
                     <Form.Group as={Col}>
-                        <Form.Label>{"Filtrez par groupe"}</Form.Label>
+                        <Form.Label>{"Filtrer par groupe"}</Form.Label>
                         <ComboBoxPlus placeholder={"Sélectionnez votre option"} name="group" value={this.state.dropdownLists.group} options={this.state.dropdownLists.groupList} onChange={(e) => this.onFilterChange(e.target.name, e.target.value)} />
                     </Form.Group>
                 </div>
@@ -191,6 +191,7 @@ export class ModalAssignmentPicker extends Component{
     }
 
     onAddSelected(){
+        if (!confirm('Êtes-vous sûre de vouloir d\'ajouter tous les utilisateurs? Cette opération est irréversible!')) return;
         let newItems = []
         let studentList = this.getFilteredStudentList();
         for (let item of studentList){

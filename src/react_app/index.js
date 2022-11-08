@@ -64830,7 +64830,7 @@ var BRowDraggable = /*#__PURE__*/function (_BRow) {
       var _this11 = this;
 
       var style = this.props.style || {};
-      style.borderBottom = this.state.hovering === 1 ? "2px dotted #dc3545" : "none";
+      style.borderBottom = this.state.hovering === 1 ? "5px dotted #dc3545" : "none";
       style.cursor = this.state.dragging === 1 ? "grabbing" : "grab";
 
       var main = /*#__PURE__*/_react.default.createElement("tr", {
@@ -69375,14 +69375,6 @@ var WorkPlanTemplateView = /*#__PURE__*/function (_Component2) {
       }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Col, {
         className: "text-muted",
         sm: 2
-      }, "Nom"), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Col, {
-        sm: 10,
-        className: ""
-      }, data.template.name)), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Row, {
-        className: "m-4 border-bottom"
-      }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Col, {
-        className: "text-muted",
-        sm: 2
       }, "Description"), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Col, {
         sm: 10,
         className: ""
@@ -70200,7 +70192,7 @@ var ModalAssignmentPicker = /*#__PURE__*/function (_Component) {
 
       var body = /*#__PURE__*/_react.default.createElement("div", null, /*#__PURE__*/_react.default.createElement("div", null, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Group, {
         as: _reactBootstrap.Col
-      }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Label, null, "Filtrez par groupe"), /*#__PURE__*/_react.default.createElement(_Components.ComboBoxPlus, {
+      }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Form.Label, null, "Filtrer par groupe"), /*#__PURE__*/_react.default.createElement(_Components.ComboBoxPlus, {
         placeholder: "Sélectionnez votre option",
         name: "group",
         value: this.state.dropdownLists.group,
@@ -70375,6 +70367,7 @@ var ModalAssignmentPicker = /*#__PURE__*/function (_Component) {
     value: function onAddSelected() {
       var _this5 = this;
 
+      if (!confirm('Êtes-vous sûre de vouloir d\'ajouter tous les utilisateurs? Cette opération est irréversible!')) return;
       var newItems = [];
       var studentList = this.getFilteredStudentList();
 
@@ -71458,6 +71451,13 @@ var StudentWorkPlanList = /*#__PURE__*/function (_Component2) {
             return _this4.onDetail(0);
           },
           faIcon: _freeSolidSvgIcons.faArrowLeft
+        }),
+        btnAfter: /*#__PURE__*/_react.default.createElement(_Components2.CustomButton, {
+          title: "Rafraichir",
+          onClick: function onClick() {
+            return _this4.getData();
+          },
+          faIcon: _freeSolidSvgIcons.faSync
         })
       }), /*#__PURE__*/_react.default.createElement(StudentTemplateDetail, {
         templateId: this.state.templateId,
@@ -72373,7 +72373,7 @@ var WorkPlanView = /*#__PURE__*/function (_Component4) {
       }
 
       var main = /*#__PURE__*/_react.default.createElement("div", null, /*#__PURE__*/_react.default.createElement(_Components2.CustomHeader, {
-        title: "Modifier le plan de travail",
+        title: this.state.data.template.name,
         btnBefore: /*#__PURE__*/_react.default.createElement(_Components2.CustomButton, {
           title: "Revenir",
           onClick: this.props.onClose,
@@ -72573,7 +72573,10 @@ var WorkPlanAssignmentsView = /*#__PURE__*/function (_Component5) {
           icon: _freeSolidSvgIcons.faCogs
         }), " Actions en lot"))
       }, /*#__PURE__*/_react.default.createElement("div", {
-        className: "d-flex align-items-center d-block-mobile w-100-mobile"
+        className: "d-flex align-items-center d-block-mobile w-100-mobile",
+        style: {
+          flexWrap: 'wrap'
+        }
       }, "Filtrer par ", /*#__PURE__*/_react.default.createElement(_Components2.CustomFormControl, {
         className: "w-100-mobile",
         style: {
@@ -72679,7 +72682,11 @@ var WorkPlanAssignmentsView = /*#__PURE__*/function (_Component5) {
           }
         }, "Heures suppl\xE9mentaires: ".concat(item.nbAdditionalHours, "h"))), /*#__PURE__*/_react.default.createElement("div", {
           className: "text-muted"
-        }, "\xC9ch\xE9ance: ".concat(_Utils.UtilsDateTime.getDate(item.endDate)))), /*#__PURE__*/_react.default.createElement("div", {
+        }, "\xC9ch\xE9ance: ".concat(_Utils.UtilsDateTime.getDate(item.endDate), " "), /*#__PURE__*/_react.default.createElement(_reactBootstrap.OverlayTrigger, {
+          overlay: /*#__PURE__*/_react.default.createElement(_reactBootstrap.Tooltip, null, "Le calcul de la date d'\xE9ch\xE9ance s'\xE9ffectue de la fa\xE7on suivante :", /*#__PURE__*/_react.default.createElement("br", null), "Nb. de semaines = Nb. d'heures du plan de travail / Rythme en h/semaine. Le r\xE9sultat est arrondi \xE0 l'entier sup\xE9rieur.", /*#__PURE__*/_react.default.createElement("br", null), "Les heures suppl\xE9mentaires sont ajout\xE9es aux heures du plan de travail.")
+        }, /*#__PURE__*/_react.default.createElement("a", null, /*#__PURE__*/_react.default.createElement(_reactFontawesome.FontAwesomeIcon, {
+          icon: _freeSolidSvgIcons.faInfoCircle
+        }), " ")))), /*#__PURE__*/_react.default.createElement("div", {
           className: "w-100-mobile"
         }, /*#__PURE__*/_react.default.createElement(_Components2.AssignmentFollowUp, {
           data: item,

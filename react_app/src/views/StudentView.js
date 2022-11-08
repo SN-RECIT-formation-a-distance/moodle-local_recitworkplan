@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { faSyncAlt, faArchive, faArrowLeft} from '@fortawesome/free-solid-svg-icons';
+import { faSyncAlt, faArchive, faArrowLeft, faSync} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {FeedbackCtrl, ToggleButtons} from '../libs/components/Components';
 import {$glVars, WorkPlanUtils} from '../common/common';
@@ -72,7 +72,7 @@ export class StudentWorkPlanList extends Component {
 
         let details = 
                     <>
-                        <CustomHeader title="Plan de travail" btnBefore={<CustomButton title="Revenir" onClick={() => this.onDetail(0)} faIcon={faArrowLeft}/>}/>
+                        <CustomHeader title="Plan de travail" btnBefore={<CustomButton title="Revenir" onClick={() => this.onDetail(0)} faIcon={faArrowLeft}/>} btnAfter={<CustomButton title="Rafraichir" onClick={() => this.getData()} faIcon={faSync}/>}/>
                         <StudentTemplateDetail templateId={this.state.templateId} studentId={this.props.userId} />
                     </>
             
