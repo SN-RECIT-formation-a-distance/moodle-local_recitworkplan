@@ -145,8 +145,8 @@ class StudentTemplateTile extends Component {
                 <div>
                     <div className="p-2 text-muted row">                        
                         <div className='col-md-5' >
-                            <span>
-                                <div><a href={this.state.assignment.assignor.url} target="_blank"><span dangerouslySetInnerHTML={{__html: this.state.assignment.assignor.avatar}}></span></a></div>
+                            <span className='d-flex flex-column align-items-center' >
+                                <a href={this.state.assignment.assignor.url} target="_blank"><span dangerouslySetInnerHTML={{__html: this.state.assignment.assignor.avatar}}></span></a>
                                 <span>{`Attribué par `}</span>
                             </span>
                         </div>
@@ -263,8 +263,11 @@ export class StudentTemplateDetail extends Component {
                         <div className='text-muted'>{`Rythme: ${this.state.assignment.nbHoursPerWeek} (h/semaine)`}</div>
                     </div>
                     <div>
-                        <div className='text-muted'>{`Attribué par `}<a href={this.state.assignment.assignor.url} target="_blank"><span dangerouslySetInnerHTML={{__html: this.state.assignment.assignor.avatar}}></span></a></div>
-                        {reportData.template.communicationUrl && reportData.template.communicationUrl.length > 0 && <div className='text-muted'><a href={reportData.template.communicationUrl} target="_blank">Contacter</a></div>}
+                        <div className='text-muted d-flex flex-column align-items-center'>
+                            <a href={this.state.assignment.assignor.url} target="_blank"><span dangerouslySetInnerHTML={{__html: this.state.assignment.assignor.avatar}}></span></a>
+                            {`Attribué par `}
+                            {reportData.template.communicationUrl && reportData.template.communicationUrl.length > 0 && <div className='text-muted'><a href={reportData.template.communicationUrl} target="_blank">Contacter</a></div>}
+                        </div>    
                     </div>
                     <AssignmentFollowUp data={this.state.assignment} template={reportData.template}/>
                     <div>

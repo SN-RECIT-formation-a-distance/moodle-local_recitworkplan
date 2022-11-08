@@ -295,7 +295,7 @@ class WorkPlanView extends Component{
 
                 <WorkPlanTemplateView data={this.state.data} onSave={this.onSaveTemplate} />
                     
-                <Tabs id="workPlanTabs" className="mt-5 workplantabs" variant="tabs" activeKey={this.state.tab} onSelect={this.onTabChange}>
+                <Tabs id="workPlanTabs" className="mt-5" variant="pills" activeKey={this.state.tab} onSelect={this.onTabChange}>
                     <Tab eventKey="activities" title="Activités">
                        <WorkPlanActivitiesView data={this.state.data} onClose={this.props.onClose} onRefresh={() => this.getData(this.state.data.template.id)}/>
                     </Tab>
@@ -397,10 +397,10 @@ class WorkPlanAssignmentsView extends Component{
         let main =  
             <>     
                 <CustomHeader title="" btnAfter={<ButtonGroup>
-                    <Button disabled={WorkPlanUtils.isArchived(JsNx.at(data.assignments, 0, null))} onClick={() => this.onShowAssignments(true)}><FontAwesomeIcon icon={faPlus}/> Attribuer un plan de travail</Button>
-                    <Button disabled={WorkPlanUtils.isArchived(JsNx.at(data.assignments, 0, null))} className='ml-2' onClick={() => this.setState({showAssignmentMassActions: true})}><FontAwesomeIcon icon={faCogs}/> Actions en lot</Button> 
+                    <Button style={{borderRadius: "0.25rem 0 0 0.25rem"}} disabled={WorkPlanUtils.isArchived(JsNx.at(data.assignments, 0, null))}  onClick={() => this.onShowAssignments(true)}><FontAwesomeIcon icon={faPlus}/> Attribuer un plan de travail</Button>
+                    <Button style={{borderRadius: "0 0.25rem 0.25rem 0"}} disabled={WorkPlanUtils.isArchived(JsNx.at(data.assignments, 0, null))}  onClick={() => this.setState({showAssignmentMassActions: true})}><FontAwesomeIcon icon={faCogs}/> Actions en lot</Button> 
                     </ButtonGroup>}>
-                    <div className='d-flex align-items-center d-block-mobile w-100-mobile' style={{flexWrap:'wrap'}} >
+                    <div className='d-flex align-items-center d-block-mobile w-100-mobile flex-wrap'>
                         Filtrer par <CustomFormControl className='w-100-mobile' style={{display:'inline',width:'200px',marginRight:'10px', marginLeft:'10px'}} onChange={this.onSearch} type="search" value={this.state.queryStr} name='queryStr' placeholder="Nom, groupe..."/>
                         Trier par <select type="select" className='form-control rounded ml-2 mr-2' style={{width:'115px'}} onChange={(e) => this.setState({sortAssignment:e.target.value})}>
                             <option value="lastname">Nom</option>
@@ -610,7 +610,7 @@ class WorkPlanActivitiesView extends Component{
         
         let main =  
             <>      
-                <CustomHeader title="" btnAfter={<Button disabled={WorkPlanUtils.isArchived(JsNx.at(this.props.data.assignments, 0, null))} onClick={() => this.onShowActivities(true)}><FontAwesomeIcon icon={faPlus}/> Ajouter des activités</Button>}>
+                <CustomHeader title="" btnAfter={<Button className="rounded" disabled={WorkPlanUtils.isArchived(JsNx.at(this.props.data.assignments, 0, null))} onClick={() => this.onShowActivities(true)}><FontAwesomeIcon icon={faPlus}/> Ajouter des activités</Button>}>
                     <div>
                         Filtrer par <CustomFormControl style={{width: '300px', display: 'inline-block'}} onChange={this.onSearch} type="search" value={this.state.queryStr} name='queryStr' placeholder="Catégories, cours..."/>
                     </div>
@@ -685,7 +685,7 @@ class WorkPlanActivitiesView extends Component{
                 $glVars.webApi.deleteTplAct(this.props.data.template.id, tplActId, callback);
             }
         }else{
-            if(window.confirm('Ce plan de travail ne lui restera plus d\'activité donc le plan sera supprimé. Êtes-vous sûre de vouloir supprimer ce plan de travail?')){
+            if(window.confirm('Ce plan de travail ne lui restera plus d\'activité donc le plan sera supprimé. Confirmez-vous cette opération?')){
                 $glVars.webApi.deleteWorkPlan(this.props.data.template.id, () => this.props.onClose());
             }
         }

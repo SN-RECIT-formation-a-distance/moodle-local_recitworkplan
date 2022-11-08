@@ -115,7 +115,12 @@ export class ActivityPicker extends Component{
                                 </Table>
                             </div>
                             
-                            {this.state.dropdownLists.activityList.length > 0 && <Form.Check type="checkbox" className='mt-3' label={`Afficher les activités qui n'ont pas d'achèvement`} onChange={(e) => this.setState({showActivityNoAchievement: !this.state.showActivityNoAchievement})} checked={this.state.showActivityNoAchievement} />}
+                            {this.state.dropdownLists.activityList.length > 0 && 
+                                <div className='mt-3'>
+                                    <input onChange={(e) => this.setState({showActivityNoAchievement: !this.state.showActivityNoAchievement})} id={'showActivityNoAchievement'} type="checkbox" checked={this.state.showActivityNoAchievement} />
+                                    <label className="ml-2 d-inline" htmlFor={'showActivityNoAchievement'}>Afficher les activités qui n'ont pas d'achèvement</label>
+                                </div>
+                            }
                         </div>
                     </div>
                     <div className='col-md-8'>
@@ -514,36 +519,37 @@ class ModalTemplateForm extends Component{
         let modalBody = 
             <Form>
                 <Form.Group as={Row}>
-                    <Form.Label column sm="2">{"Enregistrer en tant que"}</Form.Label>
-                    <Col sm="10">
+                    <Form.Label column sm="3">{"Enregistrer en tant que"}</Form.Label>
+                    <Col sm="9">
                         <ToggleButtons name="state" defaultValue={[data.template.state]} onClick={this.onDataChange} disabled={data.assignments.length > 1}
                                 options={[
                                     {value: 0, text:"Plan de travail"},
                                     {value: 1, text:"Gabarit"}
                                 ]}/>
+                        <Form.Text className="text-muted">Ce champ devient désactivé lorsque le plan de travail contient des affectations.</Form.Text>
                     </Col>
                 </Form.Group>
                 <Form.Group as={Row} >
-                    <Form.Label column sm="2">{"Nom"}</Form.Label>
-                    <Col sm="10">
+                    <Form.Label column sm="3">{"Nom"}</Form.Label>
+                    <Col sm="9">
                         <CustomFormControl type="text" value={data.template.name} name="name" onChange={this.onDataChange} />
                     </Col>
                 </Form.Group>
                 <Form.Group as={Row}>
-                    <Form.Label column sm="2">{"Description"}</Form.Label>
-                    <Col sm="10">
+                    <Form.Label column sm="3">{"Description"}</Form.Label>
+                    <Col sm="9">
                         <CustomFormControl as="textarea" rows={4} className='w-100' value={data.template.description || ''} name="description" onChange={this.onDataChange} />
                     </Col>
                 </Form.Group>
                 <Form.Group as={Row}>
-                    <Form.Label column sm="2">{"URL de communication"}</Form.Label>
-                    <Col sm="10">
+                    <Form.Label column sm="3">{"URL de communication"}</Form.Label>
+                    <Col sm="9">
                         <CustomFormControl type="text" className='w-100' value={data.template.communicationUrl || ''} name="communicationUrl" onChange={this.onDataChange} />
                     </Col>
                 </Form.Group>
                 <Form.Group as={Row}>
-                    <Form.Label column sm="2">{"Collaborateurs"}</Form.Label>
-                    <Col sm="10">
+                    <Form.Label column sm="3">{"Collaborateurs"}</Form.Label>
+                    <Col sm="9">
                         <ComboBoxPlus multiple placeholder={"Sélectionnez votre option"} name="collaborators" value={this.state.collaborators} options={this.state.teachers} onChange={this.onDataChange} />
                     </Col>
                 </Form.Group>
@@ -555,7 +561,7 @@ class ModalTemplateForm extends Component{
                     <Button variant='success' className='ml-2 rounded' onClick={this.onSave}>Enregistrer</Button>
             </ButtonGroup>;
 
-        return <Modal title="Modifier gabarit" body={modalBody} onClose={this.props.onClose} footer={modalFooter}/>
+        return <Modal title="Modifier plan de travail/gabarit" width="850px" body={modalBody} onClose={this.props.onClose} footer={modalFooter}/>
     }
 
     onDataChange(event){
@@ -618,12 +624,12 @@ class ModalTemplateOptionForm extends Component{
         let modalBody = 
             <Form>
                 <Form.Group as={Row}>
-                    <Form.Label column sm="2">{"Afficher le temps en retard"}</Form.Label>
-                    <Col sm="10">
+                    <Form.Label column sm="4">{"Afficher le temps en retard"}</Form.Label>
+                    <Col sm="8">
                         <ToggleButtons name="showHoursLate" defaultValue={[data.template.options.showHoursLate]} onClick={this.onDataChange}
                                 options={[
-                                    {value: 0, text:"Non"},
-                                    {value: 1, text:"Oui"}
+                                    {value: false, text:"Non"},
+                                    {value: true, text:"Oui"}
                                 ]}/>
                     </Col>
                 </Form.Group>
@@ -635,7 +641,7 @@ class ModalTemplateOptionForm extends Component{
                     <Button variant='success' className='ml-2 rounded' onClick={this.onSave}>Enregistrer</Button>
             </ButtonGroup>;
 
-        return <Modal title="Modifier gabarit" body={modalBody} onClose={this.props.onClose} footer={modalFooter}/>
+        return <Modal title="Modifier gabarit" width="650px" body={modalBody} onClose={this.props.onClose} footer={modalFooter}/>
     }
 
     onDataChange(event){

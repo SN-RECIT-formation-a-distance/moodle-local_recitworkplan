@@ -191,7 +191,7 @@ export class ModalAssignmentPicker extends Component{
     }
 
     onAddSelected(){
-        if (!confirm('Êtes-vous sûre de vouloir d\'ajouter tous les utilisateurs? Cette opération est irréversible!')) return;
+        if (!confirm('Confirmez-vous cette opération: ajouter tous les utilisateurs?')) return;
         let newItems = []
         let studentList = this.getFilteredStudentList();
         for (let item of studentList){
@@ -282,18 +282,20 @@ export class ModalAssignmentMassActions extends Component{
                 <div className='mt-4 row'>
                     <div className='col-md-6'>
                         <div>
-                            <h6>Élèves assignés <Badge variant="warning" className="p-2 rounded">{`${this.state.data.assignments.length}`}</Badge></h6>
-                            <div style={{maxHeight: 500, overflowY: 'scroll'}}>
+                            <h5>Élèves assignés <Badge variant="warning" className="p-2 rounded">{`${this.state.data.assignments.length}`}</Badge></h5>
+                            <div style={{maxHeight: 500, overflowY: 'auto'}}>
                                 <div style={{display:'flex',flexFlow:'wrap'}}>
                                         {this.state.data.assignments.map((item, index) => {
                                                 let row =
-                                                    <div key={index} className='border m-3 p-3' style={{width:'220px'}}>
+                                                    <div key={index} className='m-1 p-2 d-flex align-items-center'>
                                                         <div>
                                                             <span dangerouslySetInnerHTML={{__html: item.user.avatar}}></span>
+                                                        </div>
+                                                        <div>
                                                             <strong>{`${item.user.firstName} ${item.user.lastName}`}</strong><br/>
-                                                            <span>Rythme: {item.nbHoursPerWeek}h/semaine</span><br/>
-                                                            <span>{item.nbAdditionalHours}h supplémentaires</span>
-                                                        </div>      
+                                                            <span className='text-muted'>Rythme: {item.nbHoursPerWeek}h/semaine</span><br/>
+                                                            <span className='text-muted'>{item.nbAdditionalHours}h supplémentaires</span>
+                                                        </div>
                                                     </div>;
 
                                                 return row;
@@ -304,8 +306,9 @@ export class ModalAssignmentMassActions extends Component{
                         </div>
                     </div>
                     <div className='col-md-6'>
-                       <span className='bold mb-3'>Actions en lot pour tous les élèves assignés</span>
-                       <div className='p-3 mb-3 border'>
+                       <span className='h5 bold mb-3'>Actions en lot pour tous les élèves assignés</span>
+                       <div className='p-3 mb-3 border rounded'>
+                        <div className='h6 bold mb-3'>Assigner le rythme par semaine</div>
                             <Form.Group as={Row}>
                                 <Form.Label column sm="5">{"Rythme (h/semaine)"}</Form.Label>
                                 <Col sm="7">
@@ -315,11 +318,12 @@ export class ModalAssignmentMassActions extends Component{
                             <Form.Group as={Row}>
                                 <Col sm="5"></Col>
                                 <Col sm="7">
-                                    <Button variant="primary" onClick={() => this.onSetRythme()}>{"Assigner le rythme "}</Button>
+                                    <Button variant="primary" className="rounded" onClick={() => this.onSetRythme()}>{"Assigner"}</Button>
                                 </Col>
                             </Form.Group>
                         </div>
-                       <div className='p-3 mb-3 border'>
+                       <div className='p-3 mb-3 border rounded'>
+                            <div className='h6 bold mb-3'>Ajouter des heures supplémentaires</div>
                             <Form.Group as={Row}>
                                 <Form.Label column sm="5">{"Heures supplémentaires"}</Form.Label>
                                 <Col sm="7">
@@ -327,7 +331,7 @@ export class ModalAssignmentMassActions extends Component{
                                 </Col>
                             </Form.Group>
                             <Form.Group as={Row}>
-                                <Form.Label column sm="5">{"Raison de l'ajout d'heures supplémentaires"}</Form.Label>
+                                <Form.Label column sm="5">{"Raison"}</Form.Label>
                                 <Col sm="7">
                                     <CustomFormControl style={{display:'inline'}} max="250" onChange={(e) => this.setState({additionalHoursReason:e.target.value})}  type="text" value={this.state.additionalHoursReason}/>
                                 </Col>
@@ -335,7 +339,7 @@ export class ModalAssignmentMassActions extends Component{
                             <Form.Group as={Row}>
                                 <Col sm="5"></Col>
                                 <Col sm="7">
-                                    <Button variant="primary" disabled={this.state.additionalHoursReason.length == 0} onClick={() => this.onAddAdditionalHours()}>{"Ajouter des heures supplémentaires "}</Button>
+                                    <Button variant="primary" className="rounded"  disabled={this.state.additionalHoursReason.length == 0} onClick={() => this.onAddAdditionalHours()}>{"Ajouter"}</Button>
                                 </Col>
                             </Form.Group>
                         </div>
@@ -344,14 +348,14 @@ export class ModalAssignmentMassActions extends Component{
                 </div>
             </div>;
 
-        let main = <Modal title={'Actions en lot'} body={body} style={{maxWidth:900, width:'auto'}} onClose={this.onClose} />;
+        let main = <Modal title={'Actions en lot'} body={body} width='1050px' onClose={this.onClose} />;
 
         return (main);
     }
 
 
     onSetRythme(){
-        if (!confirm('Êtes-vous sûre de vouloir assigné ce rythme à tous les utilisateurs? Cette opération est irréversible!')) return;
+        if (!confirm('Confirmez-vous cette opération: assigner le rythme à tous les utilisateurs?')) return;
         let newItems = []
         for (let item of this.state.data.assignments){
             item.nbHoursPerWeek = this.state.rhythme;
@@ -361,7 +365,7 @@ export class ModalAssignmentMassActions extends Component{
     }
 
     onAddAdditionalHours(){
-        if (!confirm('Êtes-vous sûre de vouloir d\'ajouter des heures supplémentaires à tous les utilisateurs? Cette opération est irréversible!')) return;
+        if (!confirm('Confirmez-vous cette opération: ajouter des heures supplémentaires à tous les utilisateurs?')) return;
         let newItems = []
         for (let item of this.state.data.assignments){
             let add = {};

@@ -85,7 +85,7 @@ export class CustomHeader extends Component{
 
     render(){
         let main =
-        <div className='d-flex d-block-mobile' style={{justifyContent: "space-between", alignItems: "center"}}>
+        <div className='d-flex d-block-mobile flex-wrap' style={{justifyContent: "space-between", alignItems: "center"}}>
             <div className='d-flex' style={{alignItems: "center"}}>
                 {this.props.btnBefore}
                 {this.props.title.length > 0 && <span className='h2 mr-3 ml-3'>{this.props.title}</span>}
