@@ -348,7 +348,7 @@ export class ModalAssignmentMassActions extends Component{
                 </div>
             </div>;
 
-        let main = <Modal title={'Actions en lot'} body={body} width='1050px' onClose={this.onClose} />;
+        let main = <Modal title={'Actions en lot'} body={body} style={{maxWidth: 1050, width:'auto'}} onClose={this.onClose} />;
 
         return (main);
     }

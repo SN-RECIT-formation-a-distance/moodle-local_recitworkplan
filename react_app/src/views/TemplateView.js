@@ -50,7 +50,7 @@ export class ActivityPicker extends Component{
     }
 
     componentDidMount(){
-        this.getData();
+        this.getData({dropdownLists: true});
     }
 
     render(){
@@ -165,11 +165,11 @@ export class ActivityPicker extends Component{
         return (main);
     }
 
-    getData(){
-        $glVars.webApi.getTemplateFormFormKit(this.props.templateId, this.getDataResult);
+    getData(options){
+        $glVars.webApi.getTemplateFormFormKit(this.props.templateId, (result) => this.getDataResult(result, options));
     }
 
-    getDataResult(result){
+    getDataResult(result, options){
         if(!result.success){
             FeedbackCtrl.instance.showError($glVars.i18n.tags.appName, result.msg);
             return;
@@ -177,19 +177,21 @@ export class ActivityPicker extends Component{
 
         let list = this.state.dropdownLists;
 
-        this.createCategoryTree(list, result);
+        if(options.dropdownLists){
+            this.createCategoryTree(list, result);
       
-        list.courseList = [];
-        for(let cat of result.data.catCourseList){
-            for (let i in cat.courseList){
-                let item = cat.courseList[i];
-                if(JsNx.getItem(list.courseList, 'value', item.id, null) === null){
-                    let isDisabled = !cat.roles && !item.roles;
-                    item.categoryId = cat.id;
-                    list.courseList.push({label: item.name, value: item.id, data: item, isDisabled: isDisabled});
+            list.courseList = [];
+            for(let cat of result.data.catCourseList){
+                for (let i in cat.courseList){
+                    let item = cat.courseList[i];
+                    if(JsNx.getItem(list.courseList, 'value', item.id, null) === null){
+                        let isDisabled = !cat.roles && !item.roles;
+                        item.categoryId = cat.id;
+                        list.courseList.push({label: item.name, value: item.id, data: item, isDisabled: isDisabled});
+                    }
                 }
             }
-        }
+        }      
 
         this.setState({
             data: result.data.data, 
@@ -231,16 +233,10 @@ export class ActivityPicker extends Component{
     }
 
     onDropRow(item, index){
-        let data = this.state.data;
-        item = JsNx.getItem(data.activities, 'id', item.id, null);
-        let draggingItem = JsNx.getItem(data.activities, 'id', this.state.draggingItem.id, null);
-        
-        if(item.id === draggingItem.id){ return; }
+        if(item.id === this.state.draggingItem.id){ return; }
 
-        let oldSlot = item.slot;
-        draggingItem.slot = oldSlot+1;
-
-        this.setState({flags: {dataChanged: true}}, () => {this.onSaveTplActOrder(draggingItem);});
+        console.log(index)
+        this.setState({flags: {dataChanged: true}}, () => {this.onSaveTplActOrder(this.state.draggingItem.id,  index + 1);});
     }
 
     onAddTplAct(item){
@@ -352,18 +348,18 @@ export class ActivityPicker extends Component{
         }
     }
     
-    onSaveTplActOrder(tplAct){
+    onSaveTplActOrder(tplActId, newSlot){
         let that = this;
         let callback = function(result){
             if(!result.success){
                 $glVars.feedback.showError($glVars.i18n.tags.appName, result.msg);
                 return;
             }
-            that.onFilterChange();
+            that.getData({dropdownLists: false});
         }
 
         if(this.state.flags.dataChanged){
-            $glVars.webApi.saveTplActOrder({templateId: this.state.data.id, id: tplAct.id, slot: tplAct.slot}, callback);
+            $glVars.webApi.saveTplActOrder({templateId: this.state.data.id, tplActId: tplActId, slot: newSlot}, callback);
         }
     }
 
@@ -561,7 +557,7 @@ class ModalTemplateForm extends Component{
                     <Button variant='success' className='ml-2 rounded' onClick={this.onSave}>Enregistrer</Button>
             </ButtonGroup>;
 
-        return <Modal title="Modifier plan de travail/gabarit" width="850px" body={modalBody} onClose={this.props.onClose} footer={modalFooter}/>
+        return <Modal title="Modifier plan de travail/gabarit" style={{maxWidth: 850, width:'auto'}} body={modalBody} onClose={this.props.onClose} footer={modalFooter}/>
     }
 
     onDataChange(event){
@@ -641,7 +637,7 @@ class ModalTemplateOptionForm extends Component{
                     <Button variant='success' className='ml-2 rounded' onClick={this.onSave}>Enregistrer</Button>
             </ButtonGroup>;
 
-        return <Modal title="Modifier gabarit" width="650px" body={modalBody} onClose={this.props.onClose} footer={modalFooter}/>
+        return <Modal title="Modifier les options" style={{maxWidth: 650, width:'auto'}}  body={modalBody} onClose={this.props.onClose} footer={modalFooter}/>
     }
 
     onDataChange(event){

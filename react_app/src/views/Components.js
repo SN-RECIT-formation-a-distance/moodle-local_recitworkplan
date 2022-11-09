@@ -24,20 +24,20 @@ export class UserActivityList extends Component{
 
         let main = 
             <Card className={`rounded mt-2 mb-2`}>
-                <Card.Body className={className} style={{backgroundColor: "#ffffff", display: "grid", gridGap: '1rem', gridTemplateColumns: '50% auto auto', alignItems: 'center'}}>
-                    <div>
-                        <div className='h4'>
-                            <strong><a href={this.props.isTeacher ? userActivity.cmUrl : item.cmUrl} target="_blank">{item.cmName}</a></strong>
-                            {userActivity.grade && <CustomBadge variant='bg-info' text={userActivity.grade}/>}
-                        </div>
-                        <div className='h6 text-muted pl-3'>{`${item.categoryName}/${item.courseName}`}</div>
-                        <div className='h6 text-muted pl-3'>{`${item.nbHoursCompletion} heures`}</div>
+                <Card.Body className={`${className} p-2`} style={{backgroundColor: "#ffffff"}}>
+                    <div className='h4 d-flex align-items-center' style={{justifyContent: 'space-between'}}>
+                        <strong><a href={this.props.isTeacher ? userActivity.cmUrl : item.cmUrl} target="_blank">{item.cmName}</a></strong>
+                        <div className='h5 text-muted'>{`${item.nbHoursCompletion} heures`}</div>
                     </div>
-                    <div className="p-2 text-muted" style={{alignItems: 'center', display: 'flex'}}>
-                        {userActivity.completionState > 0 && <CustomBadge variant="completed"/>}
-                        {userActivity.followup == 1 && <CustomBadge variant="correction"/>}
-                        {userActivity.followup == 2 && <CustomBadge variant="feedback"/>}
-                        {userActivity.passed == 0 && <CustomBadge variant="failure"/>}
+                    <div className='d-flex align-items-center' style={{justifyContent: 'space-between'}}>
+                        <div className='h6 text-muted'>{`${item.categoryName}/${item.courseName}`}</div>                        
+                        <div className="text-muted" style={{alignItems: 'center', display: 'flex'}}>
+                            {userActivity.grade && <CustomBadge variant='bg-info' text={userActivity.grade}/>}
+                            {userActivity.completionState > 0 && <CustomBadge variant="completed"/>}
+                            {userActivity.followup == 1 && <CustomBadge variant="correction"/>}
+                            {userActivity.followup == 2 && <CustomBadge variant="feedback"/>}
+                            {userActivity.passed == 0 && <CustomBadge variant="failure"/>}
+                        </div>
                     </div>
                 </Card.Body>
             </Card>

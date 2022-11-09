@@ -311,30 +311,27 @@ class PersistCtrl extends MoodlePersistCtrl
         }
     }
 
-    public function saveTplActOrder($data, $userId){
+    public function saveTplActOrder($data){
         try{
-
-            $fields = array("slot");
-            $values = array($data->slot);
-
-            $query = $this->mysqlConn->prepareStmt("update", "{$this->prefix}recit_wp_tpl_act", $fields, $values, array("id"), array($data->id));
+            $query = "UPDATE {$this->prefix}recit_wp_tpl_act SET slot=$data->slot WHERE id=$data->tplActId";
             $this->mysqlConn->execSQL($query);
 
-            $activities = $this->getWorkPlan($userId, $data->templateId);
-            $activities = $activities->template->activities;
+            $query = "SELECT id, slot FROM {$this->prefix}recit_wp_tpl_act where templateid = $data->templateId and id != $data->tplActId order by slot asc";
+            $activityList = $this->mysqlConn->execSQLAndGetObjects($query);
+                                    
             $slot = 1;
-            foreach($activities as $g){
-                $sql = "UPDATE {$this->prefix}recit_wp_tpl_act SET slot=$slot WHERE id={$g->id};";
-                $slot+=2;
-                $this->mysqlConn->execSQL($sql);
+            foreach($activityList as $item){
+                if($slot == $data->slot){
+                    $slot++;
+                }
+
+                $query = "UPDATE {$this->prefix}recit_wp_tpl_act SET slot=$slot WHERE id={$item->id}";
+                $this->mysqlConn->execSQL($query);
+
+                $slot++;
             }
 
-
-            $result = new StdClass();
-            $result->templateId = $data->templateId;
-            $result->tplActId = $data->id;
-
-            return $result;
+            return true;
         }
         catch(\Exception $ex){
             throw $ex;

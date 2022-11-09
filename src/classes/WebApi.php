@@ -328,12 +328,14 @@ class WebApi extends MoodleApi
             $this->canUserAccess('a');
 
             $data = json_decode(json_encode($request['data']), FALSE);
+            $data->slot = intval($data->slot);
+            $data->tplActId = intval($data->tplActId);
+            $data->templateId = intval($data->templateId);
+            
+            $this->ctrl->saveTplActOrder($data);
+            $this->ctrl->processWorkPlan($data->templateId);
 
-            $result = $this->ctrl->saveTplActOrder($data, $this->signedUser->id);
-
-            $this->ctrl->processWorkPlan($result->templateId);
-
-            return new WebApiResult(true, $result);
+            return new WebApiResult(true);
         }
         catch(Exception $ex){
             return new WebApiResult(false, false, $ex->GetMessage());

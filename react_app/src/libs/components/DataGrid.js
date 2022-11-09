@@ -247,7 +247,6 @@ class BRowDraggable extends BRow {
 
     render() {       
         let style = this.props.style || {};
-        style.borderBottom = (this.state.hovering === 1 ? "5px dotted #dc3545" : "none");
         style.cursor = (this.state.dragging === 1 ? "grabbing" : "grab");
 
         let main = 
@@ -272,6 +271,9 @@ class BRowDraggable extends BRow {
 
     onDragEnter(event){
         event.stopPropagation(); 
+        // do not affect the row being dragged
+        if(this.state.dragging === 1){ return;}
+
         this.setState({hovering: 1});
     }
     
