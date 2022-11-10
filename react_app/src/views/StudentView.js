@@ -72,8 +72,7 @@ export class StudentWorkPlanList extends Component {
 
         let details = 
                     <>
-                        <CustomHeader title="Plan de travail" btnBefore={<CustomButton title="Revenir" onClick={() => this.onDetail(0)} faIcon={faArrowLeft}/>} btnAfter={<CustomButton title="Rafraichir" onClick={() => this.getData()} faIcon={faSync}/>}/>
-                        <StudentTemplateDetail templateId={this.state.templateId} studentId={this.props.userId} />
+                        <StudentTemplateDetail templateId={this.state.templateId} studentId={this.props.userId} onBack={() => this.onDetail(0)} />
                     </>
             
 
@@ -210,7 +209,8 @@ class StudentTemplateTile extends Component {
 export class StudentTemplateDetail extends Component {
     static defaultProps = {
         templateId: 0,
-        studentId: 0
+        studentId: 0,
+        onBack: null,
     }
 
     constructor(props) {
@@ -250,7 +250,8 @@ export class StudentTemplateDetail extends Component {
 
         let rythmeColor = StudentTemplateTile.getProgressBarRythmColor(reportData, this.state.assignment);
 
-        let main = <>            
+        let main = <>
+        <CustomHeader title="Plan de travail" btnBefore={<CustomButton title="Revenir" onClick={this.props.onBack} faIcon={faArrowLeft}/>} btnAfter={<CustomButton title="Rafraichir" onClick={() => this.getData()} faIcon={faSync}/>}/>            
             <CustomCard progressColor={rythmeColor} progressText={progressValue.text} progressValue={`${progressValue.value}%`}>
                 <div className='mb-3'>
                     <div className='h4'>{reportData.template.name}</div>
