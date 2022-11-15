@@ -81,7 +81,7 @@ class PersistCtrl extends MoodlePersistCtrl
         $params = array();
 
         if($enrolled){
-            $enrolledStmt = ",(select st2.id from {enrol} as st1 inner join {user_enrolments} as st2 on st1.id = st2.enrolid where st1.courseid = t2.id and st2.userid =:userid1) as enrolled";
+            $enrolledStmt = ",(select st2.id from {enrol} as st1 inner join {user_enrolments} as st2 on st1.id = st2.enrolid where st1.courseid = t2.id and st2.userid =:userid1 limit 1) as enrolled";
             $whereStmt .= " and (enrolled is not null) ";
             $params['userid1'] = $this->signedUser->id;
         }
@@ -1300,7 +1300,7 @@ class MoodleSection {
     }
 
     public function addCm($cm){
-        $this->cmList[$cm->id] = $cm;
+        $this->cmList[] = $cm;
     }
 }
 
