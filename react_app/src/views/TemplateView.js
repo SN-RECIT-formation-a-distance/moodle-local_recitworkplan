@@ -160,7 +160,7 @@ export class ActivityPicker extends Component{
                 </div>                
             </div>;
 
-        let main = <Modal title={this.props.title} style={{maxWidth:900, width:'auto'}} body={body} onClose={this.onClose} />;
+        let main = <Modal title={this.props.title} style={{maxWidth:1200, width:'auto'}} body={body} onClose={this.onClose} />;
 
         return (main);
     }

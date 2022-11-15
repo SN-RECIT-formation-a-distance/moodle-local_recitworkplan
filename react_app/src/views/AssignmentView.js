@@ -132,7 +132,7 @@ export class ModalAssignmentPicker extends Component{
                                                     <tr key={index}>
                                                         <td>
                                                             <div className='d-flex'>
-                                                                <div className='col-md-11'>
+                                                                <div className='col-md-10'>
                                                                     <div>
                                                                         <span dangerouslySetInnerHTML={{__html: item.user.avatar}}></span>
                                                                         <strong>{`${item.user.firstName} ${item.user.lastName}`}</strong>
@@ -545,13 +545,14 @@ export class ModalAssignmentAdditionalHoursForm extends Component{
         let body = 
             <Form>
                 <Form.Group as={Row}>
-                    <Form.Label column sm="5">{"Heures supplémentaires (peut être négatif)"}</Form.Label>
+                    <Form.Label column sm="5">{"Heures supplémentaires"}</Form.Label>
                     <Col sm="7">
                         <InputNumber style={{width: '80px', display: 'inline'}} className="mr-3" type="number" value={item.nbAdditionalHours} name="nbAdditionalHours" onChange={this.onDataChange} />
+                        <Form.Text className="text-muted">Le nombre peut être négatif.</Form.Text>
                     </Col>
                 </Form.Group>
                 <Form.Group as={Row}>
-                    <Form.Label column sm="5">{"Raison de l'ajout d'heures supplémentaires"}</Form.Label>
+                    <Form.Label column sm="5">{"Raison"}</Form.Label>
                     <Col sm="7">
                         <CustomFormControl style={{display:'inline'}} onChange={this.onDataChange} max="250" name="additionalHoursReason" type="text" value={item.additionalHoursReason}/>
                     </Col>
@@ -565,7 +566,7 @@ export class ModalAssignmentAdditionalHoursForm extends Component{
         </ButtonGroup>;
 
 
-        let main = <Modal title={'Ajout d\'heures supplémentaires'} body={body} footer={modalFooter} width="800px" onClose={this.onClose} />;
+        let main = <Modal title={'Ajout d\'heures supplémentaires'} body={body} footer={modalFooter} width="500px" onClose={this.onClose} />;
 
         return (main);
     }
@@ -626,10 +627,10 @@ export class ModalAssignmentAdditionalHoursHistory extends Component{
                     <DataGrid orderBy={true} style={{wordBreak:'break-all'}}>
                         <DataGrid.Header>
                             <DataGrid.Header.Row>
-                                <DataGrid.Header.Cell style={{minWidth: "190px"}}>Date</DataGrid.Header.Cell>
-                                <DataGrid.Header.Cell style={{minWidth: "100px"}}>Heures</DataGrid.Header.Cell>
-                                <DataGrid.Header.Cell style={{minWidth: "150px"}}>Responsable</DataGrid.Header.Cell>
-                                <DataGrid.Header.Cell style={{minWidth: "300px"}}>Raison</DataGrid.Header.Cell>
+                                <DataGrid.Header.Cell style={{width: "170px"}}>Date</DataGrid.Header.Cell>
+                                <DataGrid.Header.Cell style={{width: "100px"}}>Heures</DataGrid.Header.Cell>
+                                <DataGrid.Header.Cell style={{width: "215px"}}>Responsable</DataGrid.Header.Cell>
+                                <DataGrid.Header.Cell >Raison</DataGrid.Header.Cell>
                             </DataGrid.Header.Row>
                         </DataGrid.Header>
                         <DataGrid.Body>
@@ -675,7 +676,7 @@ export class ModalAssignmentAdditionalHoursHistory extends Component{
             </div>;
 
 
-        let main = <Modal title={'Heures supplémentaires de '+this.state.data.user.firstName+' '+this.state.data.user.lastName} body={body} width="80vw" onClose={this.onClose} />;
+        let main = <Modal title={'Heures supplémentaires de '+this.state.data.user.firstName+' '+this.state.data.user.lastName} body={body} style={{maxWidth: 1000, width: 'auto'}} onClose={this.onClose} />;
 
         return (main);
     }
