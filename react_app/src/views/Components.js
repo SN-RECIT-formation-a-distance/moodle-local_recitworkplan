@@ -311,7 +311,8 @@ export class AssignmentFollowUp extends Component{
 
         let enddate = new Date(item.endDate);
         let now = new Date();
-        if (enddate < now){
+        
+        if( (enddate.getTime() > 0) && (enddate.getTime() < now.getTime())){
             result.push(<CustomBadge key={result.length} variant="bg-warning" text="Échu"/>);
         }else if (item.nbHoursLate != 0 && this.props.template.options.showHoursLate == 1){
             let text = `En retard de ${item.nbHoursLate}h`;
