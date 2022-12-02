@@ -7,6 +7,10 @@ import { UserActivityList, CustomCard, AssignmentFollowUp, CustomBadgeCompletion
 import { UtilsDateTime } from '../libs/utils/Utils';
 
 export class StudentView extends Component {
+    static defaultProps = {
+        workPlanId: 0
+    }
+
     constructor(props) {
         super(props);
 
@@ -29,7 +33,7 @@ export class StudentView extends Component {
                     </div> 
                 }
 
-               <StudentWorkPlanList state={this.state.activeTab} userId={$glVars.signedUser.userId}  lastUpdate={this.state.lastUpdate} onDetail={(v) => this.setState({showHeader: v})} />
+               <StudentWorkPlanList state={this.state.activeTab} userId={$glVars.signedUser.userId} workPlanId={this.props.workPlanId} lastUpdate={this.state.lastUpdate} onDetail={(v) => this.setState({showHeader: v})} />
             </div>;
 
         return (main);
@@ -43,6 +47,7 @@ export class StudentView extends Component {
 export class StudentWorkPlanList extends Component {
     static defaultProps = {        
         userId: 0,
+        workPlanId: 0,
         lastUpdate: 0,
         state: 'ongoing',
         onDetail: null
@@ -54,6 +59,9 @@ export class StudentWorkPlanList extends Component {
         this.onDetail = this.onDetail.bind(this);
 
         this.state = {dataProvider: null, templateId: 0};
+        if (props.workPlanId > 0){
+            this.state.templateId = props.workPlanId;
+        }
     }
  
     render() {

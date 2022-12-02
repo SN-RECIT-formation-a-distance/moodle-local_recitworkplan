@@ -51,7 +51,7 @@ class App extends Component {
         if (this.state.mode  === 'a'){
             view = <AdminView workPlanId={this.props.workPlanId}/>;
         }else if (this.state.mode  === 's'){
-            view =<StudentView/>;
+            view =<StudentView workPlanId={this.props.workPlanId}/>;
         }else if (this.state.mode  === 'sb'){
             view =<StudentBlockView/>;
             minHeight = 'auto';
@@ -80,6 +80,6 @@ document.addEventListener('DOMContentLoaded', function(){
     let domContainer = document.getElementById('recit_workplan');
     if (domContainer){
         let signedUser = {userId: domContainer.getAttribute('data-user-id')};
-        ReactDOM.render(<App signedUser={signedUser} mode={domContainer.getAttribute('data-mode')} workPlanId={domContainer.getAttribute('data-workplanid')}/>, domContainer);
+        ReactDOM.render(<App signedUser={signedUser} mode={domContainer.getAttribute('data-mode')} workPlanId={parseInt(domContainer.getAttribute('data-workplanid'))}/>, domContainer);
     }
 }, false);

@@ -210,7 +210,9 @@ class PersistCtrl extends MoodlePersistCtrl
             $result->addActivity($item);
         }
 
-        $result->orderBySlot();
+        if ($result){
+            $result->orderBySlot();
+        }
 
         return $result;
     }
@@ -573,7 +575,9 @@ class PersistCtrl extends MoodlePersistCtrl
             $result->stats = $this->getWorkPlanStats($templateId);
         }
 
-        $result->template->orderBySlot();
+        if ($result->template){
+            $result->template->orderBySlot();
+        }
 
         $this->dropTmpWorkPlanTable();
 
@@ -1170,6 +1174,10 @@ class Assignment{
 
         $nbWeeksElapsed = floor($this->startDate->diff(new DateTime())->days/7); //Round to lowest number
         $nbHoursElapsed = $nbWeeksElapsed * $this->nbHoursPerWeek;
+        $nbHoursElapsed = $nbHoursElapsed - $this->nbAdditionalHours;
+        if ($nbHoursElapsed < 0){
+            $nbHoursElapsed = 0;
+        }
         $this->nbHoursLate = $nbHoursElapsed - $nbHoursCompleted;
     }
 }

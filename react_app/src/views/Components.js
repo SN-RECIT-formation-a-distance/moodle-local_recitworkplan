@@ -322,7 +322,7 @@ export class AssignmentFollowUp extends Component{
                 variant = 'bg-success';
             }
             text = 
-            <OverlayTrigger overlay={<Tooltip>Le calcul des heures en retard ou en avance compare les deux valeurs ci-dessus: h temps consacré = h/semaine * nombre de semaines écoulées. Temps attendu = h par semaine * nombre de semaines h temps consacré</Tooltip>}>
+            <OverlayTrigger overlay={<Tooltip>On compare le nombre d'heures restantes à réaliser au plan de travail aux nombres d'heures restantes selon la date d'échéance du plan de travail.</Tooltip>}>
               <span className="d-inline-block">
                 {text} <FontAwesomeIcon icon={faInfoCircle}/>
               </span>

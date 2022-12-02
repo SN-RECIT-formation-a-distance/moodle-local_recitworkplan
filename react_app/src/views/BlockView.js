@@ -54,7 +54,7 @@ export class StudentBlockView extends Component{
                             let card =
                             <CustomCard key={index} progressText={`${progressValue.value}%`} progressValue={`${progressValue.value}%`}>
                                 <div className='d-flex' style={{justifyContent: 'space-between'}}>
-                                    <a href={this.viewUrl} className='h3'>{workPlan.template.name}</a>
+                                    <a href={this.viewUrl+'?id='+workPlan.template.id} className='h3'>{workPlan.template.name}</a>
                                 </div>        
                                 <div className='m-1 p-1'>
                                     <CustomBadgeCompletion title="Le nombre d'activités complétées / le nombre d'activités" stats={progressText}/>      
