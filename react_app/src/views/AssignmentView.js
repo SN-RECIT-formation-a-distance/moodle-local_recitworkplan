@@ -3,7 +3,7 @@ import { ButtonGroup,  Button, Form, Col, Row, Table, Badge} from 'react-bootstr
 import { faTrashAlt, faArrowRight} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {ComboBoxPlus, DataGrid, FeedbackCtrl, InputNumber, Modal} from '../libs/components/Components';
-import {$glVars} from '../common/common';
+import {$glVars, Options} from '../common/common';
 import { JsNx, UtilsDateTime } from '../libs/utils/Utils';
 import {CustomFormControl} from './Components'
 import { DateInput } from '../libs/components/DateTime';
@@ -123,7 +123,7 @@ export class ModalAssignmentPicker extends Component{
                     </div>
                     <div className='col-md-6'>
                         <div>
-                            <h6>Élèves assignés <Badge variant="warning" className="p-2 rounded">{`${this.state.data.assignments.length}`}</Badge></h6>
+                            <h6>Élèves assignés <Badge variant="warning" className="p-2 rounded">{this.state.data.assignments.length}/{Options.MAX_AFFECTATIONS}</Badge></h6>
                             <div style={{maxHeight: 500, overflowY: 'scroll'}}>
                                 <Table striped bordered hover>
                                     <tbody>
@@ -186,6 +186,10 @@ export class ModalAssignmentPicker extends Component{
     }
 
     onAdd(item){
+        if (this.state.data.assignments.length >= Options.MAX_AFFECTATIONS){
+            $glVars.feedback.showInfo($glVars.i18n.tags.appName, 'Vous avez atteint la limite d\'affectations.', 3);
+            return;
+        }
         let newItems = [this.createNewAssignment(item)]
         this.setState({flags: {dataChanged: true}}, () => this.onSave(newItems))
     }
@@ -196,6 +200,10 @@ export class ModalAssignmentPicker extends Component{
         let studentList = this.getFilteredStudentList();
         for (let item of studentList){
             newItems.push(this.createNewAssignment(item));
+        }
+        if (newItems.length >= Options.MAX_AFFECTATIONS){
+            $glVars.feedback.showInfo($glVars.i18n.tags.appName, 'Vous avez atteint la limite d\'affectations.', 3);
+            return;
         }
         this.setState({flags: {dataChanged: true}}, () => this.onSave(newItems))
     }

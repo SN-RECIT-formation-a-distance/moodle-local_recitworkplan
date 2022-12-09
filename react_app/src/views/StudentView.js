@@ -240,6 +240,10 @@ export class StudentTemplateDetail extends Component {
             FeedbackCtrl.instance.showError($glVars.i18n.tags.appName, result.msg);
             return;
         }
+        if(!result.data.template){
+            FeedbackCtrl.instance.showError($glVars.i18n.tags.appName, 'Plan de travail invalide.');
+            return;
+        }
  
         this.setState({dataProvider: result.data, assignment: result.data.assignments[0]});
     }

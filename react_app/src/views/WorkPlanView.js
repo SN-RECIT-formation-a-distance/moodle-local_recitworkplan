@@ -3,7 +3,7 @@ import { Card, Tabs, Tab, Button, Form, DropdownButton, Dropdown, ButtonGroup, T
 import { faPencilAlt,  faPlus, faTrashAlt, faCopy, faCheck, faArrowLeft, faEllipsisV, faSyncAlt, faBookmark, faChevronUp, faChevronDown, faArchive, faChalkboardTeacher, faRedoAlt, faUserFriends, faUserAltSlash, faUserAlt, faClock, faAmericanSignLanguageInterpreting, faCogs, faInfoCircle} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { FeedbackCtrl, ToggleButtons, Modal } from '../libs/components/Components';
-import {$glVars, WorkPlanUtils} from '../common/common';
+import {$glVars, Options, WorkPlanUtils} from '../common/common';
 import { JsNx, UtilsString, UtilsDateTime } from '../libs/utils/Utils';
 import { Pagination } from '../libs/components/Pagination';
 import {ActivityPicker, WorkPlanTemplateView} from './TemplateView';
@@ -199,6 +199,14 @@ class WorkPlanCard extends Component{
 
     render(){
         let workPlan = this.props.data;
+        /*
+                <div className="m-2 p-2">
+                    {workPlan.assignments.map((assignment, index2) => {
+                        return <span key={index2} style={{marginLeft: '-15px'}} dangerouslySetInnerHTML={{__html: assignment.user.avatar}}></span>;
+                    })}
+                    {workPlan.template.state != 1 && !WorkPlanUtils.isArchived(JsNx.at(workPlan.assignments, 0, null)) && <CustomButton title='Attribuer un plan de travail.'  onClick={() => this.props.onEdit(workPlan.template.id, 'assignments')} faIcon={faPlus}/>}
+                </div>
+                */
 
         let main =
             <CustomCard progressText={`${this.props.progress}%`} progressValue={`${this.props.progress}%`}>
@@ -227,12 +235,6 @@ class WorkPlanCard extends Component{
                             <CustomBadgeCompletion title="Le nombre d'élèves qui ont complété le plan de travail / le nombre total d'élèves assigné au plan de travail" stats={`${workPlan.stats.workPlanCompletion}/${workPlan.stats.nbStudents}`}/>
                         </div>}
                     </div>
-                <div className="m-2 p-2">
-                    {workPlan.assignments.map((assignment, index2) => {
-                        return <span key={index2} style={{marginLeft: '-15px'}} dangerouslySetInnerHTML={{__html: assignment.user.avatar}}></span>;
-                    })}
-                    {workPlan.template.state != 1 && !WorkPlanUtils.isArchived(JsNx.at(workPlan.assignments, 0, null)) && <CustomButton title='Attribuer un plan de travail.'  onClick={() => this.props.onEdit(workPlan.template.id, 'assignments')} faIcon={faPlus}/>}
-                </div>
                 {!WorkPlanUtils.isArchived(JsNx.at(workPlan.assignments, 0, null)) &&
                     <div className="m-3 p-2">
                         <FollowUpCard templateId={workPlan.template.id}/>
@@ -281,6 +283,10 @@ class WorkPlanView extends Component{
             FeedbackCtrl.instance.showError($glVars.i18n.tags.appName, result.msg);
             return;
         }
+        if(!result.data.data.template){
+            FeedbackCtrl.instance.showError($glVars.i18n.tags.appName, 'Plan de travail invalide.');
+            return;
+        }
         this.setState({data: result.data.data});
     }
 
@@ -290,7 +296,7 @@ class WorkPlanView extends Component{
         let main =  
             <div>   
                 <CustomHeader title={this.state.data.template.name} btnBefore={<CustomButton title="Revenir" onClick={this.props.onClose} faIcon={faArrowLeft}/>}>
-                    {this.state.data.template.state == 1 && <CustomBadge variant='bg-warning' faIcon={faBookmark} text={"Gabarit"}/>}
+                    {this.state.data.template.state == 1 && <CustomBadge variant='bg-warning' faIcon={faBookmark} text={" Gabarit"}/>}
                 </CustomHeader>
 
                 <WorkPlanTemplateView data={this.state.data} onSave={this.onSaveTemplate} />
@@ -398,7 +404,7 @@ class WorkPlanAssignmentsView extends Component{
             <>     
                 <CustomHeader title="" btnAfter={<ButtonGroup>
                     <Button style={{borderRadius: "0.25rem 0 0 0.25rem"}} disabled={WorkPlanUtils.isArchived(JsNx.at(data.assignments, 0, null))}  onClick={() => this.onShowAssignments(true)}><FontAwesomeIcon icon={faPlus}/> Attribuer un plan de travail</Button>
-                    <Button style={{borderRadius: "0 0.25rem 0.25rem 0"}} disabled={WorkPlanUtils.isArchived(JsNx.at(data.assignments, 0, null))}  onClick={() => this.setState({showAssignmentMassActions: true})}><FontAwesomeIcon icon={faCogs}/> Actions en lot</Button> 
+                    <Button style={{borderRadius: "0 0.25rem 0.25rem 0"}} disabled={WorkPlanUtils.isArchived(JsNx.at(data.assignments, 0, null))}  onClick={() => this.setState({showAssignmentMassActions: true})}><FontAwesomeIcon icon={faCogs}/> Actions en lot</Button>
                     </ButtonGroup>}>
                     <div className='d-flex align-items-center d-block-mobile w-100-mobile flex-wrap'>
                         Filtrer par <CustomFormControl className='w-100-mobile' style={{display:'inline',width:'200px',marginRight:'10px', marginLeft:'10px'}} onChange={this.onSearch} type="search" value={this.state.queryStr} name='queryStr' placeholder="Nom, groupe..."/>
