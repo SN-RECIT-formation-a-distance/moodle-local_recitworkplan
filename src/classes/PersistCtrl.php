@@ -69,6 +69,23 @@ class PersistCtrl extends MoodlePersistCtrl
 
         return $query;
     }
+    
+    protected function getContextAccessStmt($userId, $capabilities, $contextlevel){
+        $cap = "";
+        foreach ($capabilities as $c){
+            $cap .= "'".$c."',";
+        }
+        $cap = substr($cap, 0, -1);
+        $query = "SELECT t4.instanceid
+        FROM `{$this->prefix}role_capabilities` as t1 
+        inner join {$this->prefix}role as t2 on t1.roleid = t2.id
+        inner join {$this->prefix}role_assignments as t3 on t1.roleid = t3.roleid
+        inner join {$this->prefix}context as t4 on t3.contextid = t4.id
+        WHERE t1.capability in (".$cap.") and t3.userid=$userId and t4.contextlevel = $contextlevel";
+        
+
+        return $query;
+    }
 
     public function getCatCourseSectionActivityList($enrolled = false, $categoryId = 0, $courseId = 0){
         global $DB;
@@ -595,28 +612,38 @@ class PersistCtrl extends MoodlePersistCtrl
         
         $capabilities = array();
         $wheretmp = "";
-        $innerJoinSmt = "";
+        $capabilitySmt = "";
         if ($forStudent){
             $wheretmp .= "where userid = $userId";
             $capabilities[] = RECITWORKPLAN_FOLLOW_CAPABILITY;
-            $innerJoinSmt = "inner join (".$this->getAdminRolesStmt($userId, $capabilities).") as tblRoles on (t5.course = tblRoles.instanceid and tblRoles.contextlevel = 50)";
+            //$capabilitySmt = "inner join (".$this->getAdminRolesStmt($userId, $capabilities).") as tblRoles on (t5.course = tblRoles.instanceid and tblRoles.contextlevel = 50)";
+            $where .= " and (t5.course is null or t5.course in (".$this->getContextAccessStmt($userId, $capabilities, 50)."))";
         }else if (in_array($state, array('ongoing','archive'))){
             $wheretmp .= "where creatorid = $userId or FIND_IN_SET('$userId', collaboratorids)";
             $capabilities[] = RECITWORKPLAN_ASSIGN_CAPABILITY;
             $capabilities[] = RECITWORKPLAN_MANAGE_CAPABILITY;
             // left join required here in order to see work plans without any activity
-            $innerJoinSmt = "left join (".$this->getAdminRolesStmt($userId, $capabilities).") as tblRoles on (t5.course = tblRoles.instanceid and tblRoles.contextlevel = 50)";
+            //$capabilitySmt = "left join (".$this->getAdminRolesStmt($userId, $capabilities).") as tblRoles on (t5.course = tblRoles.instanceid and tblRoles.contextlevel = 50)";
+            $where .= " and (t5.course is null or t5.course in (".$this->getContextAccessStmt($userId, $capabilities, 50)."))";
         }else if (in_array($state, array('manager'))){
             $capabilities[] = RECITWORKPLAN_MANAGE_CAPABILITY;
-            $innerJoinSmt = "inner join (".$this->getAdminRolesStmt($userId, $capabilities).") as tblRoles on ((t7.category = tblRoles.instanceid and tblRoles.contextlevel = 40) or (t5.course = tblRoles.instanceid and tblRoles.contextlevel = 50))";
-            $where = "(t1.completionstate in (0,2,3,4))";
+            $capabilitySmt = "left join {$this->prefix}course as t7 on t7.id = t5.course";
+            $where = "(t1.completionstate in (0,2,3,4)) and (t7.category in (".$this->getContextAccessStmt($userId, $capabilities, 40).") or t5.course in (".$this->getContextAccessStmt($userId, $capabilities, 50)."))";
         }
-        
+
+        $planListWithAccess = "select distinct t2.id
+        from {$this->prefix}recit_wp_tpl as t2
+        left join {$this->prefix}recit_wp_tpl_assign as t1 on t1.templateid = t2.id
+        left join {$this->prefix}recit_wp_tpl_act as t3 on t3.templateid = t2.id
+        left join {$this->prefix}course_modules as t5 on t3.cmid = t5.id
+        $capabilitySmt
+        where $where";
+
         $query = "select t1.id, t1.nb_hours_per_week as nbhoursperweek, t1_1.nb_additional_hours, from_unixtime(t1.startdate) as startdate, 
         t1.completionstate as wpcompletionstate, t2.id as templateid, t2.creatorid as creatorid, t2.name as templatename, 
         t7.fullname as coursename, t7.id as courseid, t2.description as templatedesc, t2.communication_url as communication_url, 
-        from_unixtime(t2.lastupdate) as lastupdate, t3.cmid, t3.nb_hours_completion as nb_hours_completion, count(*) OVER() AS total_count,
-        t4.id as userid, t4.picture, t4.imagealt, t4.email, t4.firstname, t4.alternatename, t4.lastname, t4.firstnamephonetic, t4.lastnamephonetic, 
+        from_unixtime(t2.lastupdate) as lastupdate, t3.cmid, t3.nb_hours_completion as nb_hours_completion,
+        t4.id as userid, t4.email, t4.firstname, t4.alternatename, t4.lastname,
         t1.assignorid, assignor.picture as assignorpicture, assignor.imagealt as assignorimagealt, assignor.firstnamephonetic as assignorfirstnamephonetic, assignor.alternatename as assignoralternatename, assignor.lastnamephonetic as assignorlastnamephonetic, assignor.email as assignoremail, assignor.firstname as assignorfirstname, assignor.lastname as assignorlastname, 
         t6.completionstate as activitycompletionstate, t8.name as categoryname, t3.id as tpl_act_id, t2.state as templatestate, t1.comment as comment, t2.collaboratorids as collaboratorids
         from {$this->prefix}recit_wp_tpl as t2
@@ -629,8 +656,7 @@ class PersistCtrl extends MoodlePersistCtrl
         left join {$this->prefix}course as t7 on t7.id = t5.course
         left join {$this->prefix}course_categories as t8 on t7.category = t8.id
         left join {$this->prefix}course_modules_completion as t6 on t5.id = t6.coursemoduleid and t6.userid = t4.id
-        $innerJoinSmt
-        where $where";
+        where t2.id in ($planListWithAccess)";
 
         if ($limit > 0){
             $offsetsql = $offset * $limit;
@@ -638,9 +664,7 @@ class PersistCtrl extends MoodlePersistCtrl
         }
 
         $this->createTmpWorkPlanTable($query);
-        
         $rst = $this->mysqlConn->execSQLAndGetObjects("select * from workplans $wheretmp");
-
         $workPlanList = array();
         $total_count = 0;
 		foreach($rst as $item){
@@ -649,13 +673,16 @@ class PersistCtrl extends MoodlePersistCtrl
             }
             $workPlanList[$item->templateid]->addTemplateActivity($item);
             $workPlanList[$item->templateid]->addAssignment($item);
-            $total_count = $item->total_count;
+            //$total_count = $item->total_count;
         }  
 
         foreach($workPlanList as $templateId => $item){
             $item->setAssignmentsEndDate();       
             $item->stats = $this->getWorkPlanStats($templateId);
             $item->template->orderBySlot();
+            if (!$item->template->name){
+                unset($workPlanList[$templateId]);
+            }
         }
 
         $pagination = new Pagination();
@@ -664,7 +691,6 @@ class PersistCtrl extends MoodlePersistCtrl
         $pagination->total_count = $total_count;
 
         $this->dropTmpWorkPlanTable();
-
         return $pagination;
     }
 
@@ -1029,16 +1055,18 @@ class Assignment{
       
         if((isset($dbData->userid)) && ($dbData->userid != 0)){
             $user = new stdClass();
-            $user->id = $dbData->userid;
-            $user->firstname = $dbData->firstname;
-            $user->lastname = $dbData->lastname;
-            $user->alternatename = $dbData->alternatename;
-            $user->middlename = $dbData->alternatename;
-            $user->picture = $dbData->picture;
-            $user->imagealt = $dbData->imagealt;
-            $user->firstnamephonetic = $dbData->firstnamephonetic;
-            $user->lastnamephonetic = $dbData->lastnamephonetic;
-            $user->email = $dbData->email;
+            if (isset($dbData->picture)){
+                $user->id = $dbData->userid;
+                $user->firstname = $dbData->firstname;
+                $user->lastname = $dbData->lastname;
+                $user->alternatename = $dbData->alternatename;
+                $user->middlename = $dbData->alternatename;
+                $user->picture = $dbData->picture;
+                $user->imagealt = $dbData->imagealt;
+                $user->firstnamephonetic = $dbData->firstnamephonetic;
+                $user->lastnamephonetic = $dbData->lastnamephonetic;
+                $user->email = $dbData->email;
+            }
             
             $result->user = new stdClass();
             $result->user->id = $dbData->userid;
@@ -1046,8 +1074,10 @@ class Assignment{
             $result->user->lastName = $dbData->lastname;
             $result->user->groupList = (isset($dbData->grouplist) ? $dbData->grouplist : ''); 
             $result->user->lastAccess = (isset($dbData->lastaccess) ? $dbData->lastaccess : ''); 
-            $result->user->avatar = $OUTPUT->user_picture($user, array('size'=> 50));
-            // $result->user->url = (new \moodle_url('/user/profile.php', array('id' => $result->user->id)))->out();
+            if (isset($dbData->picture)){
+                $result->user->avatar = $OUTPUT->user_picture($user, array('size'=> 50));
+                // $result->user->url = (new \moodle_url('/user/profile.php', array('id' => $result->user->id)))->out();
+            }
             $result->user->activities = array();
         }
         
