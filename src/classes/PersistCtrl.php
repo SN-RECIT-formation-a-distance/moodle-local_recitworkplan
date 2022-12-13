@@ -53,23 +53,6 @@ class PersistCtrl extends MoodlePersistCtrl
         parent::__construct($mysqlConn, $signedUser);
     }
     
-    protected function getAdminRolesStmt($userId, $capabilities){
-        $cap = "";
-        foreach ($capabilities as $c){
-            $cap .= "'".$c."',";
-        }
-        $cap = substr($cap, 0, -1);
-        $query = "SELECT t1.id, t1.capability, t2.shortname, t3.contextid, t3.userid, t4.contextlevel, t4.instanceid
-        FROM `{$this->prefix}role_capabilities` as t1 
-        inner join {$this->prefix}role as t2 on t1.roleid = t2.id
-        inner join {$this->prefix}role_assignments as t3 on t1.roleid = t3.roleid
-        inner join {$this->prefix}context as t4 on t3.contextid = t4.id
-        WHERE t1.capability in (".$cap.") and t3.userid=$userId";
-        
-
-        return $query;
-    }
-    
     protected function getContextAccessStmt($userId, $capabilities, $contextlevel){
         $cap = "";
         foreach ($capabilities as $c){
@@ -83,7 +66,6 @@ class PersistCtrl extends MoodlePersistCtrl
         inner join {$this->prefix}context as t4 on t3.contextid = t4.id
         WHERE t1.capability in (".$cap.") and t3.userid=$userId and t4.contextlevel = $contextlevel";
         
-
         return $query;
     }
 
@@ -154,16 +136,22 @@ class PersistCtrl extends MoodlePersistCtrl
 
     public function getTemplateList($userId, $limit = 0, $offset = 0){
         
-        $query = "select  t2.id as templateid, t2.creatorid, t2.name as templatename, t2.state as templatestate, t7.fullname as coursename, t7.id as courseid,
+        $capabilities = array(RECITWORKPLAN_ASSIGN_CAPABILITY, RECITWORKPLAN_MANAGE_CAPABILITY);
+        $where = "and (t3.id is null or (t7.category in (".$this->getContextAccessStmt($userId, $capabilities, 40).") or t5.course in (".$this->getContextAccessStmt($userId, $capabilities, 50).")))";
+        $wherenoaccess = "and (t2.creatorid = $userId and (t7.category not in (".$this->getContextAccessStmt($userId, $capabilities, 40).") and t5.course not in (".$this->getContextAccessStmt($userId, $capabilities, 50).")))";
+
+        $subquery = "select t2.id as templateid, t2.creatorid, t2.name as templatename, t2.state as templatestate, t7.fullname as coursename, t7.id as courseid,
         t2.description as templatedesc, t2.communication_url as communication_url, from_unixtime(t2.lastupdate) as lastupdate, t3.cmid, t3.nb_hours_completion as nb_hours_completion, 
-        count(*) OVER() AS total_count, t8.name as categoryname, t3.id as tpl_act_id
+        count(*) OVER() AS total_count, t8.name as categoryname, t3.id as tpl_act_id, %s as has_access
         from  {$this->prefix}recit_wp_tpl as t2 
         left join {$this->prefix}recit_wp_tpl_act as t3 on t3.templateid = t2.id
         left join {$this->prefix}course_modules as t5 on t3.cmid = t5.id
         left join {$this->prefix}course as t7 on t7.id = t5.course
         left join {$this->prefix}course_categories as t8 on t7.category = t8.id
-        left join (".$this->getAdminRolesStmt($userId, array(RECITWORKPLAN_ASSIGN_CAPABILITY, RECITWORKPLAN_MANAGE_CAPABILITY)).") as tblRoles on (t7.category = tblRoles.instanceid and tblRoles.contextlevel = 40) or (t5.course = tblRoles.instanceid and tblRoles.contextlevel = 50)
-        where t2.state = 1";//--left join for templates with no activities, otherwise it'd return null
+        where t2.state = 1 %s";
+        
+        //Fetch templates that user has category / course access with flag '1' union with templates that user created but does not have access anymore with flag '0'
+        $query = sprintf($subquery, '1', $where) . " union ".sprintf($subquery, '0', $wherenoaccess);
 
         if ($limit > 0){
             $offsetsql = $offset * $limit;
@@ -194,6 +182,8 @@ class PersistCtrl extends MoodlePersistCtrl
         global $DB;
 
         $DB->execute("set @uniqueId = 0");
+        $capabilities = array(RECITWORKPLAN_ASSIGN_CAPABILITY, RECITWORKPLAN_MANAGE_CAPABILITY);
+        $where = "and (t4.id is null or (t4.category in (".$this->getContextAccessStmt($userId, $capabilities, 40).") or t3.course in (".$this->getContextAccessStmt($userId, $capabilities, 50).")))";
 
         $query = "select  @uniqueId := @uniqueId + 1 as uniqueId, t1.id as templateid, t1.creatorid, t1.name as templatename, t1.state as templatestate, t1.communication_url as communication_url, t1.description as templatedesc, if(t1.lastupdate > 0, from_unixtime(t1.lastupdate), null) as lastupdate, t4.fullname as coursename, 
         t2.id as tpl_act_id, t2.cmid, t2.nb_hours_completion, t2.slot, t4.id as courseid, t4.shortname as coursename, t5.id as categoryid, t5.name as categoryname
@@ -202,8 +192,7 @@ class PersistCtrl extends MoodlePersistCtrl
         left join {$this->prefix}course_modules as t3 on t2.cmid = t3.id
         left join {$this->prefix}course as t4 on t3.course = t4.id
         left join {$this->prefix}course_categories as t5 on t4.category = t5.id
-        left join (".$this->getAdminRolesStmt($userId, array(RECITWORKPLAN_ASSIGN_CAPABILITY, RECITWORKPLAN_MANAGE_CAPABILITY)).") as tblRoles on (t4.category = tblRoles.instanceid and tblRoles.contextlevel = 40) or (t4.id = tblRoles.instanceid and tblRoles.contextlevel = 50)
-        where t1.id =$templateId
+        where t1.id =$templateId $where
         order by t4.id asc";//--left join for templates with no activities, otherwise it'd return null
 
         $rst = $this->mysqlConn->execSQLAndGetObjects($query);
@@ -533,6 +522,7 @@ class PersistCtrl extends MoodlePersistCtrl
             $roles = array(RECITWORKPLAN_FOLLOW_CAPABILITY);
             $where = " and t1.userid = $userId";
         }
+        $where .= " and (t7.category in (".$this->getContextAccessStmt($userId, $roles, 40).") or t5.course in (".$this->getContextAccessStmt($userId, $roles, 50)."))";
 
         $query = "select t1.id, t1.nb_hours_per_week as nbhoursperweek, t1_1.nb_additional_hours, from_unixtime(t1.startdate) as startdate, 
         t1.completionstate as wpcompletionstate, t2.id as templateid, t2.creatorid, t2.name as templatename, t2.state as templatestate, t2.options as templateoptions,
@@ -557,8 +547,7 @@ class PersistCtrl extends MoodlePersistCtrl
             from {$this->prefix}groups_members t9
             left join {$this->prefix}groups as t10 on t9.groupid = t10.id
             group by t9.userid, t10.courseid) as g on g.userid = t1.userid and g.courseid = t5.course
-        left join {$this->prefix}course_modules_completion as t6 on t5.id = t6.coursemoduleid and t6.userid = users.id 
-        inner join (".$this->getAdminRolesStmt($userId, $roles).") as tblRoles on (t7.category = tblRoles.instanceid and tblRoles.contextlevel = 40) or (t5.course = tblRoles.instanceid and tblRoles.contextlevel = 50)
+        left join {$this->prefix}course_modules_completion as t6 on t5.id = t6.coursemoduleid and t6.userid = users.id
         where t2.id = $templateId $where
         order by t7.id, t7.id asc, users.firstname asc, users.lastname asc ";
         // order by courseid because of get_fast_modinfo
@@ -616,14 +605,11 @@ class PersistCtrl extends MoodlePersistCtrl
         if ($forStudent){
             $wheretmp .= "where userid = $userId";
             $capabilities[] = RECITWORKPLAN_FOLLOW_CAPABILITY;
-            //$capabilitySmt = "inner join (".$this->getAdminRolesStmt($userId, $capabilities).") as tblRoles on (t5.course = tblRoles.instanceid and tblRoles.contextlevel = 50)";
             $where .= " and (t5.course is null or t5.course in (".$this->getContextAccessStmt($userId, $capabilities, 50)."))";
         }else if (in_array($state, array('ongoing','archive'))){
             $wheretmp .= "where creatorid = $userId or FIND_IN_SET('$userId', collaboratorids)";
             $capabilities[] = RECITWORKPLAN_ASSIGN_CAPABILITY;
             $capabilities[] = RECITWORKPLAN_MANAGE_CAPABILITY;
-            // left join required here in order to see work plans without any activity
-            //$capabilitySmt = "left join (".$this->getAdminRolesStmt($userId, $capabilities).") as tblRoles on (t5.course = tblRoles.instanceid and tblRoles.contextlevel = 50)";
             $where .= " and (t5.course is null or t5.course in (".$this->getContextAccessStmt($userId, $capabilities, 50)."))";
         }else if (in_array($state, array('manager'))){
             $capabilities[] = RECITWORKPLAN_MANAGE_CAPABILITY;
@@ -904,6 +890,7 @@ class Template{
     public $creatorId = 0;
     public $collaboratorList = array();
     public $state = 0;
+    public $hasAccess = 1;
     public $lastUpdate = null;
     //@array of TemplateActivity
     public $activities = array();
@@ -921,6 +908,7 @@ class Template{
         $result->communicationUrl = $dbData->communication_url;
         $result->lastUpdate = $dbData->lastupdate;
         $result->state = $dbData->templatestate;
+        if (isset($dbData->has_access)) $result->hasAccess = $dbData->has_access;
         if (isset($dbData->templateoptions)){
             try {
                 $result->options = json_decode($dbData->templateoptions);
