@@ -202,6 +202,7 @@ export class CustomBadgeCompletion extends Component{
 export class CustomFormControl extends Component{
     static defaultProps = {        
         onChange: null,
+        disabled: false,
         name: '',
         className: '',
         style: null,
@@ -219,11 +220,11 @@ export class CustomFormControl extends Component{
         if (this.props.max > 0){
             spreadAttr.maxLength = this.props.max;
         }
-        let textArea = <Form.Control as={this.props.as} rows={this.props.rows} className={`rounded ${this.props.className}`} style={this.props.style} 
+        let textArea = <Form.Control as={this.props.as} rows={this.props.rows} className={`rounded ${this.props.className}`} style={this.props.style} disabled={this.props.disabled}
                 placeholder={this.props.placeholder} value={this.props.value} {...spreadAttr}
                 onBlur={this.props.onBlur} name={this.props.name} onChange={this.props.onChange} />;
 
-        let input = <Form.Control className={`rounded ${this.props.className}`} style={this.props.style} {...spreadAttr}
+        let input = <Form.Control className={`rounded ${this.props.className}`} style={this.props.style} {...spreadAttr} disabled={this.props.disabled}
                 type={this.props.type} placeholder={this.props.placeholder} value={this.props.value} 
                 onBlur={this.props.onBlur} name={this.props.name} onChange={this.props.onChange} />;
 

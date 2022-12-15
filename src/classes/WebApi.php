@@ -314,7 +314,8 @@ class WebApi extends MoodleApi
 
             $result = $this->ctrl->saveTplAct($data);
 
-            $this->ctrl->processWorkPlan($result->templateId);
+            //We do not call processworkplan each time, we only call it when closing the modal
+            //$this->ctrl->processWorkPlan($result->templateId);
 
             return new WebApiResult(true, $result);
         }
@@ -333,7 +334,8 @@ class WebApi extends MoodleApi
             $data->templateId = intval($data->templateId);
             
             $this->ctrl->saveTplActOrder($data);
-            $this->ctrl->processWorkPlan($data->templateId);
+            //We do not call processworkplan each time, we only call it when closing the modal
+            //$this->ctrl->processWorkPlan($data->templateId);
 
             return new WebApiResult(true);
         }
@@ -348,6 +350,19 @@ class WebApi extends MoodleApi
             $tplActId = intval($request['tplActId']);
             $templateId = intval($request['templateId']);
             $this->ctrl->deleteTplAct($tplActId);
+            //We do not call processworkplan each time, we only call it when closing the modal
+            //$this->ctrl->processWorkPlan($templateId);
+            return new WebApiResult(true);
+        }
+        catch(Exception $ex){
+            return new WebApiResult(false, false, $ex->GetMessage());
+        }
+    } 
+    
+    public function processWorkPlan($request){
+        try{
+            $this->canUserAccess('a');
+            $templateId = intval($request['templateId']);
             $this->ctrl->processWorkPlan($templateId);
             return new WebApiResult(true);
         }

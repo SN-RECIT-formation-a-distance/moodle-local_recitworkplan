@@ -33,6 +33,7 @@ export class ActivityPicker extends Component{
             data: null, 
             collapse: true, 
             draggingItem: null, 
+            loading: false,
             showActivityNoAchievement: true,
             dropdownLists: {
                 categoryId: "0", 
@@ -58,7 +59,7 @@ export class ActivityPicker extends Component{
 
         let tmpActivityList = this.state.dropdownLists.activityList.filter(item => {
             if (!this.state.showActivityNoAchievement && parseInt(item.completion) == 0) return false;
-            return (JsNx.getItem(this.state.data.activities, 'cmId', item.id, null) === null && item.sectionId === this.state.dropdownLists.sectionId); 
+            return (JsNx.getItem(this.state.data.activities, 'cmId', parseInt(item.id), null) === null && item.sectionId === this.state.dropdownLists.sectionId); 
         });
 
         let tmpCourseList = this.state.dropdownLists.courseList.filter(item => (item.data.categoryId === this.state.dropdownLists.categoryId));
@@ -139,7 +140,7 @@ export class ActivityPicker extends Component{
                                                             <div>
                                                                 <div><strong>{item.cmName}</strong><span className='ml-2 text-muted'>{item.courseName}</span></div>
                                                                 <div className='d-flex align-items-center'>
-                                                                    <CustomFormControl className='mr-3' style={{width: '100px'}} type="number" placeholder="Durée" value={item.nbHoursCompletion} onBlur={() => this.onSaveTplAct(item)} name="nbHoursCompletion" onChange={(event) => this.onDataChange(event, index)} />
+                                                                    <CustomFormControl className='mr-3' disabled={this.state.loading} style={{width: '100px'}} type="number" placeholder="Durée" value={item.nbHoursCompletion} onBlur={() => this.onSaveTplAct(item)} name="nbHoursCompletion" onChange={(event) => this.onDataChange(event, index)} />
                                                                     <span className='text-muted'>heures</span>
                                                                 </div>
                                                             </div>
@@ -235,7 +236,6 @@ export class ActivityPicker extends Component{
     onDropRow(item, index){
         if(item.id === this.state.draggingItem.id){ return; }
 
-        console.log(index)
         this.setState({flags: {dataChanged: true}}, () => {this.onSaveTplActOrder(this.state.draggingItem.id,  index + 1);});
     }
 
@@ -340,10 +340,11 @@ export class ActivityPicker extends Component{
                 data.id = result.data.templateId;
             }
 
-            that.setState({data: data});
+            that.setState({data: data, loading: false});
         }
 
         if(this.state.flags.dataChanged){
+            this.setState({loading: true});
             $glVars.webApi.saveTplAct({templateId: this.state.data.id, id: tplAct.id, cmId: tplAct.cmId, nbHoursCompletion: tplAct.nbHoursCompletion, slot: tplAct.slot}, callback);
         }
     }
@@ -364,6 +365,9 @@ export class ActivityPicker extends Component{
     }
 
     onClose(){
+        if(this.state.flags.dataChanged){
+            $glVars.webApi.processWorkPlan({templateId: this.state.data.id});
+        }
         this.props.onClose(this.state.flags.dataChanged);
     }
 }

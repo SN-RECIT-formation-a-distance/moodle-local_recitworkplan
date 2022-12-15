@@ -10,7 +10,7 @@ import {VisualFeedback, Loading} from "./libs/components/Components";
 import Utils from "./libs/utils/Utils";
 import './common/i18n';
 import {AdminView} from "./views/WorkPlanView";
-import {$glVars} from "./common/common";
+import {$glVars, Options} from "./common/common";
 import "./css/style.scss";
 import { StudentView } from './views/StudentView';
 import { AdminBlockView, StudentBlockView } from './views/BlockView';
@@ -38,7 +38,10 @@ class App extends Component {
     }
 
     componentDidMount(){
-        $glVars.feedback.addObserver("App", this.onFeedback); 
+        $glVars.feedback.addObserver("App", this.onFeedback);
+        if (this.state.mode  === 'a' || this.state.mode  === 's'){
+            window.document.title = window.document.title + ' - v' + Options.appVersion();
+        }
     }
 
     componentWillUnmount(){

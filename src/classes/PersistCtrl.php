@@ -822,9 +822,9 @@ class PersistCtrl extends MoodlePersistCtrl
         }
     }
 
-    public function addCalendarEvent($templateId, $userId){
+    public function addCalendarEvent($templateId, $studentId){
         global $CFG;
-        $workPlan = $this->getWorkPlan($userId, $templateId);
+        $workPlan = $this->getWorkPlan($studentId, $templateId, true);
         if ($workPlan == null){ return; }
 
         $name = "Fin du plan ".$workPlan->template->name;
@@ -840,7 +840,7 @@ class PersistCtrl extends MoodlePersistCtrl
         $event->format = FORMAT_HTML;
         $event->courseid = 0;
         $event->groupid = 0;
-        $event->userid = $userId;
+        $event->userid = $studentId;
         $event->modulename = '';
         $event->instance = $workPlan->assignments[0]->id;
         $event->timestart = $workPlan->assignments[0]->endDate->getTimestamp();
@@ -980,13 +980,13 @@ class TemplateActivity{
 
     public static function create($dbData){
         $result = new TemplateActivity();
-        $result->id = (isset($dbData->tpl_act_id) ? $dbData->tpl_act_id : $result->id);
-        $result->cmId = (isset($dbData->cmid) ? $dbData->cmid : $result->cmId);
+        $result->id = (isset($dbData->tpl_act_id) ? intval($dbData->tpl_act_id) : $result->id);
+        $result->cmId = (isset($dbData->cmid) ? intval($dbData->cmid) : $result->cmId);
         $result->cmName = (isset($dbData->cmname) ? $dbData->cmname : $result->cmName);
-        $result->slot = (isset($dbData->slot) ? $dbData->slot : $result->slot);
-        $result->courseId = (isset($dbData->courseid) ? $dbData->courseid : $result->courseId);
+        $result->slot = (isset($dbData->slot) ? intval($dbData->slot) : $result->slot);
+        $result->courseId = (isset($dbData->courseid) ? intval($dbData->courseid) : $result->courseId);
         $result->courseName = (isset($dbData->coursename) ? $dbData->coursename : $result->courseName);
-        $result->categoryId = (isset($dbData->categoryid) ? $dbData->categoryid : $result->categoryId);
+        $result->categoryId = (isset($dbData->categoryid) ? intval($dbData->categoryid) : $result->categoryId);
         $result->categoryName = (isset($dbData->categoryname) ? $dbData->categoryname : $result->categoryName);
         $result->nbHoursCompletion = (isset($dbData->nb_hours_completion) ? $dbData->nb_hours_completion : $result->nbHoursCompletion);
 
@@ -1267,7 +1267,7 @@ class MoodleCategory {
 
     public static function create($dbData){
         $cat = new MoodleCategory();
-        $cat->id = $dbData->categoryid;
+        $cat->id = intval($dbData->categoryid);
         $cat->name = $dbData->categoryname;
         $cat->roles = $dbData->categoryroles;
         $cat->parent = $dbData->parent;
@@ -1290,7 +1290,7 @@ class MoodleCourse {
 
     public static function create($dbData){
         $c = new MoodleCourse();
-        $c->id = $dbData->courseid;
+        $c->id = intval($dbData->courseid);
         $c->name = $dbData->coursename;
         $c->roles = $dbData->roles;
         return $c;
@@ -1320,7 +1320,7 @@ class MoodleSection {
 
     public static function create($section, $courseId){
         $c = new MoodleSection();
-        $c->id = $section->section;
+        $c->id = intval($section->section);
         $c->name = get_section_name($courseId, $section->section);
         return $c;
     }
@@ -1340,7 +1340,7 @@ class MoodleCourseModule {
     public static function create($cm){
         $c = new MoodleCourseModule();
         $c->name = $cm->name;
-        $c->id = $cm->id;
+        $c->id = intval($cm->id);
         $c->completion = $cm->completion;
         if ($cm->url){
             $c->url = $cm->url->out();

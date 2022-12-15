@@ -7,10 +7,11 @@ export class Options
     static MAX_AFFECTATIONS = 35;
 
 
+    static appName(){ return packageJson.description; }
     static appVersion(){ return packageJson.version; }
-
+    
     static appTitle(){
-        return "RÉCIT Plan de travail | " + this.appVersion();
+        return this.appName() + " | v" + this.appVersion();
     }
 
     static getGateway(){
