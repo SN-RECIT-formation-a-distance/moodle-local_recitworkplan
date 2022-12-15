@@ -201,7 +201,7 @@ export class ModalAssignmentPicker extends Component{
         for (let item of studentList){
             newItems.push(this.createNewAssignment(item));
         }
-        if (newItems.length >= Options.MAX_AFFECTATIONS){
+        if ((newItems.length + this.state.data.assignments.length) >= Options.MAX_AFFECTATIONS){
             $glVars.feedback.showInfo($glVars.i18n.tags.appName, 'Vous avez atteint la limite d\'affectations.', 3);
             return;
         }
@@ -262,6 +262,9 @@ export class ModalAssignmentPicker extends Component{
     }
 
     onClose(){
+        if(this.state.flags.dataChanged){
+            $glVars.webApi.processWorkPlan({templateId: this.state.data.template.id});
+        }
         this.props.onClose(this.state.flags.dataChanged);
     }
 }

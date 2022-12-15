@@ -28,9 +28,9 @@ export class AppWebApi extends WebApi
         }
     }
     
-    getWorkPlanList(limit, offset, state, forStudent, userId, onSuccess){
+    getWorkPlanList(limit, offset, state, forStudent, userId, onSuccess, feedback){
         let data = {limit: limit, offset: offset, forStudent: forStudent, state: state, userId: userId, service: "getWorkPlanList"};
-        this.post(this.gateway, data, onSuccess);
+        this.post(this.gateway, data, onSuccess, null, feedback);
     }
 
     getWorkPlan(templateId, studentId, onSuccess){
@@ -45,12 +45,12 @@ export class AppWebApi extends WebApi
 
     deleteWorkPlan(templateId, onSuccess){
         let data = {templateId: templateId, service: "deleteWorkPlan"};
-        this.post(this.gateway, data, onSuccess);
+        this.post(this.gateway, data, onSuccess, null, true);
     }
 
     processWorkPlan(templateId, onSuccess){
         let data = {templateId: templateId, service: "processWorkPlan"};
-        this.post(this.gateway, data, onSuccess);
+        this.post(this.gateway, data, onSuccess, null, true);
     }
 
     getStudentList(templateId, onSuccess){
@@ -73,7 +73,7 @@ export class AppWebApi extends WebApi
         };
 
         let options = {data: data, service: "saveTemplate"};
-        this.post(this.gateway, options, onSuccessTmp);
+        this.post(this.gateway, options, onSuccessTmp, null, true);
     }
 
     saveAssignment(data, onSuccess){
@@ -86,12 +86,12 @@ export class AppWebApi extends WebApi
         };
 
         let options = {data: data, service: "saveAssignment"};
-        this.post(this.gateway, options, onSuccessTmp);
+        this.post(this.gateway, options, onSuccessTmp, null, true);
     }
 
     deleteAssignment(assignmentId, onSuccess){
         let data = {assignmentId: assignmentId, service: "deleteAssignment"};
-        this.post(this.gateway, data, onSuccess);
+        this.post(this.gateway, data, onSuccess, null, true);
     }
 
     getAssignmentAdditionalHours(assignmentId, onSuccess){

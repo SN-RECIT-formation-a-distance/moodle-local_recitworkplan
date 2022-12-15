@@ -3,6 +3,8 @@ import { FeedbackCtrl } from '../libs/components/Components';
 import {$glVars, Options, WorkPlanUtils} from '../common/common';
 import {  UtilsDateTime  } from '../libs/utils/Utils';
 import { FollowUpCard, CustomCard, CustomBadgeCompletion, CustomBadge  } from './Components';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 
 export class StudentBlockView extends Component{
     static defaultProps = {        
@@ -14,7 +16,7 @@ export class StudentBlockView extends Component{
         this.getData = this.getData.bind(this);
         this.getDataResult = this.getDataResult.bind(this);
 
-        this.state = {dataProvider: [], templateId: -1, pagination: {current_page: 1, count: 0, item_per_page: 25}};
+        this.state = {dataProvider: [], templateId: -1, pagination: {current_page: 1, count: 0, item_per_page: 25}, loading: true};
         this.viewUrl = Options.recitWorkPlanUrl;
     }
 
@@ -23,7 +25,7 @@ export class StudentBlockView extends Component{
     }
 
     getData(){
-        $glVars.webApi.getWorkPlanList(this.state.pagination.item_per_page, this.state.pagination.current_page - 1, 'ongoing', true, 0, this.getDataResult);
+        $glVars.webApi.getWorkPlanList(this.state.pagination.item_per_page, this.state.pagination.current_page - 1, 'ongoing', true, 0, this.getDataResult, false);
     }
 
     getDataResult(result){
@@ -32,7 +34,7 @@ export class StudentBlockView extends Component{
             return;
         }
 
-        this.setState({dataProvider: result.data.items});
+        this.setState({dataProvider: result.data.items, loading: false});
     }
 
     render(){
@@ -40,7 +42,7 @@ export class StudentBlockView extends Component{
         
         let main = 
             <div>
-
+                {this.state.loading && <FontAwesomeIcon icon={faSpinner} spin={true} className='m-auto' size={'3x'}/>}
                 <div className='tiles'>
                     {dataProvider.map((workPlan, index) => {
                             let assignment = workPlan.assignments[0]; 
@@ -88,7 +90,7 @@ export class AdminBlockView extends Component {
         this.getData = this.getData.bind(this);
         this.getDataResult = this.getDataResult.bind(this);
 
-        this.state = {dataProvider: [], pagination: {current_page: 1, count: 0, item_per_page: 25}};
+        this.state = {dataProvider: [], pagination: {current_page: 1, count: 0, item_per_page: 25}, loading: true};
     }
 
     componentDidMount(){
@@ -96,7 +98,7 @@ export class AdminBlockView extends Component {
     }
 
     getData(){
-        $glVars.webApi.getWorkPlanList(this.state.pagination.item_per_page, this.state.pagination.current_page - 1, 'ongoing', false, 0, this.getDataResult);
+        $glVars.webApi.getWorkPlanList(this.state.pagination.item_per_page, this.state.pagination.current_page - 1, 'ongoing', false, 0, this.getDataResult, false);
     }
 
     getDataResult(result){
@@ -108,12 +110,13 @@ export class AdminBlockView extends Component {
         let pagination = this.state.pagination;
         pagination.current_page = parseInt(result.data.current_offset) + 1; 
         pagination.count = parseInt(result.data.total_count);
-        this.setState({dataProvider: result.data.items, pagination: pagination}); 
+        this.setState({dataProvider: result.data.items, pagination: pagination, loading: false}); 
     }
 
     render() {
         let main = 
             <div className='tiles'>
+            {this.state.loading && <FontAwesomeIcon icon={faSpinner} spin={true} className='m-auto' size={'3x'}/>}
                 {this.state.dataProvider.map((workPlan, index) => {
                         let progress = '0';
                         
@@ -127,7 +130,7 @@ export class AdminBlockView extends Component {
                     }
                 )}
 
-                {this.state.dataProvider.length === 0 && 
+                {!this.state.loading && this.state.dataProvider.length === 0 && 
                         <a  href={Options.recitWorkPlanUrl} className='h5'>Créer un plan de travail...</a>}
             </div>;
 

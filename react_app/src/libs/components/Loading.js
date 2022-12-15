@@ -29,6 +29,6 @@ export class Loading extends Component{
     }
 
     render(){
-        return (<div ref={this.domRef} className="Loading">{this.renderChildren()}</div>);
+        return (<div style={{display: 'none', position: 'fixed',inset: '0px',backgroundColor: 'rgba(0, 0, 0, 0.5)',zIndex: 10770,overflow: 'hidden auto'}} ref={this.domRef}><div className="Loading">{this.renderChildren()}</div></div>);
     }
 }

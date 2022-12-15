@@ -289,7 +289,7 @@ class WorkPlanView extends Component{
             return;
         }
         if(!result.data.data.template){
-            FeedbackCtrl.instance.showError($glVars.i18n.tags.appName, 'Plan de travail invalide.');
+            FeedbackCtrl.instance.showError($glVars.i18n.tags.appName, 'Plan de travail non accessible. Vérifiez vos permissions en validant votre rôle enseignant ou enseignant non éditeur à l\'intérieur des cours');
             return;
         }
         this.setState({data: result.data.data});
