@@ -164,7 +164,7 @@ export class WorkPlanListView extends Component{
                 a.completionState = (archive ? 1 : 0);
                 assignments.push(a);
             }
-            $glVars.webApi.saveAssignment(assignments, callback);
+            $glVars.webApi.saveAssignment(assignments, (archive ? 'delete' : 'archive'), callback);
         }
     }
 
@@ -544,7 +544,8 @@ class WorkPlanAssignmentsView extends Component{
         item.completionState = item.completionState == 4 ? 0 : 4;
         assignments.push(item);
         let callback = (this.props.onRefresh ? this.props.onRefresh : null);
-        $glVars.webApi.saveAssignment(assignments, callback);
+        let calendar = (item.completionState == 4 ? 'delete' : 'update');
+        $glVars.webApi.saveAssignment(assignments, calendar, callback);
     }
     
     onDetail(id){

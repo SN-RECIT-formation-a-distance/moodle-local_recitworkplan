@@ -173,10 +173,18 @@ class WebApi extends MoodleApi
         try{
             $this->canUserAccess('a');
             $data = json_decode(json_encode($request['data']), FALSE);
+            $calendar = $request['calendar'];
             $result = array();
 
             foreach ($data as $item){
                 $result[] = $this->ctrl->saveAssignment($item);
+                if ($calendar == 'update'){
+                    $this->ctrl->deleteCalendarEvent($item->id, $item->user->id);
+                    $this->ctrl->addCalendarEvent($item->templateId, $item->user->id);
+                }
+                else if ($calendar == 'delete'){
+                    $this->ctrl->deleteCalendarEvent($item->id, $item->user->id);
+                }
             }
             
             return new WebApiResult(true, $result);

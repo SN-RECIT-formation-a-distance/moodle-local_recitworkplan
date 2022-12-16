@@ -155,7 +155,7 @@ class PersistCtrl extends MoodlePersistCtrl
 
         if ($limit > 0){
             $offsetsql = $offset * $limit;
-            $query .= " LIMIT $limit OFFSET $offsetsql";
+            //$query .= " LIMIT $limit OFFSET $offsetsql";
         }
 
         $rst = $this->mysqlConn->execSQLAndGetObjects($query);
@@ -716,13 +716,10 @@ class PersistCtrl extends MoodlePersistCtrl
                 $query = $this->mysqlConn->prepareStmt("insert", "{$this->prefix}recit_wp_tpl_assign", $fields, $values);
                 $this->mysqlConn->execSQL($query);
                 $data->id = $this->mysqlConn->getLastInsertId("{$this->prefix}recit_wp_tpl_assign", "id");
-                $this->addCalendarEvent($data->templateId, $data->user->id);
             }
             else{
                 $query = $this->mysqlConn->prepareStmt("update", "{$this->prefix}recit_wp_tpl_assign", $fields, $values, array("id"), array($data->id));
                 $this->mysqlConn->execSQL($query);
-                $this->deleteCalendarEvent($data->id, $data->user->id);
-                $this->addCalendarEvent($data->templateId, $data->user->id);
             }
 
             return $data->id;

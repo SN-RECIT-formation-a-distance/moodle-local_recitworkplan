@@ -257,7 +257,7 @@ export class ModalAssignmentPicker extends Component{
         }
 
         if(this.state.flags.dataChanged){
-            $glVars.webApi.saveAssignment(data, callback);
+            $glVars.webApi.saveAssignment(data, '', callback);
         }
     }
 
@@ -412,7 +412,7 @@ export class ModalAssignmentMassActions extends Component{
         }
 
         if(this.state.flags.dataChanged){
-            $glVars.webApi.saveAssignment(data, callback);
+            $glVars.webApi.saveAssignment(data, null, callback);
         }
     }
 
@@ -443,6 +443,9 @@ export class ModalAssignmentMassActions extends Component{
     }
 
     onClose(){
+        if(this.state.flags.dataChanged){
+            $glVars.webApi.processWorkPlan({templateId: this.state.data.template.id});
+        }
         this.props.onClose(this.state.flags.dataChanged);
     }
 }
@@ -522,7 +525,7 @@ export class ModalAssignmentForm extends Component{
         }
 
         if(this.state.flags.dataChanged){
-            $glVars.webApi.saveAssignment([this.state.data], callback);
+            $glVars.webApi.saveAssignment([this.state.data], 'update', callback);
         }
     }
 

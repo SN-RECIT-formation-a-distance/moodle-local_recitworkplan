@@ -76,7 +76,7 @@ export class AppWebApi extends WebApi
         this.post(this.gateway, options, onSuccessTmp, null, true);
     }
 
-    saveAssignment(data, onSuccess){
+    saveAssignment(data, calendar, onSuccess){
         let that = this;
         let onSuccessTmp = function(result){     
             onSuccess(result);
@@ -85,7 +85,7 @@ export class AppWebApi extends WebApi
             }
         };
 
-        let options = {data: data, service: "saveAssignment"};
+        let options = {data: data, calendar: calendar, service: "saveAssignment"};
         this.post(this.gateway, options, onSuccessTmp, null, true);
     }
 
