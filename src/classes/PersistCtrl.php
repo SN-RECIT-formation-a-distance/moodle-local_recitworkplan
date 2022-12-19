@@ -488,11 +488,14 @@ class PersistCtrl extends MoodlePersistCtrl
         group by cmId, timeModified, userid)";
 
         if(file_exists("{$CFG->dirroot}/mod/recitcahiertraces/")){
+            $version = get_config('mod_recitcahiertraces')->version;
+            $ctid_field = "ctid";
+            if ($version > 2022100102) $ctid_field = "ct_id";
             $stmt .= "union
             (SELECT t3.id as cmId, CONVERT(t1.name USING utf8) as cmName, FROM_UNIXTIME(t1.timemodified) as timeModified, count(*) as nbItems, tuser.userid,
             2 as followup
             FROM {$this->prefix}recitcahiertraces as t1
-            inner join {$this->prefix}recitct_groups as t2 on t1.id = t2.ctid
+            inner join {$this->prefix}recitct_groups as t2 on t1.id = t2.$ctid_field
             left join {$this->prefix}recitct_notes as t4 on t2.id = t4.gid
             left join {$this->prefix}recitct_user_notes as tuser on t4.id = tuser.nid
             inner join {$this->prefix}course_modules as t3 on t1.id = t3.instance and t3.module = (select id from {$this->prefix}modules where name = 'recitcahiertraces') and t1.course = t3.course
