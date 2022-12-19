@@ -164,7 +164,7 @@ export class WorkPlanListView extends Component{
                 a.completionState = (archive ? 1 : 0);
                 assignments.push(a);
             }
-            $glVars.webApi.saveAssignment(assignments, (archive ? 'delete' : 'archive'), callback);
+            $glVars.webApi.saveAssignment(assignments, (archive ? 'delete' : 'update'), callback);
         }
     }
 
