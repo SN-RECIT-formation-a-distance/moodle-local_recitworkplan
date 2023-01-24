@@ -64,8 +64,8 @@ require_login();
 
 // Globals.
 $PAGE->set_url("/local/recitworkplan/view.php"); 
-$PAGE->requires->css(new moodle_url($CFG->wwwroot . '/local/recitworkplan/react_app/index.css?vv='.mt_rand()), true);
-$PAGE->requires->js(new moodle_url($CFG->wwwroot . '/local/recitworkplan/react_app/index.js?vv='.mt_rand(0,1000)), true);
+$PAGE->requires->css(new moodle_url($CFG->wwwroot . '/local/recitworkplan/react/build/index.css'), true);
+$PAGE->requires->js(new moodle_url($CFG->wwwroot . '/local/recitworkplan/react/build/index.js'), true);
 
 // Set page context.
 $PAGE->set_context(\context_system::instance());

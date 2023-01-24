@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "parcel ./src/index.js --out-dir ../src/react_app",
-    "build": "parcel build ./src/index.js --out-dir ../src/react_app"
+    "start": "parcel ./src/index.js --out-dir ./build",
+    "build": "parcel build ./src/index.js --out-dir ./build"
   },
   "keywords": [],
   "author": "",
