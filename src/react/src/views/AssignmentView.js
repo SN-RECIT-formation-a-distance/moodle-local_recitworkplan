@@ -385,7 +385,7 @@ export class ModalAssignmentMassActions extends Component{
             add.additionalHoursReason = this.state.additionalHoursReason;
             add.templateId = this.state.data.template.id;
             newItems.push(add);
-            item.nbAdditionalHours += add.nbAdditionalHours; //Update local cache
+            item.nbAdditionalHours = parseFloat(item.nbAdditionalHours) + add.nbAdditionalHours; //Update local cache
         }
         this.setState({flags: {dataChanged: true}}, () => this.onSaveAdditionalHours(newItems))
     }

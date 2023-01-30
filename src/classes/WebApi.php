@@ -37,10 +37,9 @@ class WebApi extends MoodleApi
     /**
      * $level [a = admin | s = student]
      */
-    public function canUserAccess($level, $cmId = 0, $userId = 0, $courseId = 0){
+    public function canUserAccess($level){
         global $DB;
-        $userId = $this->signedUser->id;
-        $isTeacher = $DB->record_exists_sql('select id from {role_assignments} where userid=:userid and roleid in (select roleid from {role_capabilities} where capability=:name1 or capability=:name2)', ['userid' => $userId, 'name1' => RECITWORKPLAN_ASSIGN_CAPABILITY, 'name2' => RECITWORKPLAN_MANAGE_CAPABILITY]);
+        $isTeacher = $this->ctrl->hasTeacherAccess($this->signedUser->id);
 
         
          // if the level is admin then the user must have access to CAPABILITY
@@ -48,21 +47,21 @@ class WebApi extends MoodleApi
             return true;
         }
         // if the user is student then it has access only if it is accessing its own stuff
-        else if(($level == 's') && ($userId == $this->signedUser->id)){
+        else if(($level == 's')){
             return true;
         }
         else{
-            throw new Exception("L’accès a ce ressource est restreint.");
+            throw new Exception(get_string('accessdenied'));
         }
     }
     
     public function getWorkPlanList($request){
         try{
-            $state = $request['state'];
+            $state = clean_param($request['state'], PARAM_TEXT);
             $forStudent = boolval($request['forStudent']);
-            $limit = intval($request['limit']);
-            $offset = intval($request['offset']);
-            $userId = intval($request['userId']);
+            $limit = clean_param($request['limit'], PARAM_INT);
+            $offset = clean_param($request['offset'], PARAM_INT);
+            $userId = clean_param($request['userId'], PARAM_INT);
             $userId = ($userId == 0 ? $this->signedUser->id : $userId);
 
             if (!$forStudent){
@@ -87,8 +86,8 @@ class WebApi extends MoodleApi
 
     public function getWorkPlan($request){
         try{
-            $templateId = intval($request['templateId']);
-            $studentId = intval($request['studentId']);
+            $templateId = clean_param($request['templateId'], PARAM_INT);
+            $studentId = clean_param($request['studentId'], PARAM_INT);
             $userId = ($studentId == 0 ? $this->signedUser->id : $studentId);
 
             $this->canUserAccess('s'); 
@@ -109,7 +108,7 @@ class WebApi extends MoodleApi
 
             $this->canUserAccess('a');
 
-            $templateId = intval($request['templateId']);
+            $templateId = clean_param($request['templateId'], PARAM_INT);
 
             $result = new stdClass();
             $result->data = ($templateId > 0 ? $this->ctrl->getWorkPlan($this->signedUser->id, $templateId, false) : new WorkPlan());
@@ -119,6 +118,7 @@ class WebApi extends MoodleApi
             return new WebApiResult(true, $result);
         }
         catch(Exception $ex){
+            throw $ex;
             return new WebApiResult(false, false, $ex->GetMessage());
         }
     }
@@ -126,7 +126,7 @@ class WebApi extends MoodleApi
     public function deleteWorkPlan($request){
         try{
             $this->canUserAccess('a');
-            $templateId = intval($request['templateId']);
+            $templateId = clean_param($request['templateId'], PARAM_INT);
             $this->ctrl->deleteWorkPlan($templateId);
             return new WebApiResult(true);
         }
@@ -139,7 +139,7 @@ class WebApi extends MoodleApi
         try{
             $this->canUserAccess('a');
 
-            $templateId = intval($request['templateId']);
+            $templateId = clean_param($request['templateId'], PARAM_INT);
 
             $result = $this->ctrl->getUserList($templateId, RECITWORKPLAN_FOLLOW_CAPABILITY);
 
@@ -156,7 +156,7 @@ class WebApi extends MoodleApi
         try{
             $this->canUserAccess('a');
 
-            $templateId = intval($request['templateId']);
+            $templateId = clean_param($request['templateId'], PARAM_INT);
 
             $result = $this->ctrl->getUserList($templateId, RECITWORKPLAN_ASSIGN_CAPABILITY);
 
@@ -173,7 +173,7 @@ class WebApi extends MoodleApi
         try{
             $this->canUserAccess('a');
             $data = json_decode(json_encode($request['data']), FALSE);
-            $calendar = $request['calendar'];
+            $calendar = clean_param($request['calendar'], PARAM_TEXT);
             $result = array();
 
             foreach ($data as $item){
@@ -197,7 +197,7 @@ class WebApi extends MoodleApi
     public function deleteAssignment($request){
         try{
             $this->canUserAccess('a');
-            $assignmentId = intval($request['assignmentId']);
+            $assignmentId = clean_param($request['assignmentId'], PARAM_INT);
             $this->ctrl->deleteAssignment($assignmentId);
             $this->ctrl->deleteCalendarEvent($assignmentId);
             return new WebApiResult(true);
@@ -210,7 +210,7 @@ class WebApi extends MoodleApi
     public function getAssignmentAdditionalHours($request){
         try{
             $this->canUserAccess('a');
-            $assignmentId = intval($request['assignmentId']);
+            $assignmentId = clean_param($request['assignmentId'], PARAM_INT);
             $result = $this->ctrl->getAssignmentAdditionalHours($assignmentId);
             return new WebApiResult(true, $result);
         }
@@ -243,8 +243,8 @@ class WebApi extends MoodleApi
     public function getCatCourseSectionActivityList($request){   
         try{
             $enrolled = boolval($request['enrolled']);
-            $categoryId = intval($request['categoryId']);
-            $courseId = intval($request['courseId']);
+            $categoryId = clean_param($request['categoryId'], PARAM_INT);
+            $courseId = clean_param($request['courseId'], PARAM_INT);
             
             if($enrolled){
                 $this->canUserAccess('s', 0, $this->signedUser->id);
@@ -267,7 +267,7 @@ class WebApi extends MoodleApi
         try{
             $this->canUserAccess('a');
 
-            $templateId = intval($request['templateId']);
+            $templateId = clean_param($request['templateId'], PARAM_INT);
 
             $result = new stdClass();
             $result->data = ($templateId > 0 ? $this->ctrl->getTemplate($this->signedUser->id, $templateId) : new Template());
@@ -300,8 +300,8 @@ class WebApi extends MoodleApi
     public function cloneTemplate($request){
         try{
             $this->canUserAccess('a');
-            $templateId = intval($request['templateId']);
-            $state = isset($request['state']) ? $request['state'] : null;
+            $templateId = clean_param($request['templateId'], PARAM_INT);
+            $state = isset($request['state']) ? clean_param($request['state'], PARAM_RAW) : null;
             $result = $this->ctrl->cloneTemplate($templateId, $state);
             return new WebApiResult(true, array('id' => $result));
         }
@@ -333,9 +333,9 @@ class WebApi extends MoodleApi
             $this->canUserAccess('a');
 
             $data = json_decode(json_encode($request['data']), FALSE);
-            $data->slot = intval($data->slot);
-            $data->tplActId = intval($data->tplActId);
-            $data->templateId = intval($data->templateId);
+            $data->slot = clean_param($data->slot, PARAM_INT);
+            $data->tplActId = clean_param($data->tplActId, PARAM_INT);
+            $data->templateId = clean_param($data->templateId, PARAM_INT);
             
             $this->ctrl->saveTplActOrder($data);
             //We do not call processworkplan each time, we only call it when closing the modal
@@ -351,8 +351,7 @@ class WebApi extends MoodleApi
     public function deleteTplAct($request){
         try{
             $this->canUserAccess('a');
-            $tplActId = intval($request['tplActId']);
-            $templateId = intval($request['templateId']);
+            $tplActId = clean_param($request['tplActId'], PARAM_INT);
             $this->ctrl->deleteTplAct($tplActId);
             //We do not call processworkplan each time, we only call it when closing the modal
             //$this->ctrl->processWorkPlan($templateId);
@@ -366,7 +365,7 @@ class WebApi extends MoodleApi
     public function processWorkPlan($request){
         try{
             $this->canUserAccess('a');
-            $templateId = intval($request['templateId']);
+            $templateId = clean_param($request['templateId'], PARAM_INT);
             $this->ctrl->processWorkPlan($templateId);
             return new WebApiResult(true);
         }
