@@ -172,7 +172,7 @@ class PersistCtrl extends MoodlePersistCtrl
         $wherenoaccess = "and (t2.creatorid = $userId and (t7.category not in (".$catIds.") and t5.course not in (".$courseIds.")))";
 
         $subquery = "select ". $this->sql_uniqueid() ." uniqueid, t2.id templateid, t2.creatorid, t2.name templatename, t2.state templatestate, t7.fullname coursename, t7.id courseid,
-        t2.description templatedesc, t2.communication_url communicationurl, from_unixtime(t2.lastupdate) lastupdate, t3.cmid, t3.nb_hours_completion nbhourscompletion, 
+        t2.description templatedesc, t2.communication_url communicationurl, t2.lastupdate lastupdate, t3.cmid, t3.nb_hours_completion nbhourscompletion, 
         t8.name categoryname, t3.id tplactid, %s has_access
         from  {recit_wp_tpl} t2 
         left join {recit_wp_tpl_act} t3 on t3.templateid = t2.id
@@ -214,7 +214,7 @@ class PersistCtrl extends MoodlePersistCtrl
         $capabilities = array(RECITWORKPLAN_ASSIGN_CAPABILITY, RECITWORKPLAN_MANAGE_CAPABILITY);
         $where = "and (t4.id is null or (t4.category in (".$this->getContextAccessIds($userId, $capabilities, 40).") or t3.course in (".$this->getContextAccessIds($userId, $capabilities, 50).")))";
 
-        $query = "select ". $this->sql_uniqueid() ." uniqueid, t1.id templateid, t1.creatorid, t1.name templatename, t1.state templatestate, t1.communication_url communicationurl, t1.description templatedesc, (case when t1.lastupdate > 0 then from_unixtime(t1.lastupdate) else null end) lastupdate, t4.fullname coursename, 
+        $query = "select ". $this->sql_uniqueid() ." uniqueid, t1.id templateid, t1.creatorid, t1.name templatename, t1.state templatestate, t1.communication_url communicationurl, t1.description templatedesc, (case when t1.lastupdate > 0 then t1.lastupdate else null end) lastupdate, t4.fullname coursename, 
         t2.id tplactid, t2.cmid, t2.nb_hours_completion nbhourscompletion, t2.slot, t4.id courseid, t4.shortname coursename, t5.id categoryid, t5.name categoryname
         from {recit_wp_tpl} t1
         left join {recit_wp_tpl_act} t2 on t1.id = t2.templateid
@@ -512,7 +512,7 @@ class PersistCtrl extends MoodlePersistCtrl
             1 = à corriger
             2 = rétroaction
             */
-        $stmt = "(SELECT t3.id cm_Id, t1.name cm_Name, FROM_UNIXTIME(min(tuser.timemodified)) time_Modified, count(*) nb_Items, tuser.userid,
+        $stmt = "(SELECT t3.id cm_Id, t1.name cm_Name, min(tuser.timemodified) time_Modified, count(*) nb_Items, tuser.userid,
         1 followup
         FROM {assign} t1
         inner join {assign_submission} tuser on t1.id = tuser.assignment
@@ -540,7 +540,7 @@ class PersistCtrl extends MoodlePersistCtrl
             $ctid_field = "ctid";
             if ($version > 2022100102) $ctid_field = "ct_id";
             $stmt .= "union
-            (SELECT t3.id cm_Id, CONVERT(t1.name USING utf8) cm_Name, FROM_UNIXTIME(t1.timemodified) time_Modified, count(*) nb_Items, tuser.userid,
+            (SELECT t3.id cm_Id, CONVERT(t1.name USING utf8) cm_Name, t1.timemodified time_Modified, count(*) nb_Items, tuser.userid,
             2 followup
             FROM {recitcahiertraces} t1
             inner join {recitct_groups} t2 on t1.id = t2.$ctid_field
@@ -575,14 +575,14 @@ class PersistCtrl extends MoodlePersistCtrl
         }
         $where .= " and (t7.category in (".$this->getContextAccessIds($userId, $roles, 40).") or t5.course in (".$this->getContextAccessIds($userId, $roles, 50)."))";
 
-        $query = "select ". $this->sql_uniqueid() ." uniqueid, t1.id, t1.nb_hours_per_week nbhoursperweek, t1_1.nb_additional_hours nbadditionalhours, from_unixtime(t1.startdate) startdate, 
+        $query = "select ". $this->sql_uniqueid() ." uniqueid, t1.id, t1.nb_hours_per_week nbhoursperweek, t1_1.nb_additional_hours nbadditionalhours, t1.startdate startdate, 
         t1.completionstate wpcompletionstate, t2.id templateid, t2.creatorid, t2.name templatename, t2.state templatestate, t2.options templateoptions,
-        t7.fullname coursename, t7.id courseid, t2.description templatedesc, from_unixtime(t2.lastupdate) lastupdate, t3.cmid,
+        t7.fullname coursename, t7.id courseid, t2.description templatedesc, t2.lastupdate lastupdate, t3.cmid,
         t3.nb_hours_completion nbhourscompletion, t6.completionstate activitycompletionstate, 
         t1.assignorid, t2.collaboratorids, 
         assignor.picture assignorpicture, assignor.imagealt assignorimagealt, assignor.email assignoremail, assignor.alternatename assignoralternatename, assignor.firstname assignorfirstname, assignor.lastname assignorlastname, assignor.lastnamephonetic assignorlastnamephonetic, assignor.firstnamephonetic assignorfirstnamephonetic, 
-        t8.name categoryname, t3.id tplactid, t1.comment comment, t2.communication_url communicationurl, fup.followup, COALESCE(grade.passed, -1) passed, grade.grade, t3.slot,
-        t1.userid, users.firstname, users.lastname, users.picture, users.imagealt, users.email, users.firstnamephonetic, users.lastnamephonetic, users.alternatename, FROM_UNIXTIME(users.lastaccess) lastaccess, g.grouplist
+        t8.name categoryname, t3.id tplactid, t1.comment, t2.communication_url communicationurl, fup.followup, COALESCE(grade.passed, -1) passed, grade.grade, t3.slot,
+        t1.userid, users.firstname, users.lastname, users.picture, users.imagealt, users.email, users.firstnamephonetic, users.lastnamephonetic, users.alternatename, users.lastaccess lastaccess, g.grouplist
         from {recit_wp_tpl} t2
         left join {recit_wp_tpl_assign} t1 on t1.templateid = t2.id
         left join (select sum(nb_additional_hours) nb_additional_hours,assignmentid from {recit_wp_additional_hours} group by assignmentid) t1_1 on t1_1.assignmentid = t1.id
@@ -671,13 +671,13 @@ class PersistCtrl extends MoodlePersistCtrl
         $capabilitySmt
         where $whereaccess";
 
-        $query = "select ". $this->sql_uniqueid() ." uniqueid, t1.id, t1.nb_hours_per_week nbhoursperweek, t1_1.nb_additional_hours nbadditionalhours, from_unixtime(t1.startdate) startdate, 
+        $query = "select ". $this->sql_uniqueid() ." uniqueid, t1.id, t1.nb_hours_per_week nbhoursperweek, t1_1.nb_additional_hours nbadditionalhours, t1.startdate startdate, 
         t1.completionstate wpcompletionstate, t2.id templateid, t2.creatorid creatorid, t2.name templatename, 
         t7.fullname coursename, t7.id courseid, t2.description templatedesc, t2.communication_url communicationurl, 
-        from_unixtime(t2.lastupdate) lastupdate, t3.cmid, t3.nb_hours_completion nbhourscompletion,
+        t2.lastupdate lastupdate, t3.cmid, t3.nb_hours_completion nbhourscompletion,
         t4.id userid, t4.email, t4.firstname, t4.alternatename, t4.lastname,
         t1.assignorid, assignor.picture assignorpicture, assignor.imagealt assignorimagealt, assignor.firstnamephonetic assignorfirstnamephonetic, assignor.alternatename assignoralternatename, assignor.lastnamephonetic assignorlastnamephonetic, assignor.email assignoremail, assignor.firstname assignorfirstname, assignor.lastname assignorlastname, 
-        t6.completionstate activitycompletionstate, t8.name categoryname, t3.id tplactid, t2.state templatestate, t1.comment comment, t2.collaboratorids collaboratorids
+        t6.completionstate activitycompletionstate, t8.name categoryname, t3.id tplactid, t2.state templatestate, t1.comment, t2.collaboratorids collaboratorids
         from {recit_wp_tpl} t2
         left join {recit_wp_tpl_assign} t1 on t1.templateid = t2.id
         left join {recit_wp_tpl_act} t3 on t3.templateid = t2.id
@@ -1123,7 +1123,9 @@ class Assignment{
 
         $result->startDate = $dbData->startdate;
         if (is_string($dbData->startdate)){
-            $result->startDate = new DateTime($dbData->startdate);
+            $date = new DateTime();
+            $date->setTimestamp($dbData->startdate);
+            $result->startDate = $date;
         }
 
         $result->nbHoursPerWeek = floatval($dbData->nbhoursperweek);

@@ -413,7 +413,7 @@ class WorkPlanAssignmentsView extends Component{
                             <option value="progress">Progrès</option>
                             <option value="enddate">Date d'échéance</option>
                         </select>
-                        <ToggleButtons className='ml-2' type="checkbox" defaultValue={this.state.filter} onChange={this.onFilterChange} options={filters}/>
+                        <ToggleButtons className='ml-2' type="checkbox" value={this.state.filter} onChange={this.onFilterChange} options={filters}/>
                     </div>
                 </CustomHeader>            
 
@@ -442,7 +442,7 @@ class WorkPlanAssignmentsView extends Component{
                                         <div>
                                             <a href='#' onClick={() => this.onOpenStudentView(item.user)}><strong>{item.user.firstName}</strong></a>
                                             <span  className='ml-3 text-muted'>Groupe:</span><span className='text-muted'>{` ${item.user.groupList}`}</span>
-                                            <div className='text-muted'>Dernière connexion: {item.user.lastAccess}</div>
+                                            <div className='text-muted'>Dernière connexion: {UtilsDateTime.toTimeString(item.user.lastAccess)}</div>
                                             <div className='text-muted'>{`Début: ${UtilsDateTime.getDate(item.startDate)} (${item.nbHoursPerWeek} h/semaine)`}</div>
                                             <div className='text-muted'>{`Durée: ${txtDuration}`}</div>
                                             <div className='text-muted'><a href='#' onClick={() => this.setState({showAssignmentAdditionalHours: item})}>{`Heures supplémentaires: ${item.nbAdditionalHours}h`}</a></div>
