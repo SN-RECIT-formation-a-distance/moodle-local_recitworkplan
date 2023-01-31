@@ -653,7 +653,7 @@ class PersistCtrl extends MoodlePersistCtrl
             $capabilities[] = RECITWORKPLAN_FOLLOW_CAPABILITY;
             $whereaccess .= " and (t5.course is null or t5.course in (".$this->getContextAccessIds($userId, $capabilities, 50)."))";
         }else if (in_array($state, array('ongoing','archive'))){
-            $where .= " and (t2.creatorid = $userId or FIND_IN_SET('$userId', t2.collaboratorids))";
+            $where .= " and (t2.creatorid = $userId or ".$this->sql_find_in_set($userId, 't2.collaboratorids').")";
             $capabilities[] = RECITWORKPLAN_ASSIGN_CAPABILITY;
             $capabilities[] = RECITWORKPLAN_MANAGE_CAPABILITY;
             $whereaccess .= " and (t5.course is null or t5.course in (".$this->getContextAccessIds($userId, $capabilities, 50)."))";
@@ -811,7 +811,7 @@ class PersistCtrl extends MoodlePersistCtrl
             }
             else{
                 $whereStmt1 = "t1.userid = $userId";
-                $whereStmt2 = "find_in_set($cmId, cmids) > 0";
+                $whereStmt2 = $this->sql_find_in_set($cmId,'cmids');
             }
 
             /**

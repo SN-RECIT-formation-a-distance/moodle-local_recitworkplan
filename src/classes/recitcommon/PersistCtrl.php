@@ -82,6 +82,15 @@ abstract class APersistCtrl
         }
     }
     
+    public function sql_find_in_set(string $tofind, string $field): string {
+        global $CFG;
+        if ($CFG->dbtype == 'pgsql'){
+            return "'$tofind' = ANY (string_to_array($field,','))";
+        }else{
+            return "FIND_IN_SET('$tofind', $field)";
+        }
+    }
+    
     public function sql_uniqueid(): string {
         global $CFG;
         if ($CFG->dbtype == 'pgsql'){
