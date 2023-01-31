@@ -419,18 +419,43 @@ class PersistCtrl extends MoodlePersistCtrl
         return $result;
     }
 
-    protected function createTmpWorkPlanTable($query){
-        global $DB, $CFG;
-        $DB->execute("create temporary table workplans $query");
-    }
-
-    protected function dropTmpWorkPlanTable(){
-        global $DB, $CFG;
-        $DB->execute("drop temporary table workplans");
-    }
-
-    protected function getWorkPlanStats($templateId){
+    protected function getWorkPlanStats($templateId, $userId){
         global $DB;
+
+        $args = array('tpl' => $templateId);
+        $where = "t2.id = :tpl";
+        if ($userId){
+            $where = " and t1.userid = :userid";
+            $args['userid'] = $userId;
+        }
+
+        $DB->execute('CREATE TEMPORARY TABLE workplans
+        (
+           uniqueid VARCHAR(80),
+           nbhoursperweek BIGINT,
+           wpcompletionstate INT,
+           templateid BIGINT,
+           creatorid BIGINT,
+           cmid BIGINT,
+           nbhourscompletion BIGINT,
+           userid BIGINT,
+           activitycompletionstate INT,
+           templatestate INT
+        )');
+        
+        $query = "select ". $this->sql_uniqueid() ." uniqueid, t1.nb_hours_per_week nbhoursperweek,
+        t1.completionstate wpcompletionstate, t2.id templateid, t2.creatorid creatorid, t3.cmid, t3.nb_hours_completion nbhourscompletion,
+        t1.userid, t6.completionstate activitycompletionstate, t2.state templatestate
+        from {recit_wp_tpl} t2
+        left join {recit_wp_tpl_assign} t1 on t1.templateid = t2.id
+        left join {recit_wp_tpl_act} t3 on t3.templateid = t2.id
+        left join {course_modules} t5 on t3.cmid = t5.id
+        left join {course} t7 on t7.id = t5.course
+        left join {course_categories} t8 on t7.category = t8.id
+        left join {course_modules_completion} t6 on t5.id = t6.coursemoduleid and t6.userid = t1.userid
+        where $where";
+        $DB->execute("INSERT INTO workplans $query", $args);
+
         $vars = array($templateId);
         $query = "select count(distinct cmid) nbactivities, count(DISTINCT userid) nbstudents
             from workplans where templateid = ? and nbhourscompletion > 0 group by templateid";
@@ -475,6 +500,8 @@ class PersistCtrl extends MoodlePersistCtrl
         foreach($rst as $r){
             $stats->assignmentcompleted[intval($r->userid)] = intval($r->count);
         }
+
+        $DB->execute("drop table workplans");
 
         return $stats;
     }
@@ -574,11 +601,8 @@ class PersistCtrl extends MoodlePersistCtrl
         left join {course_modules_completion} t6 on t5.id = t6.coursemoduleid and t6.userid = users.id
         where t2.id = $templateId $where
         order by t7.id, t7.id asc, users.firstname asc, users.lastname asc ";
-        // order by courseid because of get_fast_modinfo
-        
-        $this->createTmpWorkPlanTable($query);
 
-        $rst = $this->getRecordsSQL("select * from workplans");
+        $rst = $this->getRecordsSQL($query);
 
         $result = new WorkPlan();
 
@@ -602,14 +626,12 @@ class PersistCtrl extends MoodlePersistCtrl
     
             $result->setAssignmentsEndDate();       
             $result->setHoursLate();
-            $result->stats = $this->getWorkPlanStats($templateId);
+            $result->stats = $this->getWorkPlanStats($templateId, ($isStudent ? $userId : null));
         }
 
         if ($result->template){
             $result->template->orderBySlot();
         }
-
-        $this->dropTmpWorkPlanTable();
 
         return $result; 
     }
