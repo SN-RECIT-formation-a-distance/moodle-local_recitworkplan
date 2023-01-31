@@ -118,6 +118,15 @@ abstract class APersistCtrl
         }
     }
     
+    public function sql_time_to_secs($field): string {
+        global $CFG;
+        if ($CFG->dbtype == 'pgsql'){
+            return "EXTRACT(EPOCH FROM $field)";
+        }else{
+            return "TIME_TO_SEC($field)";
+        }
+    }
+    
     public function sql_datediff($field, $field2): string {
         global $CFG;
         if ($CFG->dbtype == 'pgsql'){

@@ -521,7 +521,7 @@ class ModalTemplateForm extends Component{
                 <Form.Group as={Row}>
                     <Form.Label column sm="3">{"Enregistrer en tant que"}</Form.Label>
                     <Col sm="9">
-                        <ToggleButtons name="state" defaultValue={[data.template.state]} onClick={this.onDataChange} disabled={data.assignments.length > 1}
+                        <ToggleButtons name="state" value={[data.template.state]} onClick={this.onDataChange} disabled={data.assignments.length > 1}
                                 options={[
                                     {value: 0, text:"Plan de travail"},
                                     {value: 1, text:"Gabarit"}

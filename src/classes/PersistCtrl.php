@@ -425,7 +425,7 @@ class PersistCtrl extends MoodlePersistCtrl
         $args = array('tpl' => $templateId);
         $where = "t2.id = :tpl";
         if ($userId){
-            $where = " and t1.userid = :userid";
+            $where .= " and t1.userid = :userid";
             $args['userid'] = $userId;
         }
 
@@ -519,10 +519,10 @@ class PersistCtrl extends MoodlePersistCtrl
         inner join {course_modules} t3 on t1.id = t3.instance and t3.module = (select id from {modules} where name = 'assign') and t1.course = t3.course
         left join {assign_grades} t4 on t4.assignment = tuser.assignment and t4.userid = tuser.userid
         where t3.id in (select cmid from {recit_wp_tpl_act} where templateid = $templateId) and tuser.status = 'submitted' and (coalesce(t4.grade,0) <= 0 or tuser.timemodified > coalesce(t4.timemodified,0))
-        group by t3.id, t1.id, tuser.userid, tuser.timemodified)       
+        group by t3.id, t1.id, tuser.userid)
         union
-        (select cm_Id, cm_Name, time_Modified, count(*) nb_Items, userid, followup from 
-        (SELECT  t1.id cm_Id, t2.name cm_Name, max(t3.timemodified) time_Modified, t3.userid, t3.attempt quizAttempt, t4.questionusageid, ". $this->sql_group_concat('t5.state')." states,
+        (select cm_Id, min(cm_Name), time_Modified, count(*) nb_Items, userid, min(followup) from 
+        (SELECT  t1.id cm_Id, t2.name cm_Name, max(t3.timemodified) time_Modified, t3.userid, min(t3.attempt) quizAttempt, t4.questionusageid, ". $this->sql_group_concat('t5.state')." states,
         1 followup
         FROM 
         {course_modules} t1 
@@ -531,7 +531,7 @@ class PersistCtrl extends MoodlePersistCtrl
         inner join {question_attempts} t4 on  t4.questionusageid = t3.uniqueid
         inner join {question_attempt_steps} t5 on t4.id = t5.questionattemptid
         where t1.id in (select cmid from {recit_wp_tpl_act} where templateid = $templateId)
-        group by t1.id, t2.id, t3.id, t4.id, t3.userid, t3.timemodified) tab
+        group by t1.id, t2.id, t4.id, t3.userid) tab
         where right(states, 12) = 'needsgrading'
         group by cm_Id, time_Modified, userid)";
 
@@ -540,7 +540,7 @@ class PersistCtrl extends MoodlePersistCtrl
             $ctid_field = "ctid";
             if ($version > 2022100102) $ctid_field = "ct_id";
             $stmt .= "union
-            (SELECT t3.id cm_Id, CONVERT(t1.name USING utf8) cm_Name, t1.timemodified time_Modified, count(*) nb_Items, tuser.userid,
+            (SELECT t3.id cm_Id, ".$this->sql_castutf8('t1.name')." cm_Name, t1.timemodified time_Modified, count(*) nb_Items, tuser.userid,
             2 followup
             FROM {recitcahiertraces} t1
             inner join {recitct_groups} t2 on t1.id = t2.$ctid_field
@@ -804,10 +804,11 @@ class PersistCtrl extends MoodlePersistCtrl
     }
 
     public function setAssignmentCompletionState($userId, $cmId, $tplId = 0){
+        $secsInAWeek = 604800;
         try{		
             if($tplId > 0){
                 $whereStmt1 = "t1.templateid = $tplId";
-                $whereStmt2 = "1";
+                $whereStmt2 = "true";
             }
             else{
                 $whereStmt1 = "t1.userid = $userId";
@@ -822,14 +823,14 @@ class PersistCtrl extends MoodlePersistCtrl
             $query = "select assignmentid, templateid,  
             (case 
                 when nbIncompleteAct = 0 then 3 
-                when nb_hours_per_week > 0 and now() > enddate and nbIncompleteAct > 0 then 2 
+                when nb_hours_per_week > 0 and ".$this->sql_time_to_secs('now()')." > enddate and nbIncompleteAct > 0 then 2 
                 else 0 end) completionstate, 
             nbIncompleteAct, startdate, enddate, cmids 
             FROM
-            (select t1.id assignmentId, t1.templateid, from_unixtime(min(t1.startdate)) startdate, 
-            date_add(from_unixtime(min(t1.startdate)), interval greatest(1, sum(t2.nb_hours_completion) / min(t1.nb_hours_per_week)) week) enddate, 
-            sum(if(coalesce(t3.completionstate,0) = 0, 1, 0)) nbIncompleteAct,
-            ". $this->sql_group_concat('DISTINCT t2.cmid')." cmids, t1.nb_hours_per_week
+            (select t1.id assignmentId, t1.templateid, min(t1.startdate) startdate, 
+            (case when t1.nb_hours_per_week > 0 then ".$this->sql_time_to_secs($this->sql_to_time('min(t1.startdate)'))." + (sum(t2.nb_hours_completion) / min(t1.nb_hours_per_week) * ".$secsInAWeek.") else 0 end) enddate, 
+            sum((case when coalesce(t3.completionstate,0) = 0 then 1 else 0 end)) nbIncompleteAct,
+            ". $this->sql_group_concat('t2.cmid')." cmids, t1.nb_hours_per_week
             from mdl_recit_wp_tpl_assign t1 
             inner join mdl_recit_wp_tpl_act t2 on t1.templateid = t2.templateid 
             left join mdl_course_modules_completion t3 on t2.cmid = t3.coursemoduleid and t1.userid = t3.userid           
