@@ -27,3 +27,5 @@ $string['privacy:metadata:recit_wp_tpl_assign'] = 'This table stores assignments
 
 $string['privacy:metadata:recit_wp_additional_hours:nb_additional_hours'] = 'Number of hours added';
 $string['privacy:metadata:recit_wp_additional_hours'] = 'This table stores additional hours added by teacher';
+
+$string['cloned'] = 'Cloned';
