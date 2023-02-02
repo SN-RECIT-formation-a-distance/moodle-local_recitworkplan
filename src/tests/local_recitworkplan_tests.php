@@ -17,7 +17,7 @@
 /**
  * Unit tests.
  *
- * @package local_recitdashboard
+ * @package local_recitworkplan
  * @category test
  * @copyright 2019 RECIT
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later

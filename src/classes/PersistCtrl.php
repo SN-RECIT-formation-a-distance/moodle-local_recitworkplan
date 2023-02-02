@@ -13,11 +13,11 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
- 
+
 /**
- *
- * @copyright  2019 RÉCIT
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package   local_recitworkplan
+ * @copyright 2019 RÉCIT 
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace recitworkplan;
@@ -169,7 +169,7 @@ class PersistCtrl extends MoodlePersistCtrl
         $catIds = $this->getContextAccessIds($userId, $capabilities, 40);
         $courseIds = $this->getContextAccessIds($userId, $capabilities, 50);
         $where = "and (t3.id is null or (t7.category in (".$catIds.") or t5.course in (".$courseIds.")))";
-        $wherenoaccess = "and (t2.creatorid = $userId and (t7.category not in (".$catIds.") and t5.course not in (".$courseIds.")))";
+        $wherenoaccess = "and (t2.creatorid = ? and (t7.category not in (".$catIds.") and t5.course not in (".$courseIds.")))";
 
         $subquery = "select ". $this->sql_uniqueid() ." uniqueid, t2.id templateid, t2.creatorid, t2.name templatename, t2.state templatestate, t7.fullname coursename, t7.id courseid,
         t2.description templatedesc, t2.communication_url communicationurl, t2.lastupdate lastupdate, t3.cmid, t3.nb_hours_completion nbhourscompletion, 
@@ -189,7 +189,7 @@ class PersistCtrl extends MoodlePersistCtrl
             //$query .= " LIMIT $limit OFFSET $offsetsql";
         }
 
-        $rst = $this->getRecordsSQL($query);
+        $rst = $this->getRecordsSQL($query, [$userId]);
 
         $workPlanList = array();
         $total_count = 0;
@@ -221,10 +221,10 @@ class PersistCtrl extends MoodlePersistCtrl
         left join {course_modules} t3 on t2.cmid = t3.id
         left join {course} t4 on t3.course = t4.id
         left join {course_categories} t5 on t4.category = t5.id
-        where t1.id =$templateId $where
+        where t1.id = ? $where
         order by t4.id asc";//--left join for templates with no activities, otherwise it'd return null
 
-        $rst = $this->getRecordsSQL($query);
+        $rst = $this->getRecordsSQL($query, [$templateId]);
 
         $modinfo = null;
         $result = null;
@@ -338,11 +338,10 @@ class PersistCtrl extends MoodlePersistCtrl
 
     public function saveTplActOrder($data){
         try{
-            $query = "UPDATE {recit_wp_tpl_act} SET slot=$data->slot WHERE id=$data->tplActId";
-            $this->execSQL($query);
+            $this->mysqlConn->update_record("recit_wp_tpl_act", array('id' => $data->tplActId, 'slot' => $data->slot));
 
-            $query = "SELECT id, slot FROM {recit_wp_tpl_act} where templateid = $data->templateId and id != $data->tplActId order by slot asc";
-            $activityList = $this->getRecordsSQL($query);
+            $query = "SELECT id, slot FROM {recit_wp_tpl_act} where templateid = ? and id != ? order by slot asc";
+            $activityList = $this->getRecordsSQL($query, [$data->templateId, $data->tplActId]);
                                     
             $slot = 1;
             foreach($activityList as $item){
@@ -350,8 +349,7 @@ class PersistCtrl extends MoodlePersistCtrl
                     $slot++;
                 }
 
-                $query = "UPDATE {recit_wp_tpl_act} SET slot=$slot WHERE id={$item->id}";
-                $this->execSQL($query);
+                $this->mysqlConn->update_record("recit_wp_tpl_act", array('id' => $item->id, 'slot' => $slot));
 
                 $slot++;
             }
@@ -365,7 +363,7 @@ class PersistCtrl extends MoodlePersistCtrl
 
     public function deleteTplAct($tplActId){
         try{
-            $this->execSQL("delete from {recit_wp_tpl_act} where id = $tplActId");
+            $this->execSQL("delete from {recit_wp_tpl_act} where id = ?", [$tplActId]);
             return true;
         }
         catch(\Exception $ex){
@@ -599,10 +597,10 @@ class PersistCtrl extends MoodlePersistCtrl
             left join {groups} t10 on t9.groupid = t10.id
             group by t9.userid, t10.courseid) g on g.userid = t1.userid and g.courseid = t5.course
         left join {course_modules_completion} t6 on t5.id = t6.coursemoduleid and t6.userid = users.id
-        where t2.id = $templateId $where
+        where t2.id = ? $where
         order by t7.id, t7.id asc, users.firstname asc, users.lastname asc ";
 
-        $rst = $this->getRecordsSQL($query);
+        $rst = $this->getRecordsSQL($query, [$templateId]);
 
         $result = new WorkPlan();
 
@@ -726,12 +724,14 @@ class PersistCtrl extends MoodlePersistCtrl
 
     public function deleteWorkPlan($templateId){
         try{
+
+            $args = [$templateId];
             
-            $this->execSQL("delete from {recit_wp_tpl_assign} where templateid = $templateId");
+            $this->execSQL("delete from {recit_wp_tpl_assign} where templateid = ?", $args);
 
-            $this->execSQL("delete from {recit_wp_tpl_act} where templateid = $templateId");
+            $this->execSQL("delete from {recit_wp_tpl_act} where templateid = ?", $args);
 
-            $this->execSQL("delete from {recit_wp_tpl} where id = $templateId");
+            $this->execSQL("delete from {recit_wp_tpl} where id = ?", $args);
 
             return true;
         }
@@ -805,13 +805,16 @@ class PersistCtrl extends MoodlePersistCtrl
 
     public function setAssignmentCompletionState($userId, $cmId, $tplId = 0){
         $secsInAWeek = 604800;
-        try{		
+        try{
+            $args = array();
             if($tplId > 0){
-                $whereStmt1 = "t1.templateid = $tplId";
+                $args['tplid'] = $tplId;
+                $whereStmt1 = "t1.templateid = :tplid";
                 $whereStmt2 = "true";
             }
             else{
-                $whereStmt1 = "t1.userid = $userId";
+                $args['userid'] = $userId;
+                $whereStmt1 = "t1.userid = :userid";
                 $whereStmt2 = $this->sql_find_in_set($cmId,'cmids');
             }
 
@@ -838,7 +841,7 @@ class PersistCtrl extends MoodlePersistCtrl
             group by t1.userid, t1.id) tab
             where $whereStmt2";
            
-            $rst = $this->getRecordsSQL($query);
+            $rst = $this->getRecordsSQL($query, $args);
 
             if(!empty($rst)){
                 foreach($rst as $obj){
