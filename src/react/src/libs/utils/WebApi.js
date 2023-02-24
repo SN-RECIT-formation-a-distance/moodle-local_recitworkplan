@@ -147,6 +147,7 @@ export class WebApi
         }
         
         callbackError = callbackError || this.onError;
+        data.sesskey = M.cfg.sesskey;
         data = JSON.stringify(data);
 
         this.http.send("post", url, data, callbackSuccess, callbackError, this.onComplete, HttpRequest.contentType.json, HttpRequest.responseType.json);
