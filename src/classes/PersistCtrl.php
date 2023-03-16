@@ -380,7 +380,7 @@ class PersistCtrl extends MoodlePersistCtrl
             return $result;
         }
 
-        $query = "select ". $this->sql_uniqueid() ." uniqueid, t1.id, t1.firstname, t1.lastname, t1.picture, 
+        $query = "select ". $this->sql_uniqueid() ." uniqueid, t1.id, t1.firstname, t1.lastname, t1.picture, t3.courseid,
         t1.firstnamephonetic, t1.lastnamephonetic, t1.middlename, t1.alternatename, t1.imagealt, t1.email,
         ". $this->sql_group_concat('t10.name')." grouplist
         from {user} t1
@@ -388,30 +388,27 @@ class PersistCtrl extends MoodlePersistCtrl
         inner join {enrol} t3 on t2.enrolid = t3.id
         left join (select g.name,gm.userid,g.courseid from {groups_members} gm
         inner join {groups} g on gm.groupid = g.id) t10 on t10.courseid = t3.courseid and t10.userid = t2.userid
-        inner join (SELECT t1.id, t1.capability, t2.shortname, t3.contextid, t3.userid, t4.contextlevel, t4.instanceid
-        FROM {role_capabilities} t1 
-        inner join {role} t2 on t1.roleid = t2.id
-        inner join {role_assignments} t3 on t1.roleid = t3.roleid
-        inner join {context} t4 on t3.contextid = t4.id
-        WHERE t1.capability = ?) tblRoles on t3.courseid = tblRoles.instanceid and t1.id = tblRoles.userid
         where t3.courseid in (select st2.course from {recit_wp_tpl_act} st1 
                              inner join {course_modules} st2 on st1.cmid = st2.id 
                              where st1.templateid = ?)
         group by t1.id
         order by firstname, lastname asc";
 
-        $rst = $DB->get_records_sql($query, [$cap, $templateId]);
+        $rst = $DB->get_records_sql($query, [$templateId]);
 
         
 		foreach($rst as $item){
-            $obj = new stdClass();
-            $obj->avatar = $OUTPUT->user_picture($item, array('size'=>30));
-            $obj->userUrl = (new \moodle_url('/user/profile.php', array('id' => $item->id)))->out();
-            $obj->userId = $item->id;
-            $obj->groupList = explode(',',$item->grouplist);
-            $obj->firstName = $item->firstname;
-            $obj->lastName = $item->lastname;
-            $result[] = $obj;
+            $ccontext = \context_course::instance($item->courseid);
+            if (has_capability($cap, $ccontext, $item->id, false)){
+                $obj = new stdClass();
+                $obj->avatar = $OUTPUT->user_picture($item, array('size'=>30));
+                $obj->userUrl = (new \moodle_url('/user/profile.php', array('id' => $item->id)))->out();
+                $obj->userId = $item->id;
+                $obj->groupList = explode(',',$item->grouplist);
+                $obj->firstName = $item->firstname;
+                $obj->lastName = $item->lastname;
+                $result[] = $obj;
+            }
         } 
 
         return $result;
