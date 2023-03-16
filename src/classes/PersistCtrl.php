@@ -424,9 +424,8 @@ class PersistCtrl extends MoodlePersistCtrl
             $args['userid'] = $userId;
         }
 
-        $DB->execute('CREATE TEMPORARY TABLE workplans
+        /*$DB->execute('CREATE TEMPORARY TABLE workplans
         (
-           uniqueid VARCHAR(80),
            nbhoursperweek BIGINT,
            wpcompletionstate INT,
            templateid BIGINT,
@@ -436,9 +435,9 @@ class PersistCtrl extends MoodlePersistCtrl
            userid BIGINT,
            activitycompletionstate INT,
            templatestate INT
-        )');
+        )');*/
         
-        $query = "select ". $this->sql_uniqueid() ." uniqueid, t1.nb_hours_per_week nbhoursperweek,
+        $query = "select t1.nb_hours_per_week nbhoursperweek,
         t1.completionstate wpcompletionstate, t2.id templateid, t2.creatorid creatorid, t3.cmid, t3.nb_hours_completion nbhourscompletion,
         t1.userid, t6.completionstate activitycompletionstate, t2.state templatestate
         from {recit_wp_tpl} t2
@@ -449,7 +448,7 @@ class PersistCtrl extends MoodlePersistCtrl
         left join {course_categories} t8 on t7.category = t8.id
         left join {course_modules_completion} t6 on t5.id = t6.coursemoduleid and t6.userid = t1.userid
         where $where";
-        $DB->execute("INSERT INTO workplans $query", $args);
+        $DB->execute("CREATE TEMPORARY TABLE workplans $query", $args);
 
         $vars = array($templateId);
         $query = "select count(distinct cmid) nbactivities, count(DISTINCT userid) nbstudents

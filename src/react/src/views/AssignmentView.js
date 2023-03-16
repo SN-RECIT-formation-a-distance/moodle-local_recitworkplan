@@ -283,7 +283,7 @@ export class ModalAssignmentPicker extends Component{
 
     onClose(){
         if(this.state.flags.dataChanged){
-            $glVars.webApi.processWorkPlan({templateId: this.state.data.template.id});
+            $glVars.webApi.processWorkPlan(this.state.data.template.id);
         }
         this.props.onClose(this.state.flags.dataChanged);
     }
@@ -464,7 +464,7 @@ export class ModalAssignmentMassActions extends Component{
 
     onClose(){
         if(this.state.flags.dataChanged){
-            $glVars.webApi.processWorkPlan({templateId: this.state.data.template.id});
+            $glVars.webApi.processWorkPlan(this.state.data.template.id);
         }
         this.props.onClose(this.state.flags.dataChanged);
     }
