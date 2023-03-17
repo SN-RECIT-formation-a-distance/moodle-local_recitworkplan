@@ -50,3 +50,5 @@ $string['privacy:metadata:recit_wp_additional_hours:nb_additional_hours'] = 'Num
 $string['privacy:metadata:recit_wp_additional_hours'] = 'This table stores additional hours added by teacher';
 
 $string['cloned'] = 'Cloned';
+$string['servicenotfound'] = 'Service WebApi not found.';
+$string['invalidsesskey'] = 'Invalid Session Key.';

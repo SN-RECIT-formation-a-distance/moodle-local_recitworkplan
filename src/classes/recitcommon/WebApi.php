@@ -97,12 +97,12 @@ abstract class AWebApi
         $sesskey = (isset($this->request['sesskey']) ? clean_param($this->request['sesskey'], PARAM_TEXT) : 'nosesskey'); 
 
         if(!confirm_sesskey($sesskey)){
-            $this->lastResult = new WebApiResult(false, null, get_string('invalidsesskey'));
+            $this->lastResult = new WebApiResult(false, null, get_string('invalidsesskey','local_recitworkplan'));
             return false;
         }
 
         if(!isset($this->request['service'])){
-            $msg = get_string('servicenotfound', 'mod_recitcahiertraces');
+            $msg = get_string('servicenotfound', 'local_recitworkplan');
             $success = false;
 
             if(isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] == "OPTIONS"){

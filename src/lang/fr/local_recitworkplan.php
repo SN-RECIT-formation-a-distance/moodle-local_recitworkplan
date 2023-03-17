@@ -48,3 +48,7 @@ $string['privacy:metadata:recit_wp_tpl_assign'] = 'Cette table stocke les assign
 
 $string['privacy:metadata:recit_wp_additional_hours:nb_additional_hours'] = 'Nombre d\'heures ajoutés';
 $string['privacy:metadata:recit_wp_additional_hours'] = 'Cette table stocke les heures supplémentaires';
+
+$string['cloned'] = 'Cloné';
+$string['servicenotfound'] = 'Service WebApi introuvable.';
+$string['invalidsesskey'] = 'Clé de session invalide.';
