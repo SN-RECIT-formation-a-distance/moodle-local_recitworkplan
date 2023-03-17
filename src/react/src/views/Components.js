@@ -1,3 +1,23 @@
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * @package   local_recitworkplan
+ * @copyright 2019 RÉCIT 
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 import React, { Component } from 'react';
 import { Card, Button, Form, OverlayTrigger, Tooltip} from 'react-bootstrap';
 import { JsNx, UtilsDateTime } from '../libs/utils/Utils';
@@ -32,7 +52,7 @@ export class UserActivityList extends Component{
                     <div className='d-flex align-items-center' style={{justifyContent: 'space-between'}}>
                         <div className='h6 text-muted'>{`${item.categoryName}/${item.courseName}`}</div>                        
                         <div className="text-muted" style={{alignItems: 'center', display: 'flex'}}>
-                            {userActivity.grade && <CustomBadge variant='bg-info' text={userActivity.grade}/>}
+                            {userActivity.grade != null && <CustomBadge variant='bg-info' text={userActivity.grade}/>}
                             {userActivity.completionState > 0 && <CustomBadge variant="completed"/>}
                             {userActivity.followup == 1 && <CustomBadge variant="correction"/>}
                             {userActivity.followup == 2 && <CustomBadge variant="feedback"/>}
@@ -68,6 +88,60 @@ export class CustomCard extends Component{
             </Card>;
 
         return main;
+    }
+}
+
+export class WorkPlanCustomCard extends Component{
+    static defaultProps = {        
+        children: null,
+        data: null
+    };
+
+    constructor(props){
+        super(props);
+        this.state = {data: props.data}
+    }
+
+    componentDidUpdate(prevProps){
+        if (JSON.stringify(prevProps.data) != JSON.stringify(this.props.data)){
+            this.setState({data: this.props.data})
+        }
+    }
+
+    render(){
+        let main = null;
+
+        return main;
+    }
+
+    getDetail(studentId){
+        $glVars.webApi.getWorkPlan(this.state.data.template.id, studentId, (result) =>{
+            if(!result.success){
+                FeedbackCtrl.instance.showError($glVars.i18n.tags.appName, result.msg);
+                return;
+            }
+            let workPlan = result.data;
+            workPlan.lastUpdate = new Date();
+            this.setState({data: workPlan});
+        });
+    }
+
+    getProgress(userId){
+        let workPlan = this.state.data;
+        let progress = {text: '', value: 0};
+                            
+        if(!userId && workPlan.stats && workPlan.stats.nbStudents > 0){
+            progress.text = workPlan.stats.workPlanCompletion/workPlan.stats.nbStudents * 100;
+            progress.value = workPlan.stats.workPlanCompletion/workPlan.stats.nbStudents * 100;
+        }else if (userId && workPlan.stats){
+            progress.text = `0/${workPlan.stats.nbActivities}`;
+            if(workPlan.stats.assignmentcompleted[userId]){
+                progress.value = WorkPlanUtils.getAssignmentProgress(workPlan.template.activities, workPlan.assignments[0]);
+                progress.text = `${workPlan.stats.assignmentcompleted[userId]}/${workPlan.stats.nbActivities}`;
+            }
+            console.log(progress.value)
+        }
+        return progress;
     }
 }
 
@@ -235,23 +309,22 @@ export class CustomFormControl extends Component{
 export class FollowUpCard extends Component{
     static defaultProps = {        
         templateId: 0,
+        onDetail: null,
+        data: null,
+        lastUpdate: 0,
         studentId: 0
     };
 
     constructor(props){
         super(props);
 
-        this.getData = this.getData.bind(this);
-        this.getDataResult = this.getDataResult.bind(this);
-
-        this.state = {data: null, lastUpdate: null};
     }
 
     render(){
         let main = null;
 
-        if(this.state.data !== null){
-            let workPlan = this.state.data;
+        if(this.props.data?.stats){
+            let workPlan = this.props.data;
             let actStats = WorkPlanUtils.getActivityStats(workPlan);
 
             let noResult = !((workPlan.stats && workPlan.stats.nbLateStudents > 0) || (actStats.nbAwaitingGrade > 0) || (actStats.nbFails > 0));
@@ -264,33 +337,20 @@ export class FollowUpCard extends Component{
                     {noResult && 
                         <>
                             <span className='text-muted'>{`Aucun suivi à faire.`}</span><br/>
-                            <span className='text-muted'>{UtilsDateTime.format(this.state.lastUpdate)}</span>
+                            <span className='text-muted'>{UtilsDateTime.format(workPlan.lastUpdate)}</span>
                         </>
                     }
                     <br/>
-                    <CustomButton faIcon={faSyncAlt} title='Rafraichir le suivi des activités' onClick={this.getData}></CustomButton>
+                    <CustomButton faIcon={faSyncAlt} title='Rafraichir le suivi des activités' onClick={this.props.onDetail}></CustomButton>
                 </div>;
         }
         else{
             main = 
                 <div style={{textAlign: 'center'}}>
-                    <CustomButton rounded={false} faIcon={faTasks} className='text-wrap' onClick={this.getData}>{" Suivi des activités"}</CustomButton>    
+                    <CustomButton rounded={false} faIcon={faTasks} className='text-wrap' onClick={this.props.onDetail}>{" Suivi des activités"}</CustomButton>    
                 </div>;
         }
         return main;
-    }
-
-    getData(){
-        $glVars.webApi.getWorkPlan(this.props.templateId, this.props.studentId, this.getDataResult);
-    }
-
-    getDataResult(result){
-        if(!result.success){
-            FeedbackCtrl.instance.showError($glVars.i18n.tags.appName, result.msg);
-            return;
-        }
-
-        this.setState({data: result.data, lastUpdate: new Date()});
     }
 }
 

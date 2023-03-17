@@ -1,9 +1,29 @@
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * @package   local_recitworkplan
+ * @copyright 2019 RÉCIT 
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 import React, { Component } from 'react';
 import { faSyncAlt, faArchive, faArrowLeft, faSync} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {FeedbackCtrl, ToggleButtons} from '../libs/components/Components';
 import {$glVars, WorkPlanUtils} from '../common/common';
-import { UserActivityList, CustomCard, AssignmentFollowUp, CustomBadgeCompletion, CustomHeader, CustomButton, FollowUpCard } from './Components';
+import { UserActivityList, CustomCard, AssignmentFollowUp, CustomBadgeCompletion, CustomHeader, CustomButton, FollowUpCard, WorkPlanCustomCard } from './Components';
 import { UtilsDateTime } from '../libs/utils/Utils';
 
 export class StudentView extends Component {
@@ -26,7 +46,7 @@ export class StudentView extends Component {
                             <span className='h1 mr-3'>Plans de travail</span>
                         </div>
                         <div>
-                            <ToggleButtons name="completionState" onChange={(e) => this.onCompletionStateChange(e)} type="radio" defaultValue={this.state.activeTab} options={
+                            <ToggleButtons name="completionState" onChange={(e) => this.onCompletionStateChange(e)} type="radio" value={this.state.activeTab} options={
                                 [{value: "ongoing", text: <span><FontAwesomeIcon icon={faSyncAlt}  />{" En cours"}</span>}, 
                                 {value: "archive", text: <span><FontAwesomeIcon icon={faArchive}  />{" Archivés"}</span>}]}/>
                         </div>
@@ -72,7 +92,7 @@ export class StudentWorkPlanList extends Component {
         let list = 
             <div className='tiles'>
                 {this.state.dataProvider.map((item, index) => {
-                        let row = <StudentTemplateTile onDetail={this.onDetail} key={index} reportData={item}/>
+                        let row = <StudentTemplateTile onDetail={this.onDetail} key={index} data={item}/>
                         return (row);
                     }
                 )}
@@ -121,30 +141,26 @@ export class StudentWorkPlanList extends Component {
     }
 }
 
-class StudentTemplateTile extends Component {
-    static defaultProps = {        
-        reportData: null,
+class StudentTemplateTile extends WorkPlanCustomCard {
+    static defaultProps = {
+        data: null,
         onDetail: null     
     };
 
     constructor(props) {
         super(props);
-        this.state = {assignment: this.props.reportData.assignments[0]};
+        this.state = {assignment: this.props.data.assignments[0], data: this.props.data};
     }
  
     render() {
-        if (!this.props.reportData) return null;
-        let reportData = this.props.reportData;
-        let progressValue = {text: '', value: 0};
-        let progressText  = `0/${reportData.stats.nbActivities}`;
-        if(reportData.stats.assignmentcompleted[`${this.state.assignment.user.id}`]){
-            progressValue = WorkPlanUtils.getAssignmentProgress(reportData.template.activities, this.state.assignment);
-            progressText = `${reportData.stats.assignmentcompleted[`${this.state.assignment.user.id}`]}/${reportData.stats.nbActivities}`;
-        }
+        if (!this.props.data) return null;
+        let reportData = this.props.data;
+        let studentId = this.state.assignment.user.id;
+        let progress = this.getProgress(studentId);
         let rythmeColor = StudentTemplateTile.getProgressBarRythmColor(reportData, this.state.assignment);
 
         let main = 
-            <CustomCard progressColor={rythmeColor} progressText={progressValue.text} progressValue={`${progressValue.value}%`}>
+            <CustomCard progressColor={rythmeColor} progressText={progress.text} progressValue={`${progress.value}%`}>
                 <div className='mb-3'>
                     <a onClick={() => this.props.onDetail(reportData.template.id)} href='#' className='h4'>{reportData.template.name}</a>
                 </div>
@@ -157,16 +173,16 @@ class StudentTemplateTile extends Component {
                                 <span>{`Attribué par `}</span>
                             </span>
                         </div>
-                        <div className='col-md-7 d-flex align-items-center'>
-                            <CustomBadgeCompletion title="Le nombre d'activités complétées / le nombre d'activités" stats={progressText}/>
-                        </div>
+                        {progress.text.length > 0 && <div className='col-md-7 d-flex align-items-center'>
+                            <CustomBadgeCompletion title="Le nombre d'activités complétées / le nombre d'activités" stats={progress.text}/>
+                        </div>}
                     </div>
                     <div>
                         <div className='text-muted'>{`Échéance: ${UtilsDateTime.getDate(this.state.assignment.endDate)}`}</div>
                         <div className='text-muted'>{`Rythme: ${this.state.assignment.nbHoursPerWeek} (h/semaine)`}</div>
                     </div>
                     <div className="m-3 p-2">
-                        <FollowUpCard templateId={reportData.template.id} studentId={this.state.assignment.user.id}/>
+                        <FollowUpCard templateId={reportData.template.id} studentId={studentId} data={this.state.data} onDetail={() => this.getDetail(studentId)}/>
                     </div>
                 </div>
             </CustomCard>
@@ -264,7 +280,7 @@ export class StudentTemplateDetail extends Component {
 
         let main = <>
         <CustomHeader title="Plan de travail" btnBefore={<CustomButton title="Revenir" onClick={this.props.onBack} faIcon={faArrowLeft}/>} btnAfter={<CustomButton title="Rafraichir" onClick={() => this.getData()} faIcon={faSync}/>}/>            
-            <CustomCard progressColor={rythmeColor} progressText={progressValue.text} progressValue={`${progressValue.value}%`}>
+            <CustomCard progressColor={rythmeColor} progressText={progressText} progressValue={`${progressValue}%`}>
                 <div className='mb-3'>
                     <div className='h4'>{reportData.template.name}</div>
                     <p>{reportData.template.description}</p>

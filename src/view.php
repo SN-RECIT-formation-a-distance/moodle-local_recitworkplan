@@ -24,6 +24,7 @@ namespace recitworkplan;
 
 require_once(__DIR__ . '/../../config.php');
 require_once(__DIR__ . '/lib.php');
+require_once dirname(__FILE__)."/classes/PersistCtrl.php";
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -36,12 +37,11 @@ class MainView{
     public $output = null;
     public $selectedCourseId = 0;
 
-    public function __construct($cfg, $page, $user, $output, $selectedCourseId){
+    public function __construct($cfg, $page, $user, $output){
         $this->cfg = $cfg;
         $this->user = $user;
         $this->page = $page;
         $this->output = $output;
-        $this->selectedCourseId = $selectedCourseId;
     }
 
     public function display(){    
@@ -55,8 +55,9 @@ class MainView{
     }
 
     public function isTeacher(){
-        global $DB;
-        return $DB->record_exists_sql('select id from {role_assignments} where userid=:userid and roleid in (select roleid from {role_capabilities} where capability=:name1 or capability=:name2)', ['userid' => $this->user->id, 'name1' => RECITWORKPLAN_ASSIGN_CAPABILITY, 'name2' => RECITWORKPLAN_MANAGE_CAPABILITY]);
+        global $DB, $USER;
+        $ctrl = PersistCtrl::getInstance($DB, $USER);
+        return $ctrl->hasTeacherAccess($this->user->id);
     }
 }
 
@@ -77,8 +78,7 @@ $PAGE->set_title(get_string('pluginname', 'local_recitworkplan'));
 $PAGE->set_heading(get_string('pluginname', 'local_recitworkplan'));
 
 echo $OUTPUT->header();
-$courseId = (isset($_GET['courseId']) ? $_GET['courseId'] : 0);
-$recitDashboard = new MainView($CFG, $PAGE, $USER, $OUTPUT, $courseId);
+$recitDashboard = new MainView($CFG, $PAGE, $USER, $OUTPUT);
 $recitDashboard->display();
 
 echo $OUTPUT->footer();

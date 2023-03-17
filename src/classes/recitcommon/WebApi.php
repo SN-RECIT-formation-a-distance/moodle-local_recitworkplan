@@ -1,4 +1,24 @@
 <?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * @package   local_recitworkplan
+ * @copyright 2019 RÉCIT 
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 
 namespace recitworkplan;
 
@@ -74,11 +94,18 @@ abstract class AWebApi
     }
 
     public function preProcessRequest(){
+        $sesskey = (isset($this->request['sesskey']) ? clean_param($this->request['sesskey'], PARAM_TEXT) : 'nosesskey'); 
+
+        if(!confirm_sesskey($sesskey)){
+            $this->lastResult = new WebApiResult(false, null, get_string('invalidsesskey'));
+            return false;
+        }
+
         if(!isset($this->request['service'])){
-            $msg =  "Service web non spécifié.";
+            $msg = get_string('servicenotfound', 'mod_recitcahiertraces');
             $success = false;
 
-            if($_SERVER['REQUEST_METHOD'] == "OPTIONS"){
+            if(isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] == "OPTIONS"){
                 $msg = "Replying OPTIONS request";
                 $success = true;
             }
@@ -87,11 +114,6 @@ abstract class AWebApi
 			return false;
         }
 		
-        if(!PersistCtrl::getInstance()->checkSession()){
-            $this->lastResult = new WebApiResult(false, null, "Utilisateur non connecté.");
-            return false;
-        }
-
         return true;
     }
 
@@ -100,7 +122,7 @@ abstract class AWebApi
             return;
         }
 
-        $serviceWanted = $this->request['service'];
+        $serviceWanted = clean_param($this->request['service'], PARAM_TEXT);
 		$result = $this->$serviceWanted($this->request);	
 
         $this->lastResult = $result;
@@ -233,7 +255,5 @@ abstract class MoodleApi extends AWebApi
         PersistCtrl::getInstance($DB, $USER);
     }
 }
-
-date_default_timezone_set("America/New_York");
 
 register_shutdown_function(function(){ return AWebApi::onPhpError(); });

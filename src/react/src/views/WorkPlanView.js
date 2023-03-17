@@ -1,3 +1,23 @@
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * @package   local_recitworkplan
+ * @copyright 2019 RÉCIT 
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 import React, { Component } from 'react';
 import { Card, Tabs, Tab, Button, Form, DropdownButton, Dropdown, ButtonGroup, ToggleButtonGroup, ToggleButton, OverlayTrigger, Tooltip} from 'react-bootstrap';
 import { faPencilAlt,  faPlus, faTrashAlt, faCopy, faCheck, faArrowLeft, faEllipsisV, faSyncAlt, faBookmark, faChevronUp, faChevronDown, faArchive, faChalkboardTeacher, faRedoAlt, faUserFriends, faUserAltSlash, faUserAlt, faClock, faAmericanSignLanguageInterpreting, faCogs, faInfoCircle} from '@fortawesome/free-solid-svg-icons';
@@ -7,7 +27,7 @@ import {$glVars, Options, WorkPlanUtils} from '../common/common';
 import { JsNx, UtilsString, UtilsDateTime } from '../libs/utils/Utils';
 import { Pagination } from '../libs/components/Pagination';
 import {ActivityPicker, WorkPlanTemplateView} from './TemplateView';
-import { UserActivityList, CustomCard, CustomHeader, CustomButton, CustomBadge, CustomBadgeCompletion, CustomFormControl, FollowUpCard, AssignmentFollowUp  } from './Components';
+import { UserActivityList, CustomCard, CustomHeader, CustomButton, CustomBadge, CustomBadgeCompletion, CustomFormControl, FollowUpCard, AssignmentFollowUp, WorkPlanCustomCard  } from './Components';
 import { ModalAssignmentPicker, ModalAssignmentForm, ModalAssignmentAdditionalHoursForm, ModalAssignmentMassActions, ModalAssignmentAdditionalHoursHistory } from './AssignmentView';
 import {StudentWorkPlanList} from './StudentView';
 
@@ -65,7 +85,7 @@ export class WorkPlanListView extends Component{
         let pagination = this.state.pagination;
         pagination.current_page = parseInt(result.data.current_offset) + 1; 
         pagination.count = parseInt(result.data.total_count);
-        this.setState({dataProvider: result.data.items, pagination: pagination}); 
+        this.setState({dataProvider: result.data.items, pagination: pagination});
     }
 
     changePage(page){
@@ -85,7 +105,7 @@ export class WorkPlanListView extends Component{
         let main = 
             <div>
                 <CustomHeader title="Plans de travail" btnAfter={<CustomButton title='Créer un plan de travail.' onClick={this.onAdd} ><FontAwesomeIcon icon={faPlus}/></CustomButton>}>
-                    <ToggleButtons name="completionState" onClick={this.onCompletionStateChange} type="radio" defaultValue={this.state.activeTab} options={[
+                    <ToggleButtons name="completionState" onClick={this.onCompletionStateChange} type="radio" value={this.state.activeTab} options={[
                             {value: "ongoing", text: <span><FontAwesomeIcon icon={faSyncAlt} />{" En cours"}</span>}, 
                             {value: "archive", text:  <span><FontAwesomeIcon icon={faArchive} />{" Archivés"}</span>}, 
                             {value: "template", text: <span><FontAwesomeIcon icon={faBookmark} />{" Gabarits"}</span>},
@@ -95,13 +115,8 @@ export class WorkPlanListView extends Component{
 
                 <div className='tiles'>
                     {dataProvider.map((workPlan, index) => {
-                            let progress = '0';
-                            
-                            if(workPlan.stats && workPlan.stats.nbStudents > 0){
-                                progress = workPlan.stats.workPlanCompletion/workPlan.stats.nbStudents * 100;
-                            }
 
-                            let card = <WorkPlanCard key={index} data={workPlan} progress={progress} onCopy={this.onCopy} onDelete={this.onDelete} onEdit={this.onEdit} onArchive={this.onArchive}/>;
+                            let card = <WorkPlanCard key={index} data={workPlan} onCopy={this.onCopy} onDelete={this.onDelete} onEdit={this.onEdit} onArchive={this.onArchive}/>;
                                 
                             return (card);                                     
                         }
@@ -187,18 +202,17 @@ export class WorkPlanListView extends Component{
     }
 }
 
-class WorkPlanCard extends Component{
+class WorkPlanCard extends WorkPlanCustomCard{
     static defaultProps = {        
         data: null,
         onEdit: null,
         onCopy: null,
         onDelete: null,
         onArchive: null,
-        progress: ''
     };
 
     render(){
-        let workPlan = this.props.data;
+        let workPlan = this.state.data;
         let hasAccess = workPlan.template.hasAccess == 1;
         /*
                 <div className="m-2 p-2">
@@ -208,9 +222,9 @@ class WorkPlanCard extends Component{
                     {workPlan.template.state != 1 && !WorkPlanUtils.isArchived(JsNx.at(workPlan.assignments, 0, null)) && <CustomButton title='Attribuer un plan de travail.'  onClick={() => this.props.onEdit(workPlan.template.id, 'assignments')} faIcon={faPlus}/>}
                 </div>
                 */
-
+        let progress = this.getProgress()
         let main =
-            <CustomCard progressText={`${this.props.progress}%`} progressValue={`${this.props.progress}%`}>
+            <CustomCard progressText={`${progress.text}%`} progressValue={`${progress.value}%`}>
                 <div className='d-flex mb-2' style={{justifyContent: 'space-between'}}>
                     {hasAccess && <a href='#' onClick={() => this.props.onEdit(workPlan.template.id, 'activities')} className='h4'>{workPlan.template.name}</a>}
                     {!hasAccess && <span className='h4 text-muted'>{workPlan.template.name} <OverlayTrigger overlay={
@@ -242,7 +256,7 @@ class WorkPlanCard extends Component{
                     </div>
                 {!WorkPlanUtils.isArchived(JsNx.at(workPlan.assignments, 0, null)) &&
                     <div className="m-3 p-2">
-                        <FollowUpCard templateId={workPlan.template.id}/>
+                        <FollowUpCard templateId={workPlan.template.id} data={workPlan} onDetail={() => this.getDetail(0)}/>
                     </div>
                 }
             </CustomCard>;
@@ -419,17 +433,17 @@ class WorkPlanAssignmentsView extends Component{
                             <option value="progress">Progrès</option>
                             <option value="enddate">Date d'échéance</option>
                         </select>
-                        <ToggleButtons className='ml-2' type="checkbox" defaultValue={this.state.filter} onChange={this.onFilterChange} options={filters}/>
+                        <ToggleButtons className='ml-2' type="checkbox" value={this.state.filter} onChange={this.onFilterChange} options={filters}/>
                     </div>
                 </CustomHeader>            
 
                 <div>
                     {assignments.map((item, index) => {
-                            let progressValue = {text: '', value: 0};
+                            let progressValue = 0;
                             let progressText  = `0/${data.stats.nbActivities}`;
                             if(data.stats.assignmentcompleted[`${item.user.id}`]){
                                 progressValue = WorkPlanUtils.getAssignmentProgress(data.template.activities, item);
-                                progressText = `${data.stats.assignmentcompleted[`${item.user.id}`]}/${data.stats.nbActivities}`;
+                                progressText = `${data.stats.assignmentcompleted[item.user.id]}/${data.stats.nbActivities}`;
                             }
                             
                             let nbHoursCompletionTotal = 0;
@@ -440,7 +454,7 @@ class WorkPlanAssignmentsView extends Component{
                             let txtDuration = (item.nbHoursPerWeek > 0 ? `${Math.ceil(nbHoursCompletionTotal / item.nbHoursPerWeek)} semaines` : '');
 
                             let card = 
-                                <CustomCard key={index} progressText={progressValue.text} progressValue={`${progressValue.value}%`}>
+                                <CustomCard key={index} progressText={progressText} progressValue={`${progressValue}%`}>
                                     <div className='grid-assignments'>
                                         <div>
                                             <span dangerouslySetInnerHTML={{__html: item.user.avatar}}></span>
@@ -448,7 +462,7 @@ class WorkPlanAssignmentsView extends Component{
                                         <div>
                                             <a href='#' onClick={() => this.onOpenStudentView(item.user)}><strong>{item.user.firstName}</strong></a>
                                             <span  className='ml-3 text-muted'>Groupe:</span><span className='text-muted'>{` ${item.user.groupList}`}</span>
-                                            <div className='text-muted'>Dernière connexion: {item.user.lastAccess}</div>
+                                            <div className='text-muted'>Dernière connexion: {UtilsDateTime.toTimeString(item.user.lastAccess)}</div>
                                             <div className='text-muted'>{`Début: ${UtilsDateTime.getDate(item.startDate)} (${item.nbHoursPerWeek} h/semaine)`}</div>
                                             <div className='text-muted'>{`Durée: ${txtDuration}`}</div>
                                             <div className='text-muted'><a href='#' onClick={() => this.setState({showAssignmentAdditionalHours: item})}>{`Heures supplémentaires: ${item.nbAdditionalHours}h`}</a></div>
@@ -483,7 +497,7 @@ class WorkPlanAssignmentsView extends Component{
                                     </div>
                                     <div className='mt-3 d-flex align-items-center'>
                                         <strong>{"Activités"}</strong>
-                                        <Button variant='link'  onClick={() => this.onDetail(this.state.detail == item.id ? -1 : item.id)}><FontAwesomeIcon icon={this.state.detail == item.id ? faChevronUp : faChevronDown}/></Button>
+                                        <Button variant='link' onClick={() => this.onDetail(this.state.detail == item.id ? -1 : item.id)}><FontAwesomeIcon icon={this.state.detail == item.id ? faChevronUp : faChevronDown}/></Button>
                                     </div>  
                                     {this.state.detail == item.id && 
                                         <div style={{width:'100%'}}>
