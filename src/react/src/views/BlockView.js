@@ -201,7 +201,6 @@ export class WorkPlanCardBlock extends Component{
 
         let main = <WorkPlanCollapsible progress={progress} data={workPlan} onClick={this.onClick}
                             contentCollapsible={content} onDetail={this.onDetail}/>;
-
         return main;
     }
 

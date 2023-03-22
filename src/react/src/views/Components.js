@@ -118,20 +118,20 @@ export class WorkPlanCollapsible extends Component{
 
         this.onCollapse = this.onCollapse.bind(this);
 
-        this.state = {data: props.data, collapse: false}
+        this.state = {collapse: false}
     }
 
-    /*componentDidUpdate(prevProps){
-        if (prevProps.data.template.id != this.props.data.template.id){
-            this.setState({data: this.props.data, collapse: false})
+    componentDidUpdate(prevProps){
+        if(JSON.stringify(prevProps.data) !== JSON.stringify(this.props.data)){
+            this.setState({data: this.props.data})
         }
-    }*/
-
+    }
+    
     render(){
-        let workPlan = this.state.data;
+        let workPlan = this.props.data;
         let hasAccess = workPlan.template.hasAccess == 1;
         let progress = this.props.progress;
-
+        
         let main =
             <CustomCard progressColor={progress.color} progressText={`${progress.text}%`} progressValue={`${progress.value}%`}>
                 <div className='d-flex mb-2' style={{justifyContent: 'space-between'}}>
@@ -167,6 +167,7 @@ export class WorkPlanCollapsible extends Component{
         if(!this.state.collapse){
             this.getDetail();
         }
+       
         this.setState({collapse: !this.state.collapse})
     }
 
@@ -174,7 +175,7 @@ export class WorkPlanCollapsible extends Component{
         let studentId = this.props.studentId;
 
         let that = this;
-        $glVars.webApi.getWorkPlan(this.state.data.template.id, studentId, (result) =>{
+        $glVars.webApi.getWorkPlan(this.props.data.template.id, studentId, (result) =>{
             if(!result.success){
                 FeedbackCtrl.instance.showError($glVars.i18n.tags.appName, result.msg);
                 return;
@@ -186,8 +187,6 @@ export class WorkPlanCollapsible extends Component{
             if(that.props.onDetail){
                 that.props.onDetail(workPlan);
             }
-
-            this.setState({data: workPlan});
         });
     }
 }

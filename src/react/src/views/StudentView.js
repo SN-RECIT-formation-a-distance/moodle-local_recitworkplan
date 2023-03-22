@@ -155,6 +155,12 @@ class StudentTemplateTile extends WorkPlanCustomCard {
 
         this.state = {assignment: props.data.assignments[0], data: props.data};
     }
+
+    componentDidUpdate(prevProps){
+        if (JSON.stringify(prevProps.data) != JSON.stringify(this.props.data)){
+            this.setState({data: this.props.data})
+        }
+    }
  
     render() {
         if (!this.state.data) return null;
