@@ -219,6 +219,12 @@ class WorkPlanCard extends Component{
         this.state = {data: props.data};
     }
 
+    componentDidUpdate(prevProps){
+        if(JSON.stringify(prevProps.data) !== JSON.stringify(this.props.data)){
+            this.setState({data: this.props.data});
+        }
+    }
+
     render(){
         let workPlan = this.state.data;
         let hasAccess = workPlan.template.hasAccess == 1;

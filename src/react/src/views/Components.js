@@ -122,8 +122,8 @@ export class WorkPlanCollapsible extends Component{
     }
 
     componentDidUpdate(prevProps){
-        if(JSON.stringify(prevProps.data) !== JSON.stringify(this.props.data)){
-            this.setState({data: this.props.data})
+        if(JSON.stringify(prevProps.data.template.id) !== JSON.stringify(this.props.data.template.id)){
+            this.setState({collapse: false});
         }
     }
     
@@ -135,7 +135,7 @@ export class WorkPlanCollapsible extends Component{
         let main =
             <CustomCard progressColor={progress.color} progressText={`${progress.text}%`} progressValue={`${progress.value}%`}>
                 <div className='d-flex mb-2' style={{justifyContent: 'space-between'}}>
-                    {hasAccess && <a href='#' onClick={this.props.onClick} className='h4'>{workPlan.template.name}</a>}
+                    {hasAccess && <a href='#' onClick={this.props.onClick} className='h5'>{workPlan.template.name}</a>}
                     
                     {!hasAccess && <span className='h4 text-muted'>{workPlan.template.name} <OverlayTrigger overlay={
                                             <Tooltip>Vous êtes créateur de ce plan, mais vous n'avez pas accès aux cours.</Tooltip>}>
