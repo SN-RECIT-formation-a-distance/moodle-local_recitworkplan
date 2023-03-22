@@ -550,9 +550,10 @@ class PersistCtrl extends MoodlePersistCtrl
     }
 
     public function getWorkGradeStmt($templateId){
-        $stmt = "SELECT t3.id cmid, t2.userid, t2.finalgrade, ". $this->mysqlConn->sql_concat('ROUND(t2.rawgrade,2)',"'/'",'ROUND(t2.rawgrademax,2)')." grade, t1.itemname, (case when t2.finalgrade is null then -1 else (case when t2.finalgrade >= t1.gradepass then 1 else 0 end) end) passed FROM {grade_items} t1
+        $stmt = "SELECT t3.id cmid, t2.userid, t2.finalgrade, ". $this->mysqlConn->sql_concat('ROUND(t2.rawgrade,2)',"'/'",'ROUND(t2.rawgrademax,2)')." grade, t1.itemname, (case when t2.finalgrade is null then -1 else (case when t2.finalgrade >= t1.gradepass then 1 else 0 end) end) passed 
+        FROM {grade_items} t1
         INNER JOIN {grade_grades} t2 ON t2.itemid = t1.id and t1.itemtype = 'mod'
-        INNER JOIN {course_modules} t3 ON t1.iteminstance = t3.instance
+        INNER JOIN {course_modules} t3 ON t1.iteminstance = t3.instance and t1.courseid = t3.course and t3.module = (select id from mdl_modules where name = t1.itemmodule)
         where t3.id in (select cmid from {recit_wp_tpl_act} where templateid = $templateId) and t1.gradepass > 0 and t2.rawgrade is not null order by t2.id desc
         ";
          
@@ -752,7 +753,7 @@ class PersistCtrl extends MoodlePersistCtrl
             }
             else{
                 $values['id'] = $data->id;
-                $query = $this->mysqlConn->update_record("recit_wp_tpl_assign", $values);
+                $this->mysqlConn->update_record("recit_wp_tpl_assign", $values);
             }
 
             return $data->id;
@@ -767,8 +768,7 @@ class PersistCtrl extends MoodlePersistCtrl
 
             $values = array('assignmentid' => $data->id, 'assignorid' => $this->signedUser->id, 'nb_additional_hours' => $data->nbAdditionalHours, 'lastupdate' => time(), 'comment' => $data->additionalHoursReason);
 
-            $query = $this->mysqlConn->insert_record("recit_wp_additional_hours", $values);
-            
+            $this->mysqlConn->insert_record("recit_wp_additional_hours", $values);
 
             return true;
         }

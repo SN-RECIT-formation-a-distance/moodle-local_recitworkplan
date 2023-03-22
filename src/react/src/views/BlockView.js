@@ -22,9 +22,10 @@ import React, { Component } from 'react';
 import { FeedbackCtrl } from '../libs/components/Components';
 import {$glVars, Options, WorkPlanUtils} from '../common/common';
 import {  UtilsDateTime  } from '../libs/utils/Utils';
-import { FollowUpCard, CustomCard, CustomBadgeCompletion, CustomBadge, WorkPlanCustomCard  } from './Components';
+import { FollowUpCard, CustomCard, CustomBadgeCompletion, CustomBadge, WorkPlanCustomCard, WorkPlanCollapsible  } from './Components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSpinner } from '@fortawesome/free-solid-svg-icons';
+import { faSpinner, faTasks } from '@fortawesome/free-solid-svg-icons';
+import { Button, Collapse } from 'react-bootstrap';
 
 export class StudentBlockView extends Component{
     static defaultProps = {        
@@ -77,37 +78,54 @@ export class StudentBlockView extends Component{
     }
 
 }
+
 export class WorkPlanStudentCardBlock extends WorkPlanCustomCard{
     static defaultProps = {        
         data: null,
     };
 
+    constructor(props){
+        super(props);
+
+        this.onDetail = this.onDetail.bind(this);
+        this.onClick = this.onClick.bind(this);
+
+        this.state = {data: props.data};
+    }
+
     render(){
-        let viewUrl = Options.recitWorkPlanUrl;
         let workPlan = this.state.data;
-        let assignment = workPlan.assignments[0]; 
-        let studentId = assignment.user.id;
-        let progress = this.getProgress(studentId);
+        console.log(workPlan)
+        let assignment = workPlan.assignments[0];
+        let studentId = 0;
+        let progress = WorkPlanUtils.getWorkPlanProgress(null, studentId);
+        let content = null;
+        
+        if(assignment){
+            studentId = assignment.user.id;
+            progress = WorkPlanUtils.getWorkPlanProgress(workPlan, studentId);
+    
+            content =
+                <>
+                    <CustomBadgeCompletion title="Le nombre d'activités complétées / le nombre d'activités" stats={progress.text}/> <br/>
+                    {assignment.endDate && <div className='text-muted'>{`Échéance: ${UtilsDateTime.getDate(assignment.endDate)}`}</div>}<br/>
+                    <FollowUpCard data={workPlan}/>
+                </>;
+        }
+       
 
-
-        let main =
-        <CustomCard progressText={`${progress.text}`} progressValue={`${progress.value}%`}>
-            <div className='d-flex' style={{justifyContent: 'space-between'}}>
-                <a href={viewUrl+'?id='+workPlan.template.id} className='h3'>{workPlan.template.name}</a>
-            </div>       
-            <div className='m-1 p-1'>
-                <CustomBadgeCompletion title="Le nombre d'activités complétées / le nombre d'activités" stats={progress.text}/> 
-            </div>
-            <div className="m-1 p-1">
-                {assignment.endDate && <div className='text-muted'>{`Échéance: ${UtilsDateTime.getDate(assignment.endDate)}`}</div>}
-            </div>
-
-            <div className="m-3 p-2">
-                <FollowUpCard templateId={workPlan.template.id} studentId={studentId} detail={workPlan} onDetail={() => this.getDetail(studentId)}/>
-            </div>
-        </CustomCard>;
+        let main = <WorkPlanCollapsible progress={progress} data={workPlan} onClick={this.onClick}
+                        contentCollapsible={content} onDetail={this.onDetail} studentId={studentId}/>;
 
         return main;
+    }
+
+    onClick(){
+        window.location.href=`${Options.recitWorkPlanUrl}?id=${this.state.data.template.id}`;
+    }
+
+    onDetail(data){
+        this.setState({data: data});
     }
 }
 
@@ -161,30 +179,37 @@ export class AdminBlockView extends Component {
     }
 }
 
-export class WorkPlanCardBlock extends WorkPlanCustomCard{
+export class WorkPlanCardBlock extends Component{
     static defaultProps = {        
         data: null,
     };
 
+    constructor(props){
+        super(props);
+
+        this.onDetail = this.onDetail.bind(this);
+        this.onClick = this.onClick.bind(this);
+
+        this.state = {data: props.data};
+    }
+
     render(){
         let workPlan = this.state.data;
-        let progress = this.getProgress()
+        let progress = WorkPlanUtils.getWorkPlanProgress(workPlan);
 
-        let main =
-            <CustomCard progressText={`${progress.text}%`} progressValue={`${progress.value}%`}>
-                <div className='d-flex' style={{justifyContent: 'space-between'}}>
-                    <a href={Options.recitWorkPlanUrl + '?id=' + workPlan.template.id} className='h3'>{workPlan.template.name}</a>
-                </div> 
-                {workPlan.stats && workPlan.stats.nbStudents > 0 && 
-                    <div className="p-2 text-muted row">
-                        <CustomBadgeCompletion title="Le nombre d'élèves qui ont complété le plan de travail / le nombre total d'élèves assigné au plan de travail" stats={`${workPlan.stats.workPlanCompletion}/${workPlan.stats.nbStudents}`}/>
-                    </div>
-                }
-                 <div className="m-3 p-2">
-                    <FollowUpCard templateId={workPlan.template.id} data={workPlan} onDetail={this.props.onDetail}/>
-                </div>  
-            </CustomCard>;
+        let content = <FollowUpCard data={workPlan}/>;
+
+        let main = <WorkPlanCollapsible progress={progress} data={workPlan} onClick={this.onClick}
+                            contentCollapsible={content} onDetail={this.onDetail}/>;
 
         return main;
+    }
+
+    onClick(){
+        window.location.href=`${Options.recitWorkPlanUrl}?id=${this.state.data.template.id}`;
+    }
+
+    onDetail(data){
+        this.setState({data: data});
     }
 }

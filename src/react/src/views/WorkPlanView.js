@@ -19,15 +19,15 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 import React, { Component } from 'react';
-import { Card, Tabs, Tab, Button, Form, DropdownButton, Dropdown, ButtonGroup, ToggleButtonGroup, ToggleButton, OverlayTrigger, Tooltip} from 'react-bootstrap';
-import { faPencilAlt,  faPlus, faTrashAlt, faCopy, faCheck, faArrowLeft, faEllipsisV, faSyncAlt, faBookmark, faChevronUp, faChevronDown, faArchive, faChalkboardTeacher, faRedoAlt, faUserFriends, faUserAltSlash, faUserAlt, faClock, faAmericanSignLanguageInterpreting, faCogs, faInfoCircle} from '@fortawesome/free-solid-svg-icons';
+import { Card, Tabs, Tab, Button, Form, DropdownButton, Dropdown, ButtonGroup, ToggleButtonGroup, ToggleButton, OverlayTrigger, Tooltip, Collapse} from 'react-bootstrap';
+import { faPencilAlt,  faPlus, faTrashAlt, faCopy, faTasks, faArrowLeft, faEllipsisV, faSyncAlt, faBookmark, faChevronUp, faChevronDown, faArchive, faChalkboardTeacher, faRedoAlt, faUserFriends, faUserAltSlash, faUserAlt, faClock, faAmericanSignLanguageInterpreting, faCogs, faInfoCircle} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { FeedbackCtrl, ToggleButtons, Modal } from '../libs/components/Components';
 import {$glVars, Options, WorkPlanUtils} from '../common/common';
 import { JsNx, UtilsString, UtilsDateTime } from '../libs/utils/Utils';
 import { Pagination } from '../libs/components/Pagination';
 import {ActivityPicker, WorkPlanTemplateView} from './TemplateView';
-import { UserActivityList, CustomCard, CustomHeader, CustomButton, CustomBadge, CustomBadgeCompletion, CustomFormControl, FollowUpCard, AssignmentFollowUp, WorkPlanCustomCard  } from './Components';
+import { UserActivityList, CustomCard, CustomHeader, CustomButton, CustomBadge, CustomBadgeCompletion, CustomFormControl, FollowUpCard, AssignmentFollowUp, WorkPlanCustomCard, WorkPlanCollapsible  } from './Components';
 import { ModalAssignmentPicker, ModalAssignmentForm, ModalAssignmentAdditionalHoursForm, ModalAssignmentMassActions, ModalAssignmentAdditionalHoursHistory } from './AssignmentView';
 import {StudentWorkPlanList} from './StudentView';
 
@@ -101,7 +101,7 @@ export class WorkPlanListView extends Component{
     render(){
         $glVars.context.activeWorkPlanStateTab = this.state.activeTab;
         let dataProvider = this.state.dataProvider;
-        
+
         let main = 
             <div>
                 <CustomHeader title="Plans de travail" btnAfter={<CustomButton title='Créer un plan de travail.' onClick={this.onAdd} ><FontAwesomeIcon icon={faPlus}/></CustomButton>}>
@@ -202,7 +202,7 @@ export class WorkPlanListView extends Component{
     }
 }
 
-class WorkPlanCard extends WorkPlanCustomCard{
+class WorkPlanCard extends Component{
     static defaultProps = {        
         data: null,
         onEdit: null,
@@ -211,57 +211,51 @@ class WorkPlanCard extends WorkPlanCustomCard{
         onArchive: null,
     };
 
+    constructor(props){
+        super(props);
+
+        this.onDetail = this.onDetail.bind(this);
+
+        this.state = {data: props.data};
+    }
+
     render(){
         let workPlan = this.state.data;
         let hasAccess = workPlan.template.hasAccess == 1;
-        /*
-                <div className="m-2 p-2">
-                    {workPlan.assignments.map((assignment, index2) => {
-                        return <span key={index2} style={{marginLeft: '-15px'}} dangerouslySetInnerHTML={{__html: assignment.user.avatar}}></span>;
-                    })}
-                    {workPlan.template.state != 1 && !WorkPlanUtils.isArchived(JsNx.at(workPlan.assignments, 0, null)) && <CustomButton title='Attribuer un plan de travail.'  onClick={() => this.props.onEdit(workPlan.template.id, 'assignments')} faIcon={faPlus}/>}
+        let progress = WorkPlanUtils.getWorkPlanProgress(workPlan);
+
+        let buttons = 
+            <DropdownButton size='sm' as={ButtonGroup} variant='outline-primary' title={<FontAwesomeIcon icon={faEllipsisV} />} id={`optionsWorkPlan${workPlan.template.id}`}>
+                {hasAccess && $glVars.context.activeWorkPlanStateTab != 'archive' && <Dropdown.Item onClick={() => this.props.onCopy(workPlan.template.id)}><FontAwesomeIcon icon={faCopy}  />{" Copier"}</Dropdown.Item>}
+                {hasAccess && workPlan.template.state == 1 && <Dropdown.Item onClick={() => this.props.onCopy(workPlan.template.id, 0)}><FontAwesomeIcon icon={faBookmark}  />{" Utiliser ce gabarit"}</Dropdown.Item>}
+                {hasAccess && workPlan.template.state != 1 && <Dropdown.Item onClick={() => this.props.onCopy(workPlan.template.id, 1)}><FontAwesomeIcon icon={faBookmark}  />{" Enregistrer en tant que gabarit"}</Dropdown.Item>}
+                <Dropdown.Item onClick={() => this.props.onDelete(workPlan.template.id)}><FontAwesomeIcon icon={faTrashAlt}  />{" Supprimer"}</Dropdown.Item>
+                {hasAccess && workPlan.assignments.length > 0 && !WorkPlanUtils.isArchived(JsNx.at(workPlan.assignments, 0, null)) &&  <Dropdown.Item onClick={() => this.props.onArchive(workPlan, true)}><FontAwesomeIcon icon={faArchive}  />{" Archiver"}</Dropdown.Item>}
+                {hasAccess && $glVars.context.activeWorkPlanStateTab == 'archive' && <Dropdown.Item onClick={() => this.props.onArchive(workPlan, false)}><FontAwesomeIcon icon={faArchive}  />{" Désarchiver"}</Dropdown.Item>}
+            </DropdownButton>;
+
+        let content =
+            <>
+                <div title="Créateur" className='d-flex justify-content-center align-items-center col-12 col-md-3' style={{flexDirection: 'column'}} >
+                    <div dangerouslySetInnerHTML={{__html: workPlan.template.creator.avatar}}></div>
+                    <div className='text-muted' style={{position: 'absolute', bottom: 0, right: -5}} > {workPlan.template.collaboratorList.length > 0 && <FontAwesomeIcon icon={faUserFriends} title={`Collaborateurs: ${workPlan.template.collaboratorList[0].firstName} ${workPlan.template.collaboratorList[0].lastName} et plus`}/>} </div>
                 </div>
-                */
-        let progress = this.getProgress()
-        let main =
-            <CustomCard progressText={`${progress.text}%`} progressValue={`${progress.value}%`}>
-                <div className='d-flex mb-2' style={{justifyContent: 'space-between'}}>
-                    {hasAccess && <a href='#' onClick={() => this.props.onEdit(workPlan.template.id, 'activities')} className='h4'>{workPlan.template.name}</a>}
-                    {!hasAccess && <span className='h4 text-muted'>{workPlan.template.name} <OverlayTrigger overlay={
-                                            <Tooltip>Vous êtes créateur de ce plan, mais vous n'avez pas accès aux cours.</Tooltip>}>
-                                                <a><FontAwesomeIcon icon={faInfoCircle}/> </a>
-                                                </OverlayTrigger></span>}
-                    <ButtonGroup>
-                        <DropdownButton bsPrefix='rounded btn btn-sm btn-outline-primary' variant='' title={<FontAwesomeIcon icon={faEllipsisV} />} id={`optionsWorkPlan${workPlan.template.id}`}>
-                            {hasAccess && $glVars.context.activeWorkPlanStateTab != 'archive' && <Dropdown.Item onClick={() => this.props.onCopy(workPlan.template.id)}><FontAwesomeIcon icon={faCopy}  />{" Copier"}</Dropdown.Item>}
-                            {hasAccess && workPlan.template.state == 1 && <Dropdown.Item onClick={() => this.props.onCopy(workPlan.template.id, 0)}><FontAwesomeIcon icon={faBookmark}  />{" Utiliser ce gabarit"}</Dropdown.Item>}
-                            {hasAccess && workPlan.template.state != 1 && <Dropdown.Item onClick={() => this.props.onCopy(workPlan.template.id, 1)}><FontAwesomeIcon icon={faBookmark}  />{" Enregistrer en tant que gabarit"}</Dropdown.Item>}
-                            <Dropdown.Item onClick={() => this.props.onDelete(workPlan.template.id)}><FontAwesomeIcon icon={faTrashAlt}  />{" Supprimer"}</Dropdown.Item>
-                            {hasAccess && workPlan.assignments.length > 0 && !WorkPlanUtils.isArchived(JsNx.at(workPlan.assignments, 0, null)) &&  <Dropdown.Item onClick={() => this.props.onArchive(workPlan, true)}><FontAwesomeIcon icon={faArchive}  />{" Archiver"}</Dropdown.Item>}
-                            {hasAccess && $glVars.context.activeWorkPlanStateTab == 'archive' && <Dropdown.Item onClick={() => this.props.onArchive(workPlan, false)}><FontAwesomeIcon icon={faArchive}  />{" Désarchiver"}</Dropdown.Item>}
-                        </DropdownButton>
-                    </ButtonGroup>
+
+                <div className='d-flex justify-content-center flex-wrap col-12 col-md-9'>
+                    {workPlan.stats && workPlan.stats.nbStudents > 0 && 
+                        <CustomBadgeCompletion title="Le nombre d'élèves qui ont complété le plan de travail / le nombre total d'élèves assigné au plan de travail" stats={`${workPlan.stats.workPlanCompletion}/${workPlan.stats.nbStudents}`}/>
+                    }
+                    <FollowUpCard data={workPlan}/>
                 </div>
-                    <div className="p-2 text-muted row">                        
-                        <div className='col-md-5' >
-                            <span>
-                                <div dangerouslySetInnerHTML={{__html: workPlan.template.creator.avatar}}></div>
-                                <span>Créateur {workPlan.template.collaboratorList.length > 0 && <FontAwesomeIcon icon={faUserFriends} title={`Collaborateurs: ${workPlan.template.collaboratorList[0].firstName} ${workPlan.template.collaboratorList[0].lastName} et plus`}/>} </span>
-                            </span>
-                        </div>
-                        {workPlan.stats && workPlan.stats.nbStudents > 0 && 
-                        <div className='col-md-7 d-flex align-items-center'>
-                            <CustomBadgeCompletion title="Le nombre d'élèves qui ont complété le plan de travail / le nombre total d'élèves assigné au plan de travail" stats={`${workPlan.stats.workPlanCompletion}/${workPlan.stats.nbStudents}`}/>
-                        </div>}
-                    </div>
-                {!WorkPlanUtils.isArchived(JsNx.at(workPlan.assignments, 0, null)) &&
-                    <div className="m-3 p-2">
-                        <FollowUpCard templateId={workPlan.template.id} data={workPlan} onDetail={() => this.getDetail(0)}/>
-                    </div>
-                }
-            </CustomCard>;
+            </>
+        let main = <WorkPlanCollapsible progress={progress} data={workPlan} buttons={buttons} onClick={() => this.props.onEdit(workPlan.template.id, 'activities')}
+                        contentCollapsible={content} onDetail={this.onDetail}/>;
 
         return main;
+    }
+
+    onDetail(data){
+        this.setState({data: data});
     }
 }
 

@@ -41,6 +41,26 @@ export class WorkPlanUtils {
         return result;
     }
 
+    static getWorkPlanProgress(workPlan, studentId){
+        let progress = {text: '', value: 0, color: 'bg-primary'};
+                            
+        if(!workPlan){
+            return progress;
+        }
+
+        if(!studentId && workPlan.stats && workPlan.stats.nbStudents > 0){
+            progress.text = workPlan.stats.workPlanCompletion/workPlan.stats.nbStudents * 100;
+            progress.value = workPlan.stats.workPlanCompletion/workPlan.stats.nbStudents * 100;
+        }else if (studentId && workPlan.stats){
+            progress.text = `0/${workPlan.stats.nbActivities}`;
+            if(workPlan.stats.assignmentcompleted[studentId]){
+                progress.value = WorkPlanUtils.getAssignmentProgress(workPlan.template.activities, workPlan.assignments[0]);
+                progress.text = `${workPlan.stats.assignmentcompleted[studentId]}/${workPlan.stats.nbActivities}`;
+            }
+        }
+        return progress;
+    }
+
     static getAssignmentProgress(activities, assignment){
         let hrCompleted = 0;
         let hrTotal = 0;

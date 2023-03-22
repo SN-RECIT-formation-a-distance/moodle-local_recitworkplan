@@ -23,7 +23,7 @@ import { faSyncAlt, faArchive, faArrowLeft, faSync} from '@fortawesome/free-soli
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {FeedbackCtrl, ToggleButtons} from '../libs/components/Components';
 import {$glVars, WorkPlanUtils} from '../common/common';
-import { UserActivityList, CustomCard, AssignmentFollowUp, CustomBadgeCompletion, CustomHeader, CustomButton, FollowUpCard, WorkPlanCustomCard } from './Components';
+import { UserActivityList, CustomCard, AssignmentFollowUp, CustomBadgeCompletion, CustomHeader, CustomButton, FollowUpCard, WorkPlanCustomCard, WorkPlanCollapsible } from './Components';
 import { UtilsDateTime } from '../libs/utils/Utils';
 
 export class StudentView extends Component {
@@ -60,7 +60,7 @@ export class StudentView extends Component {
     }
     
     onCompletionStateChange(event){
-        this.setState({activeTab: event.target.value, lastUpdate: Date.now()}, this.getData); 
+        this.setState({activeTab: event.target.value, lastUpdate: Date.now()}); 
     }
 }
 
@@ -88,11 +88,11 @@ export class StudentWorkPlanList extends Component {
         if (!this.state.dataProvider){
             return null;
         }
-
+        
         let list = 
             <div className='tiles'>
                 {this.state.dataProvider.map((item, index) => {
-                        let row = <StudentTemplateTile onDetail={this.onDetail} key={index} data={item}/>
+                        let row = <StudentTemplateTile onClick={this.onDetail} key={index} data={item}/>
                         return (row);
                     }
                 )}
@@ -144,50 +144,45 @@ export class StudentWorkPlanList extends Component {
 class StudentTemplateTile extends WorkPlanCustomCard {
     static defaultProps = {
         data: null,
-        onDetail: null     
+        onClick: null     
     };
 
     constructor(props) {
         super(props);
-        this.state = {assignment: this.props.data.assignments[0], data: this.props.data};
+
+        this.onDetail = this.onDetail.bind(this);
+        this.onClick = this.onClick.bind(this);
+
+        this.state = {assignment: props.data.assignments[0], data: props.data};
     }
  
     render() {
-        if (!this.props.data) return null;
-        let reportData = this.props.data;
+        if (!this.state.data) return null;
+        let data = this.state.data;
         let studentId = this.state.assignment.user.id;
-        let progress = this.getProgress(studentId);
-        let rythmeColor = StudentTemplateTile.getProgressBarRythmColor(reportData, this.state.assignment);
+        let progress = WorkPlanUtils.getWorkPlanProgress(data, studentId);
+        progress.color = StudentTemplateTile.getProgressBarRythmColor(data, this.state.assignment);
 
-        let main = 
-            <CustomCard progressColor={rythmeColor} progressText={progress.text} progressValue={`${progress.value}%`}>
-                <div className='mb-3'>
-                    <a onClick={() => this.props.onDetail(reportData.template.id)} href='#' className='h4'>{reportData.template.name}</a>
+        let content = 
+            <>
+                <a className='m-2' title="Attribué par" href={this.state.assignment.assignor.url} target="_blank"><span dangerouslySetInnerHTML={{__html: this.state.assignment.assignor.avatar}}></span></a>
+                <div>
+                    {progress.text.length > 0 && <CustomBadgeCompletion className='m-2' title="Le nombre d'activités complétées / le nombre d'activités" stats={progress.text}/>}
+                    <div className='m-2 text-muted'>{`Échéance: ${UtilsDateTime.getDate(this.state.assignment.endDate)}`}</div>
+                    <div className='m-2 text-muted'>{`Rythme: ${this.state.assignment.nbHoursPerWeek} (h/semaine)`}</div>
                 </div>
                 
-                <div>
-                    <div className="p-2 text-muted row">                        
-                        <div className='col-md-5' >
-                            <span className='d-flex flex-column align-items-center' >
-                                <a href={this.state.assignment.assignor.url} target="_blank"><span dangerouslySetInnerHTML={{__html: this.state.assignment.assignor.avatar}}></span></a>
-                                <span>{`Attribué par `}</span>
-                            </span>
-                        </div>
-                        {progress.text.length > 0 && <div className='col-md-7 d-flex align-items-center'>
-                            <CustomBadgeCompletion title="Le nombre d'activités complétées / le nombre d'activités" stats={progress.text}/>
-                        </div>}
-                    </div>
-                    <div>
-                        <div className='text-muted'>{`Échéance: ${UtilsDateTime.getDate(this.state.assignment.endDate)}`}</div>
-                        <div className='text-muted'>{`Rythme: ${this.state.assignment.nbHoursPerWeek} (h/semaine)`}</div>
-                    </div>
-                    <div className="m-3 p-2">
-                        <FollowUpCard templateId={reportData.template.id} studentId={studentId} data={this.state.data} onDetail={() => this.getDetail(studentId)}/>
-                    </div>
-                </div>
-            </CustomCard>
+                <FollowUpCard data={data}/>
+            </>;
+
+        let main = <WorkPlanCollapsible progress={progress} data={data} onClick={this.onClick} 
+                        studentId={studentId} contentCollapsible={content} onDetail={this.onDetail}/>;
 
         return main;
+    }
+
+    onClick(){
+        this.props.onClick(this.state.data.template.id)
     }
 
     static getActivityCompletionPercentage(activities){
@@ -227,6 +222,10 @@ class StudentTemplateTile extends WorkPlanCustomCard {
         let percentage = this.getExpectedRhythmPercentage(reportData.template.activities, assignment);
         if (percentage == 100) return 'bg-success';
         return 'bg-warning';
+    }
+
+    onDetail(data){
+        this.setState({data: data});
     }
 }
 

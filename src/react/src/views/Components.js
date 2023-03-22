@@ -19,7 +19,7 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 import React, { Component } from 'react';
-import { Card, Button, Form, OverlayTrigger, Tooltip} from 'react-bootstrap';
+import { Card, Button, Form, OverlayTrigger, Tooltip, ButtonGroup, Collapse} from 'react-bootstrap';
 import { JsNx, UtilsDateTime } from '../libs/utils/Utils';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheck, faInfoCircle, faSyncAlt, faTasks } from '@fortawesome/free-solid-svg-icons';
@@ -40,6 +40,7 @@ export class UserActivityList extends Component{
     render(){
         let item = this.props.data;
         let userActivity = JsNx.getItem(this.props.user.activities, 'cmId', item.cmId, []);
+        console.log(item, userActivity, this.props.user.activities)
         let className = (item.nbHoursCompletion === 0 ? 'bg-secondary' : '');
 
         let main = 
@@ -96,52 +97,98 @@ export class WorkPlanCustomCard extends Component{
         children: null,
         data: null
     };
+    render(){
+        return null;
+    }
+}
+
+export class WorkPlanCollapsible extends Component{
+    static defaultProps = {   
+        data: null,     
+        buttons: null,
+        contentCollapsible: null,
+        studentId: 0,
+        onDetail: null,
+        onClick: null,
+        progress: null
+    };
 
     constructor(props){
         super(props);
-        this.state = {data: props.data}
+
+        this.onCollapse = this.onCollapse.bind(this);
+
+        this.state = {data: props.data, collapse: false}
     }
 
-    componentDidUpdate(prevProps){
-        if (JSON.stringify(prevProps.data) != JSON.stringify(this.props.data)){
-            this.setState({data: this.props.data})
+    /*componentDidUpdate(prevProps){
+        if (prevProps.data.template.id != this.props.data.template.id){
+            this.setState({data: this.props.data, collapse: false})
         }
-    }
+    }*/
 
     render(){
-        let main = null;
+        let workPlan = this.state.data;
+        let hasAccess = workPlan.template.hasAccess == 1;
+        let progress = this.props.progress;
+
+        let main =
+            <CustomCard progressColor={progress.color} progressText={`${progress.text}%`} progressValue={`${progress.value}%`}>
+                <div className='d-flex mb-2' style={{justifyContent: 'space-between'}}>
+                    {hasAccess && <a href='#' onClick={this.props.onClick} className='h4'>{workPlan.template.name}</a>}
+                    
+                    {!hasAccess && <span className='h4 text-muted'>{workPlan.template.name} <OverlayTrigger overlay={
+                                            <Tooltip>Vous êtes créateur de ce plan, mais vous n'avez pas accès aux cours.</Tooltip>}>
+                                                <a><FontAwesomeIcon icon={faInfoCircle}/> </a>
+                                                </OverlayTrigger></span>}
+
+                    <ButtonGroup >
+                        <Button size='sm' className='text-wrap' variant={(this.state.collapse ? 'primary' : 'outline-primary')} 
+                                onClick={this.onCollapse} title={"Suivi des activités"}
+                                aria-controls={`collapse-${workPlan.template.id}`} aria-expanded={this.state.collapse}>
+                                <FontAwesomeIcon icon={faTasks}/>
+                        </Button>
+
+                        {this.props.buttons}
+                    </ButtonGroup>
+                </div>
+
+                <Collapse in={this.state.collapse}>
+                    <div id={`collapse-${workPlan.template.id}`} className='row align-items-center justify-content-center'>
+                        {this.props.contentCollapsible}
+                    </div>
+                </Collapse>
+            </CustomCard>;
 
         return main;
     }
 
-    getDetail(studentId){
+    onCollapse(){
+        if(!this.state.collapse){
+            this.getDetail();
+        }
+        this.setState({collapse: !this.state.collapse})
+    }
+
+    getDetail(){
+        let studentId = this.props.studentId;
+
+        let that = this;
         $glVars.webApi.getWorkPlan(this.state.data.template.id, studentId, (result) =>{
             if(!result.success){
                 FeedbackCtrl.instance.showError($glVars.i18n.tags.appName, result.msg);
                 return;
             }
+
             let workPlan = result.data;
             workPlan.lastUpdate = new Date();
+
+            if(that.props.onDetail){
+                that.props.onDetail(workPlan);
+            }
+
             this.setState({data: workPlan});
         });
-    }
-
-    getProgress(userId){
-        let workPlan = this.state.data;
-        let progress = {text: '', value: 0};
-                            
-        if(!userId && workPlan.stats && workPlan.stats.nbStudents > 0){
-            progress.text = workPlan.stats.workPlanCompletion/workPlan.stats.nbStudents * 100;
-            progress.value = workPlan.stats.workPlanCompletion/workPlan.stats.nbStudents * 100;
-        }else if (userId && workPlan.stats){
-            progress.text = `0/${workPlan.stats.nbActivities}`;
-            if(workPlan.stats.assignmentcompleted[userId]){
-                progress.value = WorkPlanUtils.getAssignmentProgress(workPlan.template.activities, workPlan.assignments[0]);
-                progress.text = `${workPlan.stats.assignmentcompleted[userId]}/${workPlan.stats.nbActivities}`;
-            }
-            console.log(progress.value)
-        }
-        return progress;
     }
 }
 
@@ -254,12 +301,15 @@ export class CustomBadge extends Component{
 export class CustomBadgeCompletion extends Component{
     static defaultProps = {        
         title: '',
-        stats: ''
+        stats: '',
+        className: ''
     };
 
     render(){
+        if(this.props.stats.length === 0){ return null; }
+
         let main = 
-            <span>
+            <span className={this.props.className}>
                 <span title={this.props.title}>
                     {"Achèvement "}
                     <FontAwesomeIcon icon={faCheck}/>
@@ -308,17 +358,8 @@ export class CustomFormControl extends Component{
 
 export class FollowUpCard extends Component{
     static defaultProps = {        
-        templateId: 0,
-        onDetail: null,
         data: null,
-        lastUpdate: 0,
-        studentId: 0
     };
-
-    constructor(props){
-        super(props);
-
-    }
 
     render(){
         let main = null;
@@ -327,29 +368,22 @@ export class FollowUpCard extends Component{
             let workPlan = this.props.data;
             let actStats = WorkPlanUtils.getActivityStats(workPlan);
 
-            let noResult = !((workPlan.stats && workPlan.stats.nbLateStudents > 0) || (actStats.nbAwaitingGrade > 0) || (actStats.nbFails > 0));
+            let noResult = !(
+                        (workPlan.stats && workPlan.stats.nbLateStudents > 0) || 
+                        (actStats.nbAwaitingGrade > 0) || 
+                        (actStats.nbFails > 0));
+
+            let notArchived = !WorkPlanUtils.isArchived(JsNx.at(workPlan.assignments, 0, null));
 
             main =
-                <div style={{textAlign: 'center'}}>
-                    {workPlan.stats && workPlan.stats.nbLateStudents > 0 && <CustomBadge variant="late" nbIndicator={workPlan.stats.nbLateStudents}/>}
-                    {actStats.nbAwaitingGrade > 0 && <CustomBadge variant="correction" nbIndicator={actStats.nbAwaitingGrade}/>}
-                    {actStats.nbFails > 0 && <CustomBadge variant="failure" nbIndicator={actStats.nbFails}/>}
-                    {noResult && 
-                        <>
-                            <span className='text-muted'>{`Aucun suivi à faire.`}</span><br/>
-                            <span className='text-muted'>{UtilsDateTime.format(workPlan.lastUpdate)}</span>
-                        </>
-                    }
-                    <br/>
-                    <CustomButton faIcon={faSyncAlt} title='Rafraichir le suivi des activités' onClick={this.props.onDetail}></CustomButton>
-                </div>;
+                <>
+                    {notArchived && workPlan.stats && workPlan.stats.nbLateStudents > 0 && <CustomBadge variant="late" nbIndicator={workPlan.stats.nbLateStudents}/>}
+                    {notArchived && actStats.nbAwaitingGrade > 0 && <CustomBadge variant="correction" nbIndicator={actStats.nbAwaitingGrade}/>}
+                    {notArchived && actStats.nbFails > 0 && <CustomBadge variant="failure" nbIndicator={actStats.nbFails}/>}
+                    {noResult && <span className='text-muted'>{`Aucun suivi à faire.`}</span>}
+                </>;
         }
-        else{
-            main = 
-                <div style={{textAlign: 'center'}}>
-                    <CustomButton rounded={false} faIcon={faTasks} className='text-wrap' onClick={this.props.onDetail}>{" Suivi des activités"}</CustomButton>    
-                </div>;
-        }
+
         return main;
     }
 }
