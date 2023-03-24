@@ -425,7 +425,7 @@ class WorkPlanAssignmentsView extends Component{
                     <Button style={{borderRadius: "0.25rem 0 0 0.25rem"}} disabled={WorkPlanUtils.isArchived(JsNx.at(data.assignments, 0, null))}  onClick={() => this.onShowAssignments(true)}><FontAwesomeIcon icon={faPlus}/> Attribuer un plan de travail</Button>
                     <Button style={{borderRadius: "0 0.25rem 0.25rem 0"}} disabled={WorkPlanUtils.isArchived(JsNx.at(data.assignments, 0, null))}  onClick={() => this.setState({showAssignmentMassActions: true})}><FontAwesomeIcon icon={faCogs}/> Actions en lot</Button>
                     </ButtonGroup>}>
-                    <div className='d-flex align-items-center d-block-mobile w-100-mobile flex-wrap'>
+                    <div className='m-1 d-flex align-items-center d-block-mobile w-100-mobile flex-wrap'>
                         Filtrer par <CustomFormControl className='w-100-mobile' style={{display:'inline',width:'200px',marginRight:'10px', marginLeft:'10px'}} onChange={this.onSearch} type="search" value={this.state.queryStr} name='queryStr' placeholder="Nom, groupe..."/>
                         Trier par <select type="select" className='form-control rounded ml-2 mr-2' style={{width:'115px'}} onChange={(e) => this.setState({sortAssignment:e.target.value})}>
                             <option value="lastname">Nom</option>
@@ -657,27 +657,23 @@ class WorkPlanActivitiesView extends Component{
                             
                             let card = 
                                 <CustomCard key={index} progressText={`${progressValue}% (le nombre d'activités complètes / le nombre d'élèves)`} progressValue={`${progressValue}%`}>
-                                    <div>
-                                        <div className='d-flex d-block-mobile align-items-center' style={{justifyContent: 'space-between'}}>
-                                            <div className='h4'><strong><a href={item.cmUrl} target="_blank">{item.cmName}</a></strong></div>
-                                            <div className='h5 text-muted'>{`${item.nbHoursCompletion} heures`}</div>
+                                    <div className='d-flex d-block-mobile align-items-center' style={{justifyContent: 'space-between'}}>
+                                        <div>
+                                            <a className='font-weight-bold' href={item.cmUrl} target="_blank">{`${item.categoryName}/${item.courseName}/${item.cmName}`}</a>
+                                            <span className='font-weight-bold'>{` (${item.nbHoursCompletion} heures)`}</span>
                                         </div>
-                                        <div className='d-flex d-block-mobile align-items-center' style={{justifyContent: 'space-between'}}>
-                                            <div className='h6 text-muted'>{`${item.categoryName}/${item.courseName}`}</div>
-                                            <div className="p-2">
-                                                {actStats.nbAwaitingGrade > 0 && <CustomBadge variant="correction" nbIndicator={actStats.nbAwaitingGrade}/>}
-                                                {actStats.nbFails > 0 && <CustomBadge variant="failure" nbIndicator={actStats.nbFails}/>}
-                                            </div>
-                                            <div className="p-2 text-muted" style={{alignItems: 'center', display: 'flex'}}>
-                                                <CustomBadgeCompletion title="Le nombre d'activités complètés / le nombre d'élèves" stats={progressText}/>
-                                                <DropdownButton disabled={WorkPlanUtils.isArchived(JsNx.at(this.props.data.assignments, 0, null))} bsPrefix='rounded btn btn-sm btn-outline-primary' variant='' title={<span><FontAwesomeIcon icon={faEllipsisV}  />{" "}</span>} id={`optionsActivity${item.id}`}>
-                                                    <Dropdown.Item onClick={() => this.onShowActivities(true)}><FontAwesomeIcon icon={faPencilAlt}  />{" Modifier"}</Dropdown.Item>
-                                                    <Dropdown.Item onClick={() => this.onDeleteActivity(item.id)}><FontAwesomeIcon icon={faTrashAlt}  />{" Supprimer"}</Dropdown.Item>
-                                                </DropdownButton>
-                                            </div>
+                                        <div className='d-flex align-items-center flex-wrap'>                                           
+                                            {actStats.nbAwaitingGrade > 0 && <CustomBadge variant="correction" nbIndicator={actStats.nbAwaitingGrade}/>}
+                                            {actStats.nbFails > 0 && <CustomBadge variant="failure" nbIndicator={actStats.nbFails}/>}                                            
+                                        </div>
+                                        <div className='d-flex align-items-center'>
+                                            <CustomBadgeCompletion title="Le nombre d'activités complètés / le nombre d'élèves" stats={progressText}/>
+                                            <DropdownButton disabled={WorkPlanUtils.isArchived(JsNx.at(this.props.data.assignments, 0, null))} bsPrefix='rounded btn btn-sm btn-outline-primary' variant='' title={<span><FontAwesomeIcon icon={faEllipsisV}  />{" "}</span>} id={`optionsActivity${item.id}`}>
+                                                <Dropdown.Item onClick={() => this.onShowActivities(true)}><FontAwesomeIcon icon={faPencilAlt}  />{" Modifier"}</Dropdown.Item>
+                                                <Dropdown.Item onClick={() => this.onDeleteActivity(item.id)}><FontAwesomeIcon icon={faTrashAlt}  />{" Supprimer"}</Dropdown.Item>
+                                            </DropdownButton>
                                         </div>
                                     </div>
-                                    
                                 </CustomCard>
                                
                             return (card);                                     

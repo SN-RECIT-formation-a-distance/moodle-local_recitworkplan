@@ -24,6 +24,8 @@ class App extends Component {
         workPlanId: 0
     };
 
+    static loaded
+
     constructor(props) {
         super(props);
 
@@ -79,10 +81,11 @@ class App extends Component {
     }
 }
 
-document.addEventListener('DOMContentLoaded', function(){ 
+document.addEventListener('DOMContentLoaded', function(e){     
     let domContainer = document.getElementById('recit_workplan');
-    if (domContainer){
+    if (domContainer && domContainer.childNodes.length === 0){
         let signedUser = {userId: domContainer.getAttribute('data-user-id')};
         ReactDOM.render(<App signedUser={signedUser} mode={domContainer.getAttribute('data-mode')} workPlanId={parseInt(domContainer.getAttribute('data-workplanid'))}/>, domContainer);
+        console.log(Options.appTitle());
     }
 }, false);

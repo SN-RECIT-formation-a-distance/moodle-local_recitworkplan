@@ -95,7 +95,6 @@ export class WorkPlanStudentCardBlock extends WorkPlanCustomCard{
 
     render(){
         let workPlan = this.state.data;
-        console.log(workPlan)
         let assignment = workPlan.assignments[0];
         let studentId = 0;
         let progress = WorkPlanUtils.getWorkPlanProgress(null, studentId);

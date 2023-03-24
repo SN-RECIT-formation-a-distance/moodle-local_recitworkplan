@@ -40,19 +40,17 @@ export class UserActivityList extends Component{
     render(){
         let item = this.props.data;
         let userActivity = JsNx.getItem(this.props.user.activities, 'cmId', item.cmId, []);
-        console.log(item, userActivity, this.props.user.activities)
         let className = (item.nbHoursCompletion === 0 ? 'bg-secondary' : '');
 
         let main = 
             <Card className={`rounded mt-2 mb-2`}>
                 <Card.Body className={`${className} p-2`} style={{backgroundColor: "#ffffff"}}>
-                    <div className='h4 d-flex align-items-center' style={{justifyContent: 'space-between'}}>
-                        <strong><a href={this.props.isTeacher ? userActivity.cmUrl : item.cmUrl} target="_blank">{item.cmName}</a></strong>
-                        <div className='h5 text-muted'>{`${item.nbHoursCompletion} heures`}</div>
-                    </div>
                     <div className='d-flex align-items-center' style={{justifyContent: 'space-between'}}>
-                        <div className='h6 text-muted'>{`${item.categoryName}/${item.courseName}`}</div>                        
-                        <div className="text-muted" style={{alignItems: 'center', display: 'flex'}}>
+                        <div>
+                            <a className='font-weight-bold' href={this.props.isTeacher ? userActivity.cmUrl : item.cmUrl} target="_blank">{`${item.categoryName}/${item.courseName}/${item.cmName}`}</a>
+                            <span className='font-weight-bold'>{` (${item.nbHoursCompletion} heures)`}</span>
+                        </div>
+                        <div className='d-flex align-items-center flex-wrap'>
                             {userActivity.grade != null && <CustomBadge variant='bg-info' text={userActivity.grade}/>}
                             {userActivity.completionState > 0 && <CustomBadge variant="completed"/>}
                             {userActivity.followup == 1 && <CustomBadge variant="correction"/>}
@@ -83,7 +81,7 @@ export class CustomCard extends Component{
         let main =
             <Card className='rounded m-2'>
                 <div className={this.props.progressColor} title={this.props.progressText} style={{backgroundColor: '#0f6fc5', width: this.props.progressValue, height: '5px', maxWidth: "100%"}}></div>
-                <Card.Body style={{backgroundColor: "#f0f0f0"}}>
+                <Card.Body style={{backgroundColor: "#f0f0f0"}} className='p-2'>
                     {this.props.children}
                 </Card.Body>
             </Card>;
@@ -309,11 +307,11 @@ export class CustomBadgeCompletion extends Component{
 
         let main = 
             <span className={this.props.className}>
-                <span title={this.props.title}>
+                <span title={this.props.title} className="text-muted">
                     {"Achèvement "}
                     <FontAwesomeIcon icon={faCheck}/>
                 </span>
-                <span className='ml-2 mr-2'>
+                <span className='ml-2 mr-2 text-muted'>
                     {this.props.stats}
                 </span>
             </span>;
