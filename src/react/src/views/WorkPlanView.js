@@ -456,22 +456,30 @@ class WorkPlanAssignmentsView extends Component{
                             let card = 
                                 <CustomCard key={index} progressText={progressText} progressValue={`${progressValue}%`}>
                                     <div className='grid-assignments'>
+                                        <Button variant={'link'} onClick={() => this.onDetail(this.state.detail == item.id ? -1 : item.id)}><FontAwesomeIcon icon={this.state.detail == item.id ? faChevronUp : faChevronDown}/></Button>
                                         <div>
                                             <span dangerouslySetInnerHTML={{__html: item.user.avatar}}></span>
                                         </div>
                                         <div>
-                                            <a href='#' onClick={() => this.onOpenStudentView(item.user)}><strong>{item.user.firstName}</strong></a>
-                                            <span  className='ml-3 text-muted'>Groupe:</span><span className='text-muted'>{` ${item.user.groupList}`}</span>
-                                            <div className='text-muted'>Dernière connexion: {UtilsDateTime.toTimeString(item.user.lastAccess)}</div>
-                                            <div className='text-muted'>{`Début: ${UtilsDateTime.getDate(item.startDate)} (${item.nbHoursPerWeek} h/semaine)`}</div>
-                                            <div className='text-muted'>{`Durée: ${txtDuration}`}</div>
+                                            <a href='#' onClick={() => this.onOpenStudentView(item.user)}><strong>{item.user.firstName + " "}</strong></a>
+                                            <OverlayTrigger overlay={
+                                                <Tooltip>
+                                                    <div>Groupe: <span className='font-weight-bold'>{` ${item.user.groupList}`}</span></div>
+                                                    <div>Dernière connexion: {UtilsDateTime.toTimeString(item.user.lastAccess)}</div>
+                                                    <div>{`Début: ${UtilsDateTime.getDate(item.startDate)} (${item.nbHoursPerWeek} h/semaine)`}</div>
+                                                    <div>{`Durée: ${txtDuration}`}</div>
+                                                </Tooltip>}>
+                                                <a><FontAwesomeIcon icon={faInfoCircle}/> </a>
+                                            </OverlayTrigger>
+                                            
                                             <div className='text-muted'><a href='#' onClick={() => this.setState({showAssignmentAdditionalHours: item})}>{`Heures supplémentaires: ${item.nbAdditionalHours}h`}</a></div>
                                             <div className='text-muted'>
-                                            {`Échéance: ${UtilsDateTime.getDate(item.endDate)} `}<OverlayTrigger overlay={
-                                            <Tooltip>Le calcul de la date d'échéance s'éffectue de la façon suivante :<br/>
-                                            Nb. de semaines = Nb. d'heures du plan de travail / Rythme en h/semaine. Le résultat est arrondi à l'entier supérieur.<br/>
-                                            
-                                            Les heures supplémentaires sont ajoutées aux heures du plan de travail.</Tooltip>}>
+                                            {`Échéance: ${UtilsDateTime.getDate(item.endDate)} `}
+                                            <OverlayTrigger overlay={
+                                                <Tooltip>Le calcul de la date d'échéance s'éffectue de la façon suivante :<br/>
+                                                Nb. de semaines = Nb. d'heures du plan de travail / Rythme en h/semaine. Le résultat est arrondi à l'entier supérieur.<br/>
+                                                
+                                                Les heures supplémentaires sont ajoutées aux heures du plan de travail.</Tooltip>}>
                                                 <a><FontAwesomeIcon icon={faInfoCircle}/> </a>
                                                 </OverlayTrigger>
                                             </div>
@@ -481,24 +489,21 @@ class WorkPlanAssignmentsView extends Component{
                                         </div>
                                         <div className="p-2 text-muted d-flex" style={{alignItems: 'center', justifyContent: 'flex-end'}}>
                                             <CustomBadgeCompletion title="Le nombre d'affectations complétées / le nombre d'activités avec une durée plus grande que 0" stats={progressText}/>
-                                            <DropdownButton disabled={WorkPlanUtils.isArchived(JsNx.at(data.assignments, 0, null))} className='mr-3' bsPrefix='rounded btn btn-sm btn-outline-primary' variant='' title={<span><FontAwesomeIcon icon={faEllipsisV}  />{" "}</span>} id={`optionsAssignments${item.id}`}>
+                                            <DropdownButton as={ButtonGroup}  disabled={WorkPlanUtils.isArchived(JsNx.at(data.assignments, 0, null))} className='mr-3' bsPrefix='rounded btn btn-sm btn-outline-primary' variant='' title={<span><FontAwesomeIcon icon={faEllipsisV}  />{" "}</span>} id={`optionsAssignments${item.id}`}>
                                                 <Dropdown.Item onClick={() => this.setState({editAssignment: item})}><FontAwesomeIcon icon={faPencilAlt} />{" Modifier"}</Dropdown.Item>
                                                 <Dropdown.Item onClick={() => this.setState({editAssignmentAdditionalHours: item})}><FontAwesomeIcon icon={faClock} />{" Heures supplémentaires"}</Dropdown.Item>
                                                 <Dropdown.Item onClick={() => this.onSetInactiveAssignment(item)}>
                                                     {item.completionState == 4 ? 
                                                         <><FontAwesomeIcon icon={faUserAlt}/>{" Mettre actif"}</>
-                                                         : 
+                                                        : 
                                                         <><FontAwesomeIcon icon={faUserAltSlash}/>{" Mettre inactif"}</>
                                                     }
                                                     </Dropdown.Item>
                                                 <Dropdown.Item onClick={() => this.onDeleteAssignment(item.id)}><FontAwesomeIcon icon={faTrashAlt} />{" Supprimer"}</Dropdown.Item>
-                                            </DropdownButton>
+                                            </DropdownButton>                                           
                                         </div>
                                     </div>
-                                    <div className='mt-3 d-flex align-items-center'>
-                                        <strong>{"Activités"}</strong>
-                                        <Button variant='link' onClick={() => this.onDetail(this.state.detail == item.id ? -1 : item.id)}><FontAwesomeIcon icon={this.state.detail == item.id ? faChevronUp : faChevronDown}/></Button>
-                                    </div>  
+                      
                                     {this.state.detail == item.id && 
                                         <div style={{width:'100%'}}>
                                             {data.template.activities.map((act, index) => {
