@@ -124,7 +124,7 @@ class local_recitworkplan_ctrl_testcase extends advanced_testcase {
     public function test_getPlanList() {
         $tpl = $this->ctrl->saveTemplate((object)array('id' => 0, 'name' => 'test', 'description' => 'test', 'communicationUrl' => 'google.ca', 'state' => 0, 'options' => []));
         $this->ctrl->saveTplAct((object)array('id' => 0, 'templateId' => $tpl->id, 'slot' => 1, 'cmId' => $this->quiz->cmid, 'nbHoursCompletion' => 1));
-        $this->ctrl->saveAssignment((object)array('id' => 0, 'templateId' => $tpl->id, 'user' => $this->user, 'nbHoursPerWeek' => 1, 'startDate' => new DateTime(), 'comment' => 'test'));
+        $this->ctrl->saveAssignment((object)array('id' => 0, 'templateId' => $tpl->id, 'user' => $this->user, 'nbHoursPerWeek' => 1, 'startDate' => time(), 'comment' => 'test'));
         $tpllist = $this->ctrl->getWorkPlanList($this->teacherid);
 
         $this->assertTrue($tpllist->items[0]->template->id == $tpl->id);
@@ -133,7 +133,7 @@ class local_recitworkplan_ctrl_testcase extends advanced_testcase {
     public function test_getPlan() {
         $tpl = $this->ctrl->saveTemplate((object)array('id' => 0, 'name' => 'test', 'description' => 'test', 'communicationUrl' => 'google.ca', 'state' => 0, 'options' => []));
         $this->ctrl->saveTplAct((object)array('id' => 0, 'templateId' => $tpl->id, 'slot' => 1, 'cmId' => $this->quiz->cmid, 'nbHoursCompletion' => 1));
-        $this->ctrl->saveAssignment((object)array('id' => 0, 'templateId' => $tpl->id, 'user' => $this->user, 'nbHoursPerWeek' => 1, 'startDate' => new DateTime(), 'comment' => 'test'));
+        $this->ctrl->saveAssignment((object)array('id' => 0, 'templateId' => $tpl->id, 'user' => $this->user, 'nbHoursPerWeek' => 1, 'startDate' => time(), 'comment' => 'test'));
         $tpllist = $this->ctrl->getWorkPlan($this->teacherid, $tpl->id);
 
         $this->assertTrue($tpllist->template->id == $tpl->id);
@@ -142,7 +142,7 @@ class local_recitworkplan_ctrl_testcase extends advanced_testcase {
     public function test_processWorkPlan() {
         $tpl = $this->ctrl->saveTemplate((object)array('id' => 0, 'name' => 'test', 'description' => 'test', 'communicationUrl' => 'google.ca', 'state' => 0, 'options' => []));
         $this->ctrl->saveTplAct((object)array('id' => 0, 'templateId' => $tpl->id, 'slot' => 1, 'cmId' => $this->quiz->cmid, 'nbHoursCompletion' => 1));
-        $this->ctrl->saveAssignment((object)array('id' => 0, 'templateId' => $tpl->id, 'user' => $this->user, 'nbHoursPerWeek' => 1, 'startDate' => new DateTime(), 'comment' => 'test'));
+        $this->ctrl->saveAssignment((object)array('id' => 0, 'templateId' => $tpl->id, 'user' => $this->user, 'nbHoursPerWeek' => 1, 'startDate' => time(), 'comment' => 'test'));
         $this->ctrl->processWorkPlan($tpl->id);
         $tpllist = $this->ctrl->getWorkPlan($this->teacherid, $tpl->id);
 
@@ -152,7 +152,7 @@ class local_recitworkplan_ctrl_testcase extends advanced_testcase {
     public function test_deleteWorkPlan() {
         $tpl = $this->ctrl->saveTemplate((object)array('id' => 0, 'name' => 'test', 'description' => 'test', 'communicationUrl' => 'google.ca', 'state' => 0, 'options' => []));
         $this->ctrl->saveTplAct((object)array('id' => 0, 'templateId' => $tpl->id, 'slot' => 1, 'cmId' => $this->quiz->cmid, 'nbHoursCompletion' => 1));
-        $this->ctrl->saveAssignment((object)array('id' => 0, 'templateId' => $tpl->id, 'user' => $this->user, 'nbHoursPerWeek' => 1, 'startDate' => new DateTime(), 'comment' => 'test'));
+        $this->ctrl->saveAssignment((object)array('id' => 0, 'templateId' => $tpl->id, 'user' => $this->user, 'nbHoursPerWeek' => 1, 'startDate' => time(), 'comment' => 'test'));
         $this->ctrl->deleteWorkPlan($tpl->id);
         $tpllist = $this->ctrl->getWorkPlan($this->teacherid, $tpl->id);
         $this->assertTrue(!isset($tpllist->template->id));
@@ -161,7 +161,7 @@ class local_recitworkplan_ctrl_testcase extends advanced_testcase {
     public function test_getAssignmentAdditionalHours() {
         $tpl = $this->ctrl->saveTemplate((object)array('id' => 0, 'name' => 'test', 'description' => 'test', 'communicationUrl' => 'google.ca', 'state' => 0, 'options' => []));
         $this->ctrl->saveTplAct((object)array('id' => 0, 'templateId' => $tpl->id, 'slot' => 1, 'cmId' => $this->quiz->cmid, 'nbHoursCompletion' => 1));
-        $a = $this->ctrl->saveAssignment((object)array('id' => 0, 'templateId' => $tpl->id, 'user' => $this->user, 'nbHoursPerWeek' => 1, 'startDate' => new DateTime(), 'comment' => 'test'));
+        $a = $this->ctrl->saveAssignment((object)array('id' => 0, 'templateId' => $tpl->id, 'user' => $this->user, 'nbHoursPerWeek' => 1, 'startDate' => time(), 'comment' => 'test'));
         $hours = $this->ctrl->getAssignmentAdditionalHours($a);
         $this->assertTrue(empty($hours));
     }

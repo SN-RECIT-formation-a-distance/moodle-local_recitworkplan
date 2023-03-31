@@ -454,6 +454,10 @@ export class WorkPlanTemplateView extends Component{
                                 <Col sm={10} className=''>{data.template.description}</Col>
                             </Row>
                             <Row className='m-4 border-bottom'>
+                                <Col className='text-muted' sm={2}>Type</Col>
+                                <Col sm={10} className=''>{JsNx.getItem(ModalTemplateForm.tplTypeList, 'value', data.template.type).text}</Col>
+                            </Row>
+                            <Row className='m-4 border-bottom'>
                                 <Col className='text-muted' sm={2}>Créateur</Col>
                                 <Col sm={10} className=''>{data.template.creator?.firstName} {data.template.creator?.lastName}</Col>
                             </Row>
@@ -496,6 +500,11 @@ class ModalTemplateForm extends Component{
         onClose: null,
         onSave: null,
     };
+
+    static tplTypeList = [
+        {value: 'd', text:"Dynamique"},
+        {value: 's', text:"Statique"}
+    ];
 
     constructor(props){
         super(props);
@@ -559,6 +568,14 @@ class ModalTemplateForm extends Component{
                     <Form.Label column sm="3">{"Description"}</Form.Label>
                     <Col sm="9">
                         <CustomFormControl as="textarea" rows={4} className='w-100' value={data.template.description || ''} name="description" onChange={this.onDataChange} />
+                    </Col>
+                </Form.Group>
+                <Form.Group as={Row}>
+                    <Form.Label column sm="3">{"Type"}</Form.Label>
+                    <Col sm="9">
+                        <ToggleButtons name="type" value={[data.template.type]} onClick={this.onDataChange} 
+                                options={ModalTemplateForm.tplTypeList}/>
+                        <Form.Text className="text-muted">Si le plan de travail est statique, alors il faut entrer une date et l'heure de fin, le rythme de travail n'est plus pris en compte et le calcul d'avance ou retard est basé sur les dates de début et fin déterminées.</Form.Text>
                     </Col>
                 </Form.Group>
                 <Form.Group as={Row}>

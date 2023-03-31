@@ -14,6 +14,7 @@
         <FIELD NAME="communication_url" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="options" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="json option"/>
         <FIELD NAME="state" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="0 = ongoing workplan, 1 = template"/>
+        <FIELD NAME="tpltype" TYPE="char" LENGTH="1" NOTNULL="true" DEFAULT="d" SEQUENCE="false" COMMENT="d = dynamic, s = static"/>
         <FIELD NAME="lastupdate" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
@@ -43,6 +44,7 @@
         <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false" COMMENT="student id"/>
         <FIELD NAME="nb_hours_per_week" TYPE="float"  NOTNULL="false" DEFAULT="0" SEQUENCE="false" />
         <FIELD NAME="startdate" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" />
+        <FIELD NAME="enddate" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" />
         <FIELD NAME="completionstate" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="0 = ongoing, 1 = archived, 2 = late, 3 = completed, 4 = inactive" />
         <FIELD NAME="assignorid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="comment" TYPE="text" NOTNULL="true" SEQUENCE="false"/>

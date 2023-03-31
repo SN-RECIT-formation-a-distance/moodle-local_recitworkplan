@@ -23,7 +23,7 @@
 defined('MOODLE_INTERNAL') || die;
 
 function xmldb_local_recitworkplan_upgrade($oldversion) {
-    global $CFG, $DB;
+    global $DB;
     $dbman = $DB->get_manager();
 
     $newversion = 2022020908;
@@ -70,6 +70,18 @@ function xmldb_local_recitworkplan_upgrade($oldversion) {
             $dbman->create_table($table);
         }
 
+
+        upgrade_plugin_savepoint(true, $newversion, 'local', 'recitworkplan');
+    }
+
+    $newversion = 2023032900;
+    if ($oldversion < $newversion) {
+        $table = new xmldb_table('recit_wp_tpl');
+        $field = new xmldb_field('tpltype', XMLDB_TYPE_CHAR, '1', null, XMLDB_NOTNULL, null, 'd', 'state');
+        $dbman->add_field($table, $field);
+
+        $field = new xmldb_field('enddate', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'startdate');
+        $dbman->add_field($table, $field);
 
         upgrade_plugin_savepoint(true, $newversion, 'local', 'recitworkplan');
     }

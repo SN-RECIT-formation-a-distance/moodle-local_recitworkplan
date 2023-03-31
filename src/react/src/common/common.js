@@ -49,7 +49,7 @@ export class WorkPlanUtils {
         }
 
         if(!studentId && workPlan.stats && workPlan.stats.nbStudents > 0){
-            progress.text = workPlan.stats.workPlanCompletion/workPlan.stats.nbStudents * 100;
+            progress.text = `${workPlan.stats.workPlanCompletion/workPlan.stats.nbStudents * 100}%`;
             progress.value = workPlan.stats.workPlanCompletion/workPlan.stats.nbStudents * 100;
         }else if (studentId && workPlan.stats){
             progress.text = `0/${workPlan.stats.nbActivities}`;
@@ -66,7 +66,7 @@ export class WorkPlanUtils {
         let hrTotal = 0;
         for (let it of activities){
             hrTotal = hrTotal + it.nbHoursCompletion;
-            let userActivity = JsNx.getItem(assignment.user.activities, 'cmId', it.cmId, []);
+            let userActivity = JsNx.getItem(assignment.user.activities, 'cmId', it.cmId, {completionState: 0});
             if (userActivity.completionState > 0){
                 hrCompleted = hrCompleted + it.nbHoursCompletion;
             }

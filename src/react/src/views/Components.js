@@ -131,7 +131,7 @@ export class WorkPlanCollapsible extends Component{
         let progress = this.props.progress;
         
         let main =
-            <CustomCard progressColor={progress.color} progressText={`${progress.text}%`} progressValue={`${progress.value}%`}>
+            <CustomCard progressColor={progress.color} progressText={`${progress.text}`} progressValue={`${progress.value}%`}>
                 <div className='d-flex mb-2' style={{justifyContent: 'space-between'}}>
                     {hasAccess && <a href='#' onClick={this.props.onClick} className='h5'>{workPlan.template.name}</a>}
                     
@@ -401,12 +401,12 @@ export class AssignmentFollowUp extends Component{
             result.push(<CustomBadge key={result.length} variant="bg-info" text="Archivé"/>);
         }
 
-        let enddate = new Date(item.endDate);
         let now = new Date();
         
-        if( (enddate.getTime() > 0) && (enddate.getTime() < now.getTime())){
+        if((item.endDate > 0) && (item.endDate < (now.getTime()/1000))){
             result.push(<CustomBadge key={result.length} variant="bg-warning" text="Échu"/>);
-        }else if (item.nbHoursLate != 0 && this.props.template.options.showHoursLate == 1){
+        }
+        else if (item.nbHoursLate != 0 && this.props.template.options.showHoursLate == 1){
             let text = `En retard de ${item.nbHoursLate}h`;
             let variant = 'bg-warning';
             if (item.nbHoursLate < 0){
@@ -422,8 +422,11 @@ export class AssignmentFollowUp extends Component{
             result.push(<CustomBadge key={result.length} variant={variant} text={text}/>);
         }else if(item.completionState == 2){
             result.push(<CustomBadge key={result.length} variant="late"/>);
-        }else if(item.completionState == 0){
+        }else if((item.completionState == 0) && (item.startDate < (now.getTime()/1000))){
             result.push(<CustomBadge key={result.length} variant="bg-success" text="En cours"/>);
+        }
+        else if((item.completionState == 0) && (item.startDate > (now.getTime()/1000))){
+            result.push(<CustomBadge key={result.length} variant="bg-success" text="A commencer"/>);
         }
 
         if(item.completionState == 3){

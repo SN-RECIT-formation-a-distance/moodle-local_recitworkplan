@@ -10,7 +10,7 @@ export class InputNumber extends Component {
         max: null,
         nbDecimals: 2,
         placeholder: "",
-        style: "",
+        style: null,
         onChange: null,
         onKeyDown: null,
         autoFocus: false,

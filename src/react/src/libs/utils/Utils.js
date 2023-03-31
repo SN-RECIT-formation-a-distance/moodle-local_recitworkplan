@@ -254,6 +254,21 @@ export class UtilsDateTime
         }
     }
 
+    static formatDateTime(value){
+        let result = "";
+
+        if(Number.isInteger(value) && value > 0){
+            let obj = new Date(value*1000);
+            result = obj.getFullYear().toString();
+            result += "-" + (obj.getMonth()+1).toString().padStart(2, '0');
+            result += "-" + obj.getDate().toString().padStart(2, '0');
+            result += " " + obj.getHours().toString().padStart(2, '0');
+            result += ":" + obj.getMinutes().toString().padStart(2, '0');
+        }
+
+        return result;
+    }
+
     static format(obj){
         let options = {year: "numeric", month: "numeric", day: "numeric",
            hour: "numeric", minute: "numeric", second: "numeric",

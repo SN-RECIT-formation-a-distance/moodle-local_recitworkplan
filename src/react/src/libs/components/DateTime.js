@@ -17,22 +17,27 @@ export class DateTime extends Component {
     }
     
     render() {
+        let time = '';
 
-        let time = new Date(this.props.value);
-        if (time){
-            time = time.toISOString().slice(0,16);
+        if(this.props.value > 0){
+            time = new Date(this.props.value * 1000);
+            if (time){
+                time = time.toISOString().slice(0,16);
+            }
         }
+        
         //  spread attributes <div {...this.props}>    
         let spreadAttr = {required: this.props.required, name: this.props.name, disabled: this.props.disabled, style: this.props.style};
 
         let main = 
-            <input type="datetime-local" {...spreadAttr}  onChange={this.onChange} value={time}/>
+            <input className='form-control' type="datetime-local" {...spreadAttr}  onChange={this.onChange} value={time}/>
         return (main);
     }   
     
     onChange(event){
-
-        this.props.onChange(event);
+        let timestap = Date.parse(event.target.value) / 1000;
+        let data = {target: {name: this.props.name, value: timestap}};
+        this.props.onChange(data);
     }   
 }
 

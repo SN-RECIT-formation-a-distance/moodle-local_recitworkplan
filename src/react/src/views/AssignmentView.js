@@ -19,14 +19,14 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 import React, { Component } from 'react';
-import { ButtonGroup,  Button, Form, Col, Row, Table, Badge} from 'react-bootstrap';
+import { ButtonGroup,  Button, Form, Col, Row, Table, Badge, Tabs, Tab} from 'react-bootstrap';
 import { faTrashAlt, faArrowRight} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {ComboBoxPlus, DataGrid, FeedbackCtrl, InputNumber, Modal} from '../libs/components/Components';
 import {$glVars, Options} from '../common/common';
 import { JsNx, UtilsDateTime } from '../libs/utils/Utils';
 import {CustomFormControl} from './Components'
-import { DateInput } from '../libs/components/DateTime';
+import { DateTime } from '../libs/components/DateTime';
 
 export class ModalAssignmentPicker extends Component{
     static defaultProps = {        
@@ -198,7 +198,8 @@ export class ModalAssignmentPicker extends Component{
             user: {id: item.userId, firstName: item.firstName, lastName: item.lastName, avatar: item.avatar},
             nbHoursPerWeek: this.state.rhythme == '' ? 0 : this.state.rhythme,
             comment: '',
-            startDate: new Date()
+            startDate: new Date().getTime()/1000,
+            endDate: 0
         };
         if (isNaN(result.nbHoursPerWeek)) result.nbHoursPerWeek = 0;
 
@@ -301,7 +302,15 @@ export class ModalAssignmentMassActions extends Component{
         this.onSave = this.onSave.bind(this);
         this.onClose = this.onClose.bind(this);
 
-        this.state = {data: props.data, flags: {dataChanged: false}, rhythme: 0, nbAdditionalHours: 0, additionalHoursReason: ''};
+        this.state = {
+            data: props.data, 
+            flags: {dataChanged: false}, 
+            rhythme: 0, 
+            nbAdditionalHours: 0, 
+            additionalHoursReason: '',
+            activeTab: '0',
+            startDate: 0
+        };
     }
 
 
@@ -309,77 +318,95 @@ export class ModalAssignmentMassActions extends Component{
         if(this.state.data === null){ return null; }
 
         let body = 
-            <div>
-                <div className='mt-4 row'>
-                    <div className='col-md-6'>
-                        <div>
-                            <h5>Élèves assignés <Badge variant="warning" className="p-2 rounded">{`${this.state.data.assignments.length}`}</Badge></h5>
-                            <div style={{maxHeight: 500, overflowY: 'auto'}}>
-                                <div style={{display:'flex',flexFlow:'wrap'}}>
-                                        {this.state.data.assignments.map((item, index) => {
-                                                let row =
-                                                    <div key={index} className='m-1 p-2 d-flex align-items-center'>
-                                                        <div>
-                                                            <span dangerouslySetInnerHTML={{__html: item.user.avatar}}></span>
-                                                        </div>
-                                                        <div>
-                                                            <strong>{`${item.user.firstName} ${item.user.lastName}`}</strong><br/>
-                                                            <span className='text-muted'>Rythme: {item.nbHoursPerWeek}h/semaine</span><br/>
-                                                            <span className='text-muted'>{item.nbAdditionalHours}h supplémentaires</span>
-                                                        </div>
-                                                    </div>;
+            <div className='row'>
+                <div className='col-md-6 mb-3'>
+                    <div>
+                        <h5>Élèves assignés <Badge variant="warning" className="p-2 rounded">{`${this.state.data.assignments.length}`}</Badge></h5>
+                        <div style={{maxHeight: 500, overflowY: 'auto'}}>
+                            <div style={{display:'flex',flexFlow:'wrap'}}>
+                                    {this.state.data.assignments.map((item, index) => {
+                                            let row =
+                                                <div key={index} className='m-1 p-2 d-flex align-items-center'>
+                                                    <div>
+                                                        <span dangerouslySetInnerHTML={{__html: item.user.avatar}}></span>
+                                                    </div>
+                                                    <div>
+                                                        <strong>{`${item.user.firstName} ${item.user.lastName}`}</strong><br/>
+                                                        <span className='text-muted'>Rythme: {item.nbHoursPerWeek}h/semaine</span><br/>
+                                                        <span className='text-muted'>{item.nbAdditionalHours}h supplémentaires</span>
+                                                    </div>
+                                                </div>;
 
-                                                return row;
-                                            }
-                                        )}
-                                </div>
+                                            return row;
+                                        }
+                                    )}
                             </div>
                         </div>
                     </div>
-                    <div className='col-md-6'>
-                       <span className='h5 bold mb-3'>Actions en lot pour tous les élèves assignés</span>
-                       <div className='p-3 mb-3 border rounded'>
-                        <div className='h6 bold mb-3'>Assigner le rythme par semaine</div>
-                            <Form.Group as={Row}>
-                                <Form.Label column sm="5">{"Rythme (h/semaine)"}</Form.Label>
-                                <Col sm="7">
-                                    <InputNumber style={{display:'inline'}} onChange={(e) => this.setState({rhythme:e.target.value})} value={this.state.rhythme} name='rhythme' placeholder="Rythme (h/semaine)"/>
-                                </Col>
-                            </Form.Group>
-                            <Form.Group as={Row}>
-                                <Col sm="5"></Col>
-                                <Col sm="7">
-                                    <Button variant="primary" className="rounded" onClick={() => this.onSetRythme()}>{"Assigner"}</Button>
-                                </Col>
-                            </Form.Group>
-                        </div>
-                       <div className='p-3 mb-3 border rounded'>
-                            <div className='h6 bold mb-3'>Ajouter des heures supplémentaires</div>
-                            <Form.Group as={Row}>
-                                <Form.Label column sm="5">{"Heures supplémentaires"}</Form.Label>
-                                <Col sm="7">
-                                    <InputNumber style={{display:'inline'}} onChange={(e) => this.setState({nbAdditionalHours:e.target.value})} value={this.state.nbAdditionalHours} placeholder="Heures"/>
-                                </Col>
-                            </Form.Group>
-                            <Form.Group as={Row}>
-                                <Form.Label column sm="5">{"Raison"}</Form.Label>
-                                <Col sm="7">
-                                    <CustomFormControl style={{display:'inline'}} max="250" onChange={(e) => this.setState({additionalHoursReason:e.target.value})}  type="text" value={this.state.additionalHoursReason}/>
-                                </Col>
-                            </Form.Group>
-                            <Form.Group as={Row}>
-                                <Col sm="5"></Col>
-                                <Col sm="7">
-                                    <Button variant="primary" className="rounded"  disabled={this.state.additionalHoursReason.length == 0} onClick={() => this.onAddAdditionalHours()}>{"Ajouter"}</Button>
-                                </Col>
-                            </Form.Group>
-                        </div>
-                    </div>
-                    
                 </div>
+
+                <div className='col-md-6'>
+                    <Tabs  activeKey={this.state.activeTab} onSelect={(tab) => this.setState({activeTab: tab})}>
+                        <Tab eventKey="0" title="Date de début">
+                            <div>
+                                <Form.Group as={Row}>
+                                    <Form.Label column sm="5">{"Date de début"}</Form.Label>
+                                    <Col sm="7">
+                                        <DateTime style={{display:'inline'}} onChange={(e) => this.setState({startDate:e.target.value})} value={this.state.startDate} placeholder="Date de début"/>
+                                    </Col>
+                                </Form.Group>
+                                <Form.Group as={Row}>
+                                    <Col sm="5"></Col>
+                                    <Col sm="7">
+                                        <Button variant="primary" className="rounded"  onClick={null}>{"Assigner"}</Button>
+                                    </Col>
+                                </Form.Group>
+                            </div>
+                        </Tab>
+                        <Tab eventKey="1" title="Rythme par semaine" disabled={this.state.data.template.type == 's'}>
+                            <div>
+                                <Form.Group as={Row}>
+                                    <Form.Label column sm="5">{"Rythme (h/semaine)"}</Form.Label>
+                                    <Col sm="7">
+                                        <InputNumber style={{display:'inline'}} onChange={(e) => this.setState({rhythme:e.target.value})} value={this.state.rhythme} name='rhythme' placeholder="Rythme (h/semaine)"/>
+                                    </Col>
+                                </Form.Group>
+                                <Form.Group as={Row}>
+                                    <Col sm="5"></Col>
+                                    <Col sm="7">
+                                        <Button variant="primary" className="rounded" onClick={() => this.onSetRythme()}>{"Assigner"}</Button>
+                                    </Col>
+                                </Form.Group>
+                            </div>
+                        </Tab>
+                        <Tab eventKey="2" title="Heures supplémentaires" disabled={this.state.data.template.type == 's'}>
+                            <div>
+                                <Form.Group as={Row}>
+                                    <Form.Label column sm="5">{"Heures supplémentaires"}</Form.Label>
+                                    <Col sm="7">
+                                        <InputNumber style={{display:'inline'}} onChange={(e) => this.setState({nbAdditionalHours:e.target.value})} value={this.state.nbAdditionalHours} placeholder="Heures"/>
+                                    </Col>
+                                </Form.Group>
+                                <Form.Group as={Row}>
+                                    <Form.Label column sm="5">{"Raison"}</Form.Label>
+                                    <Col sm="7">
+                                        <CustomFormControl style={{display:'inline'}} max="250" onChange={(e) => this.setState({additionalHoursReason:e.target.value})}  type="text" value={this.state.additionalHoursReason}/>
+                                    </Col>
+                                </Form.Group>
+                                <Form.Group as={Row}>
+                                    <Col sm="5"></Col>
+                                    <Col sm="7">
+                                        <Button variant="primary" className="rounded"  disabled={this.state.additionalHoursReason.length == 0} onClick={() => this.onAddAdditionalHours()}>{"Ajouter"}</Button>
+                                    </Col>
+                                </Form.Group>
+                            </div>
+                        </Tab>
+                    </Tabs>
+                </div>
+                
             </div>;
 
-        let main = <Modal title={'Actions en lot'} body={body} style={{maxWidth: 1050, width:'auto'}} onClose={this.onClose} />;
+        let main = <Modal title={'Actions en lot pour tous les élèves assignés'} body={body} style={{maxWidth: 1100, width:'90%'}} onClose={this.onClose} />;
 
         return (main);
     }
@@ -473,6 +500,7 @@ export class ModalAssignmentMassActions extends Component{
 export class ModalAssignmentForm extends Component{
     static defaultProps = {        
         data: null,
+        metadata: null,
         onClose: null
     };
 
@@ -488,38 +516,40 @@ export class ModalAssignmentForm extends Component{
 
     render(){
         if(this.state.data === null){ return null; }
+        if(this.props.metadata === null){ return null; }
 
         let item = this.state.data;
+
         let body = 
             <Form>
-                <Form.Group as={Row} >
-                    <Form.Label column sm="2">{"Début"}</Form.Label>
-                    <Col sm="10">
-                        <DateInput className="rounded" value={item.startDate} name="startDate" onChange={this.onDataChange} />
-                    </Col>
+                <Form.Group >
+                    <Form.Label>{"Début"}</Form.Label>
+                    <DateTime  value={item.startDate} name="startDate" onChange={this.onDataChange} />
                 </Form.Group>
-                <Form.Group as={Row}>
-                    <Form.Label column sm="2">{"Commentaire"}</Form.Label>
-                    <Col sm="10">
-                        <CustomFormControl as="textarea" rows={4} className='w-100' name="comment" value={item.comment} onChange={this.onDataChange}/>
-                    </Col>
+                <Form.Group>
+                    <Form.Label>{"Fin"}</Form.Label>
+                    <DateTime disabled={this.props.metadata.type === 'd'} value={item.endDate} name="endDate" onChange={this.onDataChange} />
+                    <Form.Text className="text-muted">Si le plan est dynamique, alors la date de fin est calculée dynamiquement.</Form.Text>
                 </Form.Group>
-                <Form.Group as={Row}>
-                    <Form.Label column sm="2">{"h/semaine"}</Form.Label>
-                    <Col sm="10">
-                        <InputNumber style={{width: '80px', display: 'inline'}} className="mr-3" value={item.nbHoursPerWeek} name="nbHoursPerWeek" onChange={this.onDataChange} />
-                    </Col>
+                <Form.Group>
+                    <Form.Label>{"Commentaire"}</Form.Label>
+                    <CustomFormControl as="textarea" rows={4} className='w-100' name="comment" value={item.comment} onChange={this.onDataChange}/>
+                </Form.Group>
+                <Form.Group>
+                    <Form.Label>{"H/semaine"}</Form.Label>
+                    <InputNumber disabled={this.props.metadata.type === 's'} value={item.nbHoursPerWeek} name="nbHoursPerWeek" onChange={this.onDataChange} />
+                    <Form.Text className="text-muted">Si le plan est dynamique, alors le rythme de travail n'est plus pris en compte.</Form.Text>
                 </Form.Group>
             </Form>;
 
         let modalFooter = 
         <ButtonGroup>
-                <Button variant='secondary' className='rounded' onClick={this.onClose}>Annuler</Button>
-                <Button disabled={!this.state.flags.dataChanged} variant='success' className='ml-2 rounded' onClick={this.onSave}>Enregistrer</Button>
+                <Button variant='secondary'  onClick={this.onClose}>Annuler</Button>
+                <Button disabled={!this.state.flags.dataChanged} variant='success' onClick={this.onSave}>Enregistrer</Button>
         </ButtonGroup>;
 
 
-        let main = <Modal title={'Modifier élève'} body={body} footer={modalFooter} width="800px" onClose={this.onClose} />;
+        let main = <Modal title={'Modifier élève'} body={body} footer={modalFooter} width="450px" onClose={this.onClose} />;
 
         return (main);
     }
@@ -540,8 +570,15 @@ export class ModalAssignmentForm extends Component{
                 return;
             }
 
-            that.props.onClose(that.state.flags.dataChanged);
-            $glVars.feedback.showInfo($glVars.i18n.tags.appName, $glVars.i18n.tags.msgSuccess, 3);
+            $glVars.webApi.processWorkPlan(that.state.data.templateId, (result) => {
+                if(!result.success){
+                    $glVars.feedback.showError($glVars.i18n.tags.appName, result.msg);
+                    return;
+                }
+
+                that.props.onClose(that.state.flags.dataChanged);
+                $glVars.feedback.showInfo($glVars.i18n.tags.appName, $glVars.i18n.tags.msgSuccess, 3);
+            });
         }
 
         if(this.state.flags.dataChanged){
@@ -553,7 +590,6 @@ export class ModalAssignmentForm extends Component{
         this.props.onClose();
     }
 }
-
 
 export class ModalAssignmentAdditionalHoursForm extends Component{
     static defaultProps = {        

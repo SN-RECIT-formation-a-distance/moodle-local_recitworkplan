@@ -466,13 +466,19 @@ class WorkPlanAssignmentsView extends Component{
                                                 <Tooltip>
                                                     <div>Groupe: <span className='font-weight-bold'>{` ${item.user.groupList}`}</span></div>
                                                     <div>Dernière connexion: {UtilsDateTime.toTimeString(item.user.lastAccess)}</div>
-                                                    <div>{`Début: ${UtilsDateTime.getDate(item.startDate)} (${item.nbHoursPerWeek} h/semaine)`}</div>
+                                                    <div>{`Début: ${UtilsDateTime.formatDateTime(item.startDate)}`}</div>
+                                                    <div>{`Fin: ${UtilsDateTime.formatDateTime(item.endDate)}`}</div>
                                                     <div>{`Durée: ${txtDuration}`}</div>
+                                                    <div>{`Rythme: ${item.nbHoursPerWeek} h/semaine`}</div>
                                                 </Tooltip>}>
                                                 <a><FontAwesomeIcon icon={faInfoCircle}/> </a>
                                             </OverlayTrigger>
                                             
-                                            <div className='text-muted'><a href='#' onClick={() => this.setState({showAssignmentAdditionalHours: item})}>{`Heures supplémentaires: ${item.nbAdditionalHours}h`}</a></div>
+                                            <div className='text-muted'>
+                                                <a href='#' onClick={() => this.setState({showAssignmentAdditionalHours: item})}>
+                                                    {`Heures supplémentaires: ${item.nbAdditionalHours}h`}
+                                                </a>
+                                            </div>
                                             <div className='text-muted'>
                                             {`Échéance: ${UtilsDateTime.getDate(item.endDate)} `}
                                             <OverlayTrigger overlay={
@@ -491,7 +497,7 @@ class WorkPlanAssignmentsView extends Component{
                                             <CustomBadgeCompletion title="Le nombre d'affectations complétées / le nombre d'activités avec une durée plus grande que 0" stats={progressText}/>
                                             <DropdownButton as={ButtonGroup}  disabled={WorkPlanUtils.isArchived(JsNx.at(data.assignments, 0, null))} className='mr-3' bsPrefix='rounded btn btn-sm btn-outline-primary' variant='' title={<span><FontAwesomeIcon icon={faEllipsisV}  />{" "}</span>} id={`optionsAssignments${item.id}`}>
                                                 <Dropdown.Item onClick={() => this.setState({editAssignment: item})}><FontAwesomeIcon icon={faPencilAlt} />{" Modifier"}</Dropdown.Item>
-                                                <Dropdown.Item onClick={() => this.setState({editAssignmentAdditionalHours: item})}><FontAwesomeIcon icon={faClock} />{" Heures supplémentaires"}</Dropdown.Item>
+                                                <Dropdown.Item disabled={data.template.type === 's'} onClick={() => this.setState({editAssignmentAdditionalHours: item})}><FontAwesomeIcon icon={faClock} />{" Heures supplémentaires"}</Dropdown.Item>
                                                 <Dropdown.Item onClick={() => this.onSetInactiveAssignment(item)}>
                                                     {item.completionState == 4 ? 
                                                         <><FontAwesomeIcon icon={faUserAlt}/>{" Mettre actif"}</>
@@ -518,7 +524,7 @@ class WorkPlanAssignmentsView extends Component{
                     )}
                 </div>
                 {this.state.showAssignments && <ModalAssignmentPicker data={data} onClose={(refresh) => this.onShowAssignments(false, refresh)}/>}
-                {this.state.editAssignment !== null && <ModalAssignmentForm data={this.state.editAssignment} onClose={(refresh) => this.onShowAssignments(false, refresh)}/>}
+                {this.state.editAssignment !== null && <ModalAssignmentForm metadata={data.template} data={this.state.editAssignment} onClose={(refresh) => this.onShowAssignments(false, refresh)}/>}
                 {this.state.showAssignmentMassActions !== null && <ModalAssignmentMassActions data={data} onClose={(refresh) => this.onShowAssignments(false, refresh)}/>}
                 {this.state.editAssignmentAdditionalHours !== null && <ModalAssignmentAdditionalHoursForm templateId={data.template.id} data={this.state.editAssignmentAdditionalHours} onClose={(refresh) => this.onShowAssignments(false, refresh)}/>}
                 {this.state.showAssignmentAdditionalHours !== null && <ModalAssignmentAdditionalHoursHistory data={this.state.showAssignmentAdditionalHours} onClose={(refresh) => this.onShowAssignments(false, refresh)}/>}

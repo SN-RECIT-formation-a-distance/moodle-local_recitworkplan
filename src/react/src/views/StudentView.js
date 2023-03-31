@@ -24,7 +24,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {FeedbackCtrl, ToggleButtons} from '../libs/components/Components';
 import {$glVars, WorkPlanUtils} from '../common/common';
 import { UserActivityList, CustomCard, AssignmentFollowUp, CustomBadgeCompletion, CustomHeader, CustomButton, FollowUpCard, WorkPlanCustomCard, WorkPlanCollapsible } from './Components';
-import { UtilsDateTime } from '../libs/utils/Utils';
+import { JsNx, UtilsDateTime } from '../libs/utils/Utils';
 
 export class StudentView extends Component {
     static defaultProps = {
@@ -203,23 +203,30 @@ class StudentTemplateTile extends WorkPlanCustomCard {
     }
 
     static getExpectedRhythmPercentage(activities, assignment){
-        let weeksElapsed = Math.floor(((Date.now() / 1000) - UtilsDateTime.toTimestamp(assignment.startDate)) / 604800); //604800 seconds in a week
+        let weeksElapsed = Math.floor(((Date.now() / 1000) - assignment.startDate) / 604800); //604800 seconds in a week
+        
+        // the workplan has not yet started
+        if(weeksElapsed < 0){
+            return 0;
+        }
+
         let hoursExpected = assignment.nbHoursPerWeek * weeksElapsed;
         let hoursWorked = 0;
         for(let item of activities){
-            if(item.completionState >= 1){
+            let userActivity = JsNx.getItem(assignment.user.activities, 'cmId', item.cmId, {completionState: 0});
+
+            if(userActivity.completionState >= 1){
                 hoursWorked = hoursWorked + item.nbHoursCompletion;
             }
         }
-
-        let percentage = Math.ceil(hoursWorked / hoursExpected);
-        if (percentage > 100){
-            percentage = 100;
-        }
-        if (percentage < 0){
+        
+        let percentage = Math.ceil(hoursWorked / hoursExpected * 100);
+        percentage = Math.min(percentage,100);
+        percentage = Math.max(percentage,0);
+        if (isNaN(percentage)){
             percentage = 0;
-        }
-        if (isNaN(percentage)) percentage = 0;
+        } 
+
         return percentage;
     }
 
