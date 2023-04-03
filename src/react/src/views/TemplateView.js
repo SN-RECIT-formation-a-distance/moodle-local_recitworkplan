@@ -455,7 +455,7 @@ export class WorkPlanTemplateView extends Component{
                             </Row>
                             <Row className='m-4 border-bottom'>
                                 <Col className='text-muted' sm={2}>Type</Col>
-                                <Col sm={10} className=''>{JsNx.getItem(ModalTemplateForm.tplTypeList, 'value', data.template.type).text}</Col>
+                                <Col sm={10} className=''>{JsNx.getItem(ModalTemplateForm.tplTypeList, 'value', data.template.type, {text: ''}).text}</Col>
                             </Row>
                             <Row className='m-4 border-bottom'>
                                 <Col className='text-muted' sm={2}>Créateur</Col>
