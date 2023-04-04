@@ -575,7 +575,10 @@ class ModalTemplateForm extends Component{
                     <Col sm="9">
                         <ToggleButtons name="type" value={[data.template.type]} onClick={this.onDataChange} 
                                 options={ModalTemplateForm.tplTypeList}/>
-                        <Form.Text className="text-muted">Si le plan de travail est statique, alors il faut entrer une date et l'heure de fin, le rythme de travail n'est plus pris en compte et le calcul d'avance ou retard est basé sur les dates de début et fin déterminées.</Form.Text>
+                        <Form.Text className="text-muted">
+                            <strong>Statique :</strong> Les dates de début et de fin sont définies lors des affectations de manière statique.<br/>
+                            <strong>Dynamique :</strong> La date de début est définie alors que la date de fin se calcule dynamiquement selon un rythme de travail défini en heures/semaine. Dans tous les cas, les valeurs peuvent être personnalisées pour chaque apprenant.
+                        </Form.Text>
                     </Col>
                 </Form.Group>
                 <Form.Group as={Row}>
@@ -634,7 +637,6 @@ class ModalTemplateForm extends Component{
         $glVars.webApi.saveTemplate(this.state.data.template, callback);
     }
 }
-
 
 class ModalTemplateOptionForm extends Component{
     static defaultProps = {        

@@ -1170,7 +1170,7 @@ class Assignment{
         $item->completionState = intval($dbData->activitycompletionstate);
         $item->followup = (isset($dbData->followup) ? intval($dbData->followup) : 0);
         $item->passed = (isset($dbData->passed) ? intval($dbData->passed) : -1);
-        $item->grade = (isset($dbData->grade) ? floatval($dbData->grade) : null);
+        $item->grade = (isset($dbData->grade) ? $dbData->grade : null);
         $item->cmId = intval($dbData->cmid);
         $item->cmUrl = $this->getCustomCmUrl($dbData);
      

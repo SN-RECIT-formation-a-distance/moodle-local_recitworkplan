@@ -140,7 +140,7 @@ export class WorkPlanCollapsible extends Component{
                                                 <a><FontAwesomeIcon icon={faInfoCircle}/> </a>
                                                 </OverlayTrigger></span>}
 
-                    <ButtonGroup >
+                    <ButtonGroup style={{height: 40}} >
                         <Button size='sm' className='text-wrap' variant={(this.state.collapse ? 'primary' : 'outline-primary')} 
                                 onClick={this.onCollapse} title={"Suivi des activités"}
                                 aria-controls={`collapse-${workPlan.template.id}`} aria-expanded={this.state.collapse}>
