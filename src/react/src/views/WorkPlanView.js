@@ -284,7 +284,10 @@ class WorkPlanView extends Component{
     }
 
     componentDidMount(){
-        this.getData(this.props.templateId);
+        this.getData(this.props.templateId); 
+    }
+
+    componentWillUnmount(){
     }
 
     componentDidUpdate(prevProps) {
@@ -341,7 +344,6 @@ class WorkPlanView extends Component{
         let data = this.state.data;
         data.template = template;
         this.setState({data: data});
-        this.getData(template.id);
     }
 }
 
@@ -533,18 +535,15 @@ class WorkPlanAssignmentsView extends Component{
             let studentView = null;
 
             if(this.state.showUser !== null){
-                let body =  
-                <div>
-                    <div className='mb-4 p-2' style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-                        <div className='mt2 d-flex align-items-center'>
-                            <span dangerouslySetInnerHTML={{__html: this.state.showUser.avatar}}></span>
-                            <span className='h2'>{`${this.state.showUser.firstName} ${this.state.showUser.lastName}`}</span>
-                        </div>
-                    </div>
-                    <StudentWorkPlanList userId={this.state.showUser.id}/>
-                </div>;
+                let title =
+                    <div className=' d-flex align-items-center'>
+                        <span dangerouslySetInnerHTML={{__html: this.state.showUser.avatar}}></span>
+                        <span>{`${this.state.showUser.firstName} ${this.state.showUser.lastName}`}</span>
+                    </div>;
 
-                studentView = <Modal title={`Plan de travail de l'élève`} body={body} style={{maxWidth:900, width:'auto'}} onClose={() => this.onOpenStudentView(null)} />;
+                let body =  <StudentWorkPlanList userId={this.state.showUser.id}/>;
+
+                studentView = <Modal title={title} body={body} style={{maxWidth:900, width:'auto'}} onClose={() => this.onOpenStudentView(null)} />;
                    
             }
                 

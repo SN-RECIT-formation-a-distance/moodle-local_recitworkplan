@@ -597,8 +597,8 @@ class ModalTemplateForm extends Component{
 
         let modalFooter = 
             <ButtonGroup>
-                    <Button variant='secondary'  className='rounded' onClick={this.props.onClose}>Annuler</Button>
-                    <Button variant='success' className='ml-2 rounded' onClick={this.onSave}>Enregistrer</Button>
+                    <Button variant='secondary'   onClick={this.props.onClose}>Annuler</Button>
+                    <Button variant='success'  onClick={this.onSave}>Enregistrer</Button>
             </ButtonGroup>;
 
         return <Modal title="Modifier plan de travail/gabarit" style={{maxWidth: 850, width:'auto'}} body={modalBody} onClose={this.props.onClose} footer={modalFooter}/>
@@ -665,7 +665,7 @@ class ModalTemplateOptionForm extends Component{
                 <Form.Group as={Row}>
                     <Form.Label column sm="4">{"Afficher le temps en retard"}</Form.Label>
                     <Col sm="8">
-                        <ToggleButtons name="showHoursLate" defaultValue={[data.template.options.showHoursLate]} onClick={this.onDataChange}
+                        <ToggleButtons name="showHoursLate" value={[data.template.options.showHoursLate]} onClick={this.onDataChange}
                                 options={[
                                     {value: false, text:"Non"},
                                     {value: true, text:"Oui"}
@@ -676,8 +676,8 @@ class ModalTemplateOptionForm extends Component{
 
         let modalFooter = 
             <ButtonGroup>
-                    <Button variant='secondary'  className='rounded' onClick={this.props.onClose}>Annuler</Button>
-                    <Button variant='success' className='ml-2 rounded' onClick={this.onSave}>Enregistrer</Button>
+                    <Button variant='secondary'  onClick={this.props.onClose}>Annuler</Button>
+                    <Button variant='success' onClick={this.onSave}>Enregistrer</Button>
             </ButtonGroup>;
 
         return <Modal title="Modifier les options" style={{maxWidth: 650, width:'auto'}}  body={modalBody} onClose={this.props.onClose} footer={modalFooter}/>

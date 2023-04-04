@@ -291,7 +291,7 @@ export class StudentTemplateDetail extends Component {
         let rythmeColor = StudentTemplateTile.getProgressBarRythmColor(reportData, this.state.assignment);
 
         let main = <>
-        <CustomHeader title="Plan de travail" btnBefore={<CustomButton title="Revenir" onClick={this.props.onBack} faIcon={faArrowLeft}/>} btnAfter={<CustomButton title="Rafraichir" onClick={() => this.getData()} faIcon={faSync}/>}/>            
+        <CustomHeader btnBefore={<CustomButton className="mr-1" title="Revenir" onClick={this.props.onBack} faIcon={faArrowLeft}/>} btnAfter={<CustomButton title="Rafraichir" onClick={() => this.getData()} faIcon={faSync}/>}/>
             <CustomCard progressColor={rythmeColor} progressText={progressText} progressValue={`${progressValue}%`}>
                 <div className='mb-3'>
                     <div className='h4'>{reportData.template.name}</div>

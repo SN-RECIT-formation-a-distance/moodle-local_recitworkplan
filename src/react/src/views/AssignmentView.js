@@ -299,47 +299,43 @@ export class ModalAssignmentMassActions extends Component{
     constructor(props){
         super(props);
 
-        this.onSave = this.onSave.bind(this);
         this.onClose = this.onClose.bind(this);
+        this.onAssign = this.onAssign.bind(this);
 
         this.state = {
-            data: props.data, 
-            flags: {dataChanged: false}, 
-            rhythme: 0, 
-            nbAdditionalHours: 0, 
-            additionalHoursReason: '',
-            activeTab: '0',
-            startDate: 0
+            dataChanged: false,
+            activeTab: '0'
         };
     }
 
-
     render(){
-        if(this.state.data === null){ return null; }
+        let data = this.props.data;
+
+        if(data === null){ return null; }
 
         let body = 
             <div className='row'>
                 <div className='col-md-6 mb-3'>
                     <div>
-                        <h5>Élèves assignés <Badge variant="warning" className="p-2 rounded">{`${this.state.data.assignments.length}`}</Badge></h5>
+                        <h5>Élèves assignés <Badge variant="warning" className="p-2 rounded">{`${data.assignments.length}`}</Badge></h5>
                         <div style={{maxHeight: 500, overflowY: 'auto'}}>
                             <div style={{display:'flex',flexFlow:'wrap'}}>
-                                    {this.state.data.assignments.map((item, index) => {
-                                            let row =
-                                                <div key={index} className='m-1 p-2 d-flex align-items-center'>
-                                                    <div>
-                                                        <span dangerouslySetInnerHTML={{__html: item.user.avatar}}></span>
-                                                    </div>
-                                                    <div>
-                                                        <strong>{`${item.user.firstName} ${item.user.lastName}`}</strong><br/>
-                                                        <span className='text-muted'>Rythme: {item.nbHoursPerWeek}h/semaine</span><br/>
-                                                        <span className='text-muted'>{item.nbAdditionalHours}h supplémentaires</span>
-                                                    </div>
-                                                </div>;
+                                {data.assignments.map((item, index) => {
+                                    let row =
+                                        <div key={index} className='m-1 p-2 d-flex align-items-center'>
+                                            <div>
+                                                <span dangerouslySetInnerHTML={{__html: item.user.avatar}}></span>
+                                            </div>
+                                            <div>
+                                                <strong>{`${item.user.firstName} ${item.user.lastName}`}</strong><br/>
+                                                <span className='text-muted'>Rythme: {item.nbHoursPerWeek}h/semaine</span><br/>
+                                                <span className='text-muted'>{item.nbAdditionalHours}h supplémentaires</span>
+                                            </div>
+                                        </div>;
 
-                                            return row;
-                                        }
-                                    )}
+                                    return row;
+                                    }
+                                )}
                             </div>
                         </div>
                     </div>
@@ -348,58 +344,13 @@ export class ModalAssignmentMassActions extends Component{
                 <div className='col-md-6'>
                     <Tabs  activeKey={this.state.activeTab} onSelect={(tab) => this.setState({activeTab: tab})}>
                         <Tab eventKey="0" title="Date de début">
-                            <div>
-                                <Form.Group as={Row}>
-                                    <Form.Label column sm="5">{"Date de début"}</Form.Label>
-                                    <Col sm="7">
-                                        <DateTime style={{display:'inline'}} onChange={(e) => this.setState({startDate:e.target.value})} value={this.state.startDate} placeholder="Date de début"/>
-                                    </Col>
-                                </Form.Group>
-                                <Form.Group as={Row}>
-                                    <Col sm="5"></Col>
-                                    <Col sm="7">
-                                        <Button variant="primary" className="rounded"  onClick={null}>{"Assigner"}</Button>
-                                    </Col>
-                                </Form.Group>
-                            </div>
+                            <StartEndDatesFormBatchAssignment onAssign={this.onAssign} dataProvider={data}/>
                         </Tab>
-                        <Tab eventKey="1" title="Rythme par semaine" disabled={this.state.data.template.type == 's'}>
-                            <div>
-                                <Form.Group as={Row}>
-                                    <Form.Label column sm="5">{"Rythme (h/semaine)"}</Form.Label>
-                                    <Col sm="7">
-                                        <InputNumber style={{display:'inline'}} onChange={(e) => this.setState({rhythme:e.target.value})} value={this.state.rhythme} name='rhythme' placeholder="Rythme (h/semaine)"/>
-                                    </Col>
-                                </Form.Group>
-                                <Form.Group as={Row}>
-                                    <Col sm="5"></Col>
-                                    <Col sm="7">
-                                        <Button variant="primary" className="rounded" onClick={() => this.onSetRythme()}>{"Assigner"}</Button>
-                                    </Col>
-                                </Form.Group>
-                            </div>
+                        <Tab eventKey="1" title="Rythme par semaine" disabled={data.template.type == 's'}>
+                            <RythmeFormBatchAssignment onAssign={this.onAssign} dataProvider={data}/>
                         </Tab>
-                        <Tab eventKey="2" title="Heures supplémentaires" disabled={this.state.data.template.type == 's'}>
-                            <div>
-                                <Form.Group as={Row}>
-                                    <Form.Label column sm="5">{"Heures supplémentaires"}</Form.Label>
-                                    <Col sm="7">
-                                        <InputNumber style={{display:'inline'}} onChange={(e) => this.setState({nbAdditionalHours:e.target.value})} value={this.state.nbAdditionalHours} placeholder="Heures"/>
-                                    </Col>
-                                </Form.Group>
-                                <Form.Group as={Row}>
-                                    <Form.Label column sm="5">{"Raison"}</Form.Label>
-                                    <Col sm="7">
-                                        <CustomFormControl style={{display:'inline'}} max="250" onChange={(e) => this.setState({additionalHoursReason:e.target.value})}  type="text" value={this.state.additionalHoursReason}/>
-                                    </Col>
-                                </Form.Group>
-                                <Form.Group as={Row}>
-                                    <Col sm="5"></Col>
-                                    <Col sm="7">
-                                        <Button variant="primary" className="rounded"  disabled={this.state.additionalHoursReason.length == 0} onClick={() => this.onAddAdditionalHours()}>{"Ajouter"}</Button>
-                                    </Col>
-                                </Form.Group>
-                            </div>
+                        <Tab eventKey="2" title="Heures supplémentaires" disabled={data.template.type == 's'}>
+                            <AdditionalHoursFormBatchAssignment onAssign={this.onAssign} dataProvider={data}/>
                         </Tab>
                     </Tabs>
                 </div>
@@ -411,89 +362,261 @@ export class ModalAssignmentMassActions extends Component{
         return (main);
     }
 
-
-    onSetRythme(){
-        if (!confirm('Confirmez-vous cette opération: assigner le rythme à tous les utilisateurs?')) return;
-        let newItems = []
-        for (let item of this.state.data.assignments){
-            item.nbHoursPerWeek = this.state.rhythme;
-            newItems.push(item);
-        }
-        this.setState({flags: {dataChanged: true}}, () => this.onSave(newItems))
-    }
-
-    onAddAdditionalHours(){
-        if (!confirm('Confirmez-vous cette opération: ajouter des heures supplémentaires à tous les utilisateurs?')) return;
-        let newItems = []
-        for (let item of this.state.data.assignments){
-            let add = {};
-            add.id = item.id;
-            add.nbAdditionalHours = parseFloat(this.state.nbAdditionalHours);
-            add.additionalHoursReason = this.state.additionalHoursReason;
-            add.templateId = this.state.data.template.id;
-            newItems.push(add);
-            item.nbAdditionalHours = parseFloat(item.nbAdditionalHours) + add.nbAdditionalHours; //Update local cache
-        }
-        this.setState({flags: {dataChanged: true}}, () => this.onSaveAdditionalHours(newItems))
-    }
-
-    onSave(data){
-        let that = this;
-        let callback = function(result){
-            if(!result.success){
-                $glVars.feedback.showError($glVars.i18n.tags.appName, result.msg);
-                return;
-            }
-
-            let index = 0;
-            for (let item of data){
-                if(parseInt(item.id,10) === 0){
-                    item.id = result.data[index];
-                    let tmp = that.state.data;
-                    tmp.assignments.push(item);
-                    that.setState({data: tmp});
-                }
-                index++;
-            }
-            $glVars.feedback.showInfo($glVars.i18n.tags.appName, $glVars.i18n.tags.msgSuccess, 3);
-        }
-
-        if(this.state.flags.dataChanged){
-            $glVars.webApi.saveAssignment(data, null, callback);
-        }
-    }
-
-    onSaveAdditionalHours(data){
-        let that = this;
-        let callback = function(result){
-            if(!result.success){
-                $glVars.feedback.showError($glVars.i18n.tags.appName, result.msg);
-                return;
-            }
-
-            let index = 0;
-            for (let item of data){
-                if(parseInt(item.id,10) === 0){
-                    item.id = result.data[index];
-                    let tmp = that.state.data;
-                    tmp.assignments.push(item);
-                    that.setState({data: tmp});
-                }
-                index++;
-            }
-            $glVars.feedback.showInfo($glVars.i18n.tags.appName, $glVars.i18n.tags.msgSuccess, 3);
-        }
-
-        if(this.state.flags.dataChanged){
-            $glVars.webApi.addAssignmentAdditionalHours(data, callback);
-        }
+    onAssign(){
+        this.setState({dataChanged: true});
     }
 
     onClose(){
-        if(this.state.flags.dataChanged){
-            $glVars.webApi.processWorkPlan(this.state.data.template.id);
+        if(this.state.dataChanged){
+            $glVars.webApi.processWorkPlan(this.props.data.template.id, () => this.props.onClose(this.state.dataChanged));
         }
-        this.props.onClose(this.state.flags.dataChanged);
+        else{
+            this.props.onClose(this.state.dataChanged);
+        }
+    }
+}
+
+export class StartEndDatesFormBatchAssignment extends Component{
+    static defaultProps = {        
+        onAssign: null,
+        dataProvider: null
+    };
+
+    constructor(props){
+        super(props);
+
+        this.onAssign = this.onAssign.bind(this);
+        this.onDataChange = this.onDataChange.bind(this);
+
+        this.state = {
+            data: {
+                startDate: 0,
+                endDate: 0
+            }
+        };
+    }
+
+    render(){
+        if(this.props.dataProvider === null){ return null;}
+
+        let main = 
+            <div>
+                <Form.Group as={Row}>
+                    <Form.Label column sm="5">{"Date de début"}</Form.Label>
+                    <Col sm="7">
+                        <DateTime style={{display:'inline'}} onChange={this.onDataChange} name="startDate" value={this.state.data.startDate}/>
+                    </Col>
+                </Form.Group>
+                <Form.Group as={Row}>
+                    <Form.Label column sm="5">{"Date de fin"}</Form.Label>
+                    <Col sm="7">
+                        <DateTime disabled={(this.props.dataProvider.template.type == 'd')} style={{display:'inline'}} onChange={this.onDataChange} value={this.state.data.endDate} name="endDate"/>
+                    </Col>
+                </Form.Group>
+                <Form.Group as={Row}>
+                    <Col sm="5"></Col>
+                    <Col sm="7">
+                        <Button variant="primary" className="rounded"  onClick={this.onAssign}>{"Assigner"}</Button>
+                    </Col>
+                </Form.Group>
+            </div>;
+
+        return main;
+    }
+
+    onDataChange(event){
+        let data = this.state.data;
+        data[event.target.name] = event.target.value;
+        this.setState({data: data});
+    }
+
+    onAssign(){
+        if (!confirm($glVars.i18n.tags.msgConfirm)){
+            return;
+        }
+
+        let that = this;
+        let callback = function(result){
+            if(!result.success){
+                $glVars.feedback.showError($glVars.i18n.tags.appName, result.msg);
+                return;
+            }
+           
+            $glVars.feedback.showInfo($glVars.i18n.tags.appName, $glVars.i18n.tags.msgSuccess, 3);
+            
+            that.props.onAssign();
+        }
+
+        let assignments = []
+        for (let item of this.props.dataProvider.assignments){
+            let tmp = JsNx.clone(item);
+            tmp.startDate = this.state.data.startDate;
+            tmp.endDate = this.state.data.endDate;
+            assignments.push(tmp);
+        }
+
+        $glVars.webApi.saveAssignment(assignments, null, callback);
+    }
+}
+
+export class RythmeFormBatchAssignment extends Component{
+    static defaultProps = {        
+        onAssign: null,
+        dataProvider: null
+    };
+
+    constructor(props){
+        super(props);
+
+        this.onAssign = this.onAssign.bind(this);
+        this.onDataChange = this.onDataChange.bind(this);
+
+        this.state = {
+            data: {
+                rhythme: 0 
+            }
+        };
+    }
+
+    render(){
+        if(this.props.dataProvider === null){ return null;}
+
+        let main =
+            <div>
+                <Form.Group as={Row}>
+                    <Form.Label column sm="5">{"Rythme (h/semaine)"}</Form.Label>
+                    <Col sm="7">
+                        <InputNumber style={{display:'inline'}} onChange={this.onDataChange} value={this.state.data.rhythme} name='rhythme' placeholder="Rythme (h/semaine)"/>
+                    </Col>
+                </Form.Group>
+                <Form.Group as={Row}>
+                    <Col sm="5"></Col>
+                    <Col sm="7">
+                        <Button variant="primary" className="rounded" onClick={this.onAssign}>{"Assigner"}</Button>
+                    </Col>
+                </Form.Group>
+            </div>;
+
+        return main;
+    }
+
+    onDataChange(event){
+        let data = this.state.data;
+        data[event.target.name] = event.target.value;
+        this.setState({data: data});
+    }
+
+    onAssign(){
+        if (!confirm($glVars.i18n.tags.msgConfirm)){
+            return;
+        }
+
+        let that = this;
+        let callback = function(result){
+            if(!result.success){
+                $glVars.feedback.showError($glVars.i18n.tags.appName, result.msg);
+                return;
+            }
+           
+            $glVars.feedback.showInfo($glVars.i18n.tags.appName, $glVars.i18n.tags.msgSuccess, 3);
+            
+            that.props.onAssign();
+        }
+
+        let assignments = []
+        for (let item of this.props.dataProvider.assignments){
+            let tmp = JsNx.clone(item);
+            tmp.nbHoursPerWeek = this.state.data.rhythme;
+            assignments.push(tmp);
+        }
+
+        $glVars.webApi.saveAssignment(assignments, null, callback);
+    }
+}
+
+export class AdditionalHoursFormBatchAssignment extends Component{
+    static defaultProps = {        
+        onAssign: null,
+        dataProvider: null
+    };
+
+    constructor(props){
+        super(props);
+
+        this.onAssign = this.onAssign.bind(this);
+        this.onDataChange = this.onDataChange.bind(this);
+
+        this.state = {
+            data: {
+                nbAdditionalHours: 0, 
+                additionalHoursReason: '',
+            }
+        };
+    }
+
+    render(){
+        if(this.props.dataProvider === null){ return null;}
+
+        let main =
+            <div>
+                <Form.Group as={Row}>
+                    <Form.Label column sm="5">{"Heures supplémentaires"}</Form.Label>
+                    <Col sm="7">
+                        <InputNumber style={{display:'inline'}} name="nbAdditionalHours" onChange={this.onDataChange} value={this.state.data.nbAdditionalHours} placeholder="Heures"/>
+                    </Col>
+                </Form.Group>
+                <Form.Group as={Row}>
+                    <Form.Label column sm="5">{"Raison"}</Form.Label>
+                    <Col sm="7">
+                        <CustomFormControl style={{display:'inline'}} max="250" name="additionalHoursReason"  onChange={this.onDataChange} type="text" value={this.state.data.additionalHoursReason}/>
+                    </Col>
+                </Form.Group>
+                <Form.Group as={Row}>
+                    <Col sm="5"></Col>
+                    <Col sm="7">
+                        <Button variant="primary" className="rounded"  disabled={this.state.data.additionalHoursReason.length == 0} onClick={this.onAssign}>{"Ajouter"}</Button>
+                    </Col>
+                </Form.Group>
+            </div>;
+
+        return main;
+    }
+
+    onDataChange(event){
+        let data = this.state.data;
+        data[event.target.name] = event.target.value;
+        this.setState({data: data});
+    }
+
+    onAssign(){
+        if (!confirm($glVars.i18n.tags.msgConfirm)){
+            return;
+        }
+
+        let newItems = []
+        for (let item of this.props.dataProvider.assignments){
+            let add = {
+                id: item.id,
+                nbAdditionalHours: parseFloat(this.state.data.nbAdditionalHours),
+                additionalHoursReason: this.state.data.additionalHoursReason,
+                templateId: this.props.dataProvider.template.id
+            };
+
+            newItems.push(add);
+        }
+
+        let that = this;
+        let callback = function(result){
+            if(!result.success){
+                $glVars.feedback.showError($glVars.i18n.tags.appName, result.msg);
+                return;
+            }
+
+            $glVars.feedback.showInfo($glVars.i18n.tags.appName, $glVars.i18n.tags.msgSuccess, 3);
+            that.props.onAssign();
+        }
+
+        $glVars.webApi.addAssignmentAdditionalHours(newItems, callback);
     }
 }
 

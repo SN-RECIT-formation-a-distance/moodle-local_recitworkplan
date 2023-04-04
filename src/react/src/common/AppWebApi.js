@@ -120,8 +120,17 @@ export class AppWebApi extends WebApi
     }
 
     addAssignmentAdditionalHours(data, onSuccess){
+        let that = this;
+        let onSuccessTmp = function(result){     
+            onSuccess(result);
+            if(result.success){
+                that.notifyObservers('addAssignmentAdditionalHours');
+            }
+        };
+
         let options = {data: data, service: "addAssignmentAdditionalHours"};
-        this.post(this.gateway, options, onSuccess);
+
+        this.post(this.gateway, options, onSuccessTmp, null, true);
     }
 
     getTemplateFormFormKit(templateId, onSuccess){
