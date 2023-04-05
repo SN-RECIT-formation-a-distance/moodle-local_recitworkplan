@@ -7,7 +7,9 @@ export class DateTime extends Component {
         name: "",
         disabled: false,
         required: false,
-        style: null
+        style: null,
+        min: '',
+        max: '',
     };
     
     constructor(props){
@@ -20,14 +22,18 @@ export class DateTime extends Component {
         let time = '';
 
         if(this.props.value > 0){
-            time = new Date(this.props.value * 1000);
-            if (time){
-                time = time.toISOString().slice(0,16);
+            let obj = new Date(this.props.value * 1000);
+            if (obj){
+                time = obj.getFullYear().toString();
+                time += "-" + (obj.getMonth()+1).toString().padStart(2, '0');
+                time += "-" + obj.getDate().toString().padStart(2, '0');
+                time += "T" + obj.getHours().toString().padStart(2, '0');
+                time += ":" + obj.getMinutes().toString().padStart(2, '0');
             }
         }
         
         //  spread attributes <div {...this.props}>    
-        let spreadAttr = {required: this.props.required, name: this.props.name, disabled: this.props.disabled, style: this.props.style};
+        let spreadAttr = {required: this.props.required, name: this.props.name, disabled: this.props.disabled, style: this.props.style, min: this.props.min, max: this.props.max};
 
         let main = 
             <input className='form-control' type="datetime-local" {...spreadAttr}  onChange={this.onChange} value={time}/>
@@ -35,8 +41,8 @@ export class DateTime extends Component {
     }   
     
     onChange(event){
-        let timestap = Date.parse(event.target.value) / 1000;
-        let data = {target: {name: this.props.name, value: timestap}};
+        let timestamp = Date.parse(event.target.value) / 1000;
+        let data = {target: {name: this.props.name, value: timestamp}};
         this.props.onChange(data);
     }   
 }

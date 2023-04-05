@@ -254,7 +254,8 @@ export class UtilsDateTime
         }
     }
 
-    static formatDateTime(value){
+    static formatDateTime(value, timeSeparator){
+        timeSeparator = timeSeparator || " ";
         let result = "";
 
         if(Number.isInteger(value) && value > 0){
@@ -262,7 +263,7 @@ export class UtilsDateTime
             result = obj.getFullYear().toString();
             result += "-" + (obj.getMonth()+1).toString().padStart(2, '0');
             result += "-" + obj.getDate().toString().padStart(2, '0');
-            result += " " + obj.getHours().toString().padStart(2, '0');
+            result += timeSeparator + obj.getHours().toString().padStart(2, '0');
             result += ":" + obj.getMinutes().toString().padStart(2, '0');
         }
 

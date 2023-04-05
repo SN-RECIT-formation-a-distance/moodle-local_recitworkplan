@@ -642,6 +642,8 @@ export class ModalAssignmentForm extends Component{
         if(this.props.metadata === null){ return null; }
 
         let item = this.state.data;
+        let dateMin = new Date(item.startDate*1000);
+        dateMin.setDate(dateMin.getDate() + 1);
 
         let body = 
             <Form>
@@ -651,7 +653,7 @@ export class ModalAssignmentForm extends Component{
                 </Form.Group>
                 <Form.Group>
                     <Form.Label>{"Fin"}</Form.Label>
-                    <DateTime disabled={this.props.metadata.type === 'd'} value={item.endDate} name="endDate" onChange={this.onDataChange} />
+                    <DateTime min={UtilsDateTime.formatDateTime(dateMin.getTime() / 1000, 'T')} disabled={this.props.metadata.type === 'd'} value={item.endDate} name="endDate" onChange={this.onDataChange} />
                     <Form.Text className="text-muted">Si le plan est dynamique, alors la date de fin est calculée dynamiquement.</Form.Text>
                 </Form.Group>
                 <Form.Group>

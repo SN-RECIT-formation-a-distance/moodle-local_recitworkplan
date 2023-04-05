@@ -828,9 +828,9 @@ class PersistCtrl extends MoodlePersistCtrl
             $query = "select assignmentid, templateid,  
             (case 
                 when nbIncompleteAct = 0 then 3 
-                when templatetype = 's' and ".$this->sql_time_to_secs('now()')." > enddate and nbIncompleteAct > 0 then 2 
-                when templatetype = 'd' and nb_hours_per_week > 0 and ".$this->sql_time_to_secs('now()')." > enddate and nbIncompleteAct > 0 then 2 
-                else -1 end) completionstate, 
+                when templatetype = 's' and UNIX_TIMESTAMP() > enddate and nbIncompleteAct > 0 then 2 
+                when templatetype = 'd' and nb_hours_per_week > 0 and UNIX_TIMESTAMP() > enddate and nbIncompleteAct > 0 then 2 
+                else 0 end) completionstate, 
             nbIncompleteAct, startdate, enddate, cmids 
             FROM
             (select t1.id assignmentId, t1.templateid, min(t1.startdate) startdate, 
