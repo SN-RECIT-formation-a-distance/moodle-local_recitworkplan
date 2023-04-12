@@ -42,6 +42,8 @@ export class DateTime extends Component {
     
     onChange(event){
         let timestamp = Date.parse(event.target.value) / 1000;
+        timestamp = (isNaN(timestamp) ? 0 : timestamp);
+
         let data = {target: {name: this.props.name, value: timestamp}};
         this.props.onChange(data);
     }   

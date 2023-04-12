@@ -18,7 +18,7 @@
  * @copyright 2019 RÉCIT 
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-import React, { Component } from 'react';
+import React, { Component, createRef } from 'react';
 import { ButtonGroup,  Button, Form, Col, Row, Table, Badge, Tabs, Tab} from 'react-bootstrap';
 import { faTrashAlt, faArrowRight} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -385,6 +385,7 @@ export class StartEndDatesFormBatchAssignment extends Component{
     constructor(props){
         super(props);
 
+        this.onSubmit = this.onSubmit.bind(this);
         this.onAssign = this.onAssign.bind(this);
         this.onDataChange = this.onDataChange.bind(this);
 
@@ -392,7 +393,8 @@ export class StartEndDatesFormBatchAssignment extends Component{
             data: {
                 startDate: 0,
                 endDate: 0
-            }
+            },
+            formValidated: false
         };
     }
 
@@ -400,11 +402,11 @@ export class StartEndDatesFormBatchAssignment extends Component{
         if(this.props.dataProvider === null){ return null;}
 
         let main = 
-            <div>
+            <Form noValidate validated={this.state.formValidated} onSubmit={this.onSubmit}>
                 <Form.Group as={Row}>
                     <Form.Label column sm="5">{"Date de début"}</Form.Label>
                     <Col sm="7">
-                        <DateTime style={{display:'inline'}} onChange={this.onDataChange} name="startDate" value={this.state.data.startDate}/>
+                        <DateTime required style={{display:'inline'}} onChange={this.onDataChange} name="startDate" value={this.state.data.startDate}/>
                     </Col>
                 </Form.Group>
                 <Form.Group as={Row}>
@@ -416,10 +418,10 @@ export class StartEndDatesFormBatchAssignment extends Component{
                 <Form.Group as={Row}>
                     <Col sm="5"></Col>
                     <Col sm="7">
-                        <Button variant="primary" className="rounded"  onClick={this.onAssign}>{"Assigner"}</Button>
+                        <Button variant="primary" className="rounded"  type="submit">{"Assigner"}</Button>
                     </Col>
                 </Form.Group>
-            </div>;
+            </Form>;
 
         return main;
     }
@@ -428,6 +430,15 @@ export class StartEndDatesFormBatchAssignment extends Component{
         let data = this.state.data;
         data[event.target.name] = event.target.value;
         this.setState({data: data});
+    }
+
+    onSubmit(event){
+        const form = event.currentTarget;
+        
+        event.preventDefault();
+        event.stopPropagation();
+        
+        this.setState({formValidated: true}, (form.checkValidity() ? this.onAssign : null));
     }
 
     onAssign(){
@@ -630,11 +641,16 @@ export class ModalAssignmentForm extends Component{
     constructor(props){
         super(props);
 
+        this.onSubmit = this.onSubmit.bind(this);
         this.onSave = this.onSave.bind(this);
         this.onDataChange = this.onDataChange.bind(this);
         this.onClose = this.onClose.bind(this);
 
-        this.state = {data: JsNx.clone(props.data), flags: {dataChanged: false}};
+        this.state = {
+            data: JsNx.clone(props.data), 
+            flags: {dataChanged: false},
+            formValidated: false
+        };
     }
 
     render(){
@@ -646,10 +662,11 @@ export class ModalAssignmentForm extends Component{
         dateMin.setDate(dateMin.getDate() + 1);
 
         let body = 
-            <Form>
+            <Form noValidate validated={this.state.formValidated} onSubmit={this.onSubmit}>
                 <Form.Group >
                     <Form.Label>{"Début"}</Form.Label>
-                    <DateTime  value={item.startDate} name="startDate" onChange={this.onDataChange} />
+                    <DateTime required={true} value={item.startDate} name="startDate" onChange={this.onDataChange} />
+                    <Form.Control.Feedback type="invalid">Veuillez indiquer une date de début</Form.Control.Feedback>
                 </Form.Group>
                 <Form.Group>
                     <Form.Label>{"Fin"}</Form.Label>
@@ -665,16 +682,16 @@ export class ModalAssignmentForm extends Component{
                     <InputNumber disabled={this.props.metadata.type === 's'} value={item.nbHoursPerWeek} name="nbHoursPerWeek" onChange={this.onDataChange} />
                     <Form.Text className="text-muted">Si le plan est dynamique, alors le rythme de travail n'est plus pris en compte.</Form.Text>
                 </Form.Group>
+
+                <hr/>
+                <ButtonGroup className='d-flex'>
+                    <Button variant='secondary'  onClick={this.onClose}>Annuler</Button>
+                    <Button disabled={!this.state.flags.dataChanged} variant='success' type='submit'>Enregistrer</Button>
+                </ButtonGroup>
             </Form>;
 
-        let modalFooter = 
-        <ButtonGroup>
-                <Button variant='secondary'  onClick={this.onClose}>Annuler</Button>
-                <Button disabled={!this.state.flags.dataChanged} variant='success' onClick={this.onSave}>Enregistrer</Button>
-        </ButtonGroup>;
 
-
-        let main = <Modal title={'Modifier élève'} body={body} footer={modalFooter} width="450px" onClose={this.onClose} />;
+        let main = <Modal title={'Modifier élève'} body={body} width="450px" onClose={this.onClose} />;
 
         return (main);
     }
@@ -685,6 +702,15 @@ export class ModalAssignmentForm extends Component{
         flags.dataChanged = (data[event.target.name] != event.target.value);
         data[event.target.name] = event.target.value;
         this.setState({data: data, flags: flags});
+    }
+
+    onSubmit(event){
+        const form = event.currentTarget;
+        
+        event.preventDefault();
+        event.stopPropagation();
+        
+        this.setState({formValidated: true}, (form.checkValidity() ? this.onSave : null));
     }
 
     onSave(){
