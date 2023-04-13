@@ -511,14 +511,14 @@ class ModalTemplateForm extends Component{
 
         this.onDataChange = this.onDataChange.bind(this);
         this.onSave = this.onSave.bind(this);
+        this.onSubmit = this.onSubmit.bind(this);
 
         let data = JsNx.clone(this.props.data);
-        this.state = {data: data, teachers: []}
+        
         let collaborators = [];
         for (let t of data.template.collaboratorList){
             collaborators.push({label: t.firstName+' '+t.lastName, value: parseInt(t.userId), data: t})
         }
-        this.state.collaborators = collaborators;
 
         switch ($glVars.context.activeWorkPlanStateTab){
             case 'template':
@@ -528,6 +528,13 @@ class ModalTemplateForm extends Component{
                 data.template.state = 0;
                 break;
         }
+
+        this.state = {
+            data: data, 
+            teachers: [],
+            collaborators: collaborators,
+            formValidated: false
+        };
     }
 
     componentDidMount(){
@@ -546,7 +553,7 @@ class ModalTemplateForm extends Component{
         if(data === null){ return null;}
 
         let modalBody = 
-            <Form>
+            <Form noValidate validated={this.state.formValidated} onSubmit={this.onSubmit}>
                 <Form.Group as={Row}>
                     <Form.Label column sm="3">{"Enregistrer en tant que"}</Form.Label>
                     <Col sm="9">
@@ -561,7 +568,7 @@ class ModalTemplateForm extends Component{
                 <Form.Group as={Row} >
                     <Form.Label column sm="3">{"Nom"}</Form.Label>
                     <Col sm="9">
-                        <CustomFormControl type="text" value={data.template.name} name="name" onChange={this.onDataChange} />
+                        <CustomFormControl required={true} type="text" value={data.template.name} name="name" onChange={this.onDataChange} />
                     </Col>
                 </Form.Group>
                 <Form.Group as={Row}>
@@ -593,15 +600,15 @@ class ModalTemplateForm extends Component{
                         <ComboBoxPlus multiple placeholder={"Sélectionnez votre option"} name="collaborators" value={this.state.collaborators} options={this.state.teachers} onChange={this.onDataChange} />
                     </Col>
                 </Form.Group>
+
+                <hr/>
+                <ButtonGroup className='d-flex justify-content-end'>
+                    <Button style={{flex: 0}} variant='secondary'   onClick={this.props.onClose}>Annuler</Button>
+                    <Button style={{flex: 0}} variant='success'  type='submit'>Enregistrer</Button>
+                </ButtonGroup>
             </Form>;
 
-        let modalFooter = 
-            <ButtonGroup>
-                    <Button variant='secondary'   onClick={this.props.onClose}>Annuler</Button>
-                    <Button variant='success'  onClick={this.onSave}>Enregistrer</Button>
-            </ButtonGroup>;
-
-        return <Modal title="Modifier plan de travail/gabarit" style={{maxWidth: 850, width:'auto'}} body={modalBody} onClose={this.props.onClose} footer={modalFooter}/>
+        return <Modal title="Modifier plan de travail/gabarit" style={{maxWidth: 850, width:'auto'}} body={modalBody} onClose={this.props.onClose}/>
     }
 
     onDataChange(event){
@@ -622,6 +629,15 @@ class ModalTemplateForm extends Component{
             
             this.setState({data:data});
         }
+    }
+
+    onSubmit(event){
+        const form = event.currentTarget;
+        
+        event.preventDefault();
+        event.stopPropagation();
+        
+        this.setState({formValidated: true}, (form.checkValidity() ? this.onSave : null));
     }
 
     onSave(){

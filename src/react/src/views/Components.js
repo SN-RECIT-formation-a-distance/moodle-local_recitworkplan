@@ -333,11 +333,12 @@ export class CustomFormControl extends Component{
         type: '',
         as: '',
         rows: null,
-        max: 0
+        max: 0,
+        required: false
     };
 
     render(){
-        let spreadAttr = {};
+        let spreadAttr = {required: this.props.required};
         if (this.props.max > 0){
             spreadAttr.maxLength = this.props.max;
         }

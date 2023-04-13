@@ -61,7 +61,18 @@ export class WorkPlanListView extends Component{
         this.getDataResult = this.getDataResult.bind(this);
         this.onCopy = this.onCopy.bind(this);
 
-        this.state = {dataProvider: [], templateId: -1, activeTab: 'ongoing', pagination: {current_page: 1, count: 0, item_per_page: 25}, editTab: 'activities'};
+        this.state = {
+            dataProvider: [], 
+            templateId: -1, 
+            activeTab: 'ongoing', 
+            pagination: {current_page: 1, count: 0, item_per_page: 25}, 
+            editTab: 'activities',
+            onCopy:  {
+                templateId: 0,
+                title: '',
+                state: 0
+            }
+        };
         
         if (props.workPlanId > 0){
             this.state.templateId = props.workPlanId;
@@ -123,7 +134,9 @@ export class WorkPlanListView extends Component{
                     )}
                 </div>
 
-                {false && <Pagination pagination={this.state.pagination} onChangePage={(p) => this.changePage(p)}/>}                
+                {false && <Pagination pagination={this.state.pagination} onChangePage={(p) => this.changePage(p)}/>}      
+
+                {this.state.onCopy.templateId > 0 && <ModalWorkPlanCopy data={this.state.onCopy} onClose={() => this.onCopy(0)} />}
             </div>;
 
         let form = <WorkPlanView templateId={this.state.templateId} editTab={this.state.editTab} onClose={this.onClose}/>;
@@ -183,7 +196,56 @@ export class WorkPlanListView extends Component{
         }
     }
 
-    onCopy(templateId, state){
+    onCopy(templateId, title, state){
+       this.setState({onCopy: {templateId: templateId, title: title, state: state}});
+    }
+}
+
+class ModalWorkPlanCopy extends Component{
+    static defaultProps = {        
+        data: null,
+        onClose: null
+    };
+
+    constructor(props){
+        super(props);
+
+        this.onDataChange = this.onDataChange.bind(this);
+        this.onSubmit = this.onSubmit.bind(this);
+
+        this.state = {keepCollaborators: false};
+    }
+
+    render(){
+        let body = 
+        <Form onSubmit={this.onSubmit}>
+            <Form.Group >
+                <Form.Label>{"Conserver les collaborateurs"}</Form.Label>
+                <ToggleButtons name="keepCollaborators" type="radio" value={[this.state.keepCollaborators]} onClick={this.onDataChange} 
+                            options={[{value: false, text: 'Non'}, {value: true, text: 'Oui'}]}/>
+            </Form.Group>
+            <hr/>
+            <ButtonGroup className='d-flex justify-content-end'>
+                <Button style={{flex: 0}} variant='secondary'  onClick={this.props.onClose}>Annuler</Button>
+                <Button style={{flex: 0}} variant='success' type='submit'>Enregistrer</Button>
+            </ButtonGroup>
+        </Form>;
+
+        let main = <Modal title={this.props.data.title} body={body} width="450px" onClose={this.props.onClose} />;
+
+        return main;
+    }
+
+    onDataChange(event){
+        let data = this.state;
+        data[event.target.name] = event.target.value;
+        this.setState(data);
+    }
+
+    onSubmit(event){
+        event.preventDefault();
+        event.stopPropagation();
+        
         let that = this;
         let callback = function(result){
             if(!result.success){
@@ -191,13 +253,12 @@ export class WorkPlanListView extends Component{
             }
             else{
                 FeedbackCtrl.instance.showInfo($glVars.i18n.tags.appName, $glVars.i18n.tags.msgSuccess, 3);
-                that.getData();
-                that.setState({templateId: result.data.id});
+                that.props.onClose();
             }
         };
 
-        if(window.confirm($glVars.i18n.tags.msgConfirmClone)){
-            $glVars.webApi.cloneTemplate(templateId, state, callback);
+        if(window.confirm($glVars.i18n.tags.msgConfirm)){
+            $glVars.webApi.cloneTemplate(this.props.data.templateId, {state: this.props.data.state, keepCollaborators: this.state.keepCollaborators}, callback);
         }
     }
 }
@@ -232,9 +293,9 @@ class WorkPlanCard extends Component{
 
         let buttons = 
             <DropdownButton size='sm' as={ButtonGroup} variant='outline-primary' title={<FontAwesomeIcon icon={faEllipsisV} />} id={`optionsWorkPlan${workPlan.template.id}`}>
-                {hasAccess && $glVars.context.activeWorkPlanStateTab != 'archive' && <Dropdown.Item onClick={() => this.props.onCopy(workPlan.template.id)}><FontAwesomeIcon icon={faCopy}  />{" Copier"}</Dropdown.Item>}
-                {hasAccess && workPlan.template.state == 1 && <Dropdown.Item onClick={() => this.props.onCopy(workPlan.template.id, 0)}><FontAwesomeIcon icon={faBookmark}  />{" Utiliser ce gabarit"}</Dropdown.Item>}
-                {hasAccess && workPlan.template.state != 1 && <Dropdown.Item onClick={() => this.props.onCopy(workPlan.template.id, 1)}><FontAwesomeIcon icon={faBookmark}  />{" Enregistrer en tant que gabarit"}</Dropdown.Item>}
+                {hasAccess && $glVars.context.activeWorkPlanStateTab != 'archive' && <Dropdown.Item onClick={() => this.props.onCopy(workPlan.template.id, "Copier ce gabarit", null)}><FontAwesomeIcon icon={faCopy}  />{" Copier"}</Dropdown.Item>}
+                {hasAccess && workPlan.template.state == 1 && <Dropdown.Item onClick={() => this.props.onCopy(workPlan.template.id, "Utiliser ce gabarit", 0)}><FontAwesomeIcon icon={faBookmark}  />{" Utiliser ce gabarit"}</Dropdown.Item>}
+                {hasAccess && workPlan.template.state != 1 && <Dropdown.Item onClick={() => this.props.onCopy(workPlan.template.id, "Enregistrer en tant que gabarit", 1)}><FontAwesomeIcon icon={faBookmark}  />{" Enregistrer en tant que gabarit"}</Dropdown.Item>}
                 <Dropdown.Item onClick={() => this.props.onDelete(workPlan.template.id)}><FontAwesomeIcon icon={faTrashAlt}  />{" Supprimer"}</Dropdown.Item>
                 {hasAccess && workPlan.assignments.length > 0 && !WorkPlanUtils.isArchived(JsNx.at(workPlan.assignments, 0, null)) &&  <Dropdown.Item onClick={() => this.props.onArchive(workPlan, true)}><FontAwesomeIcon icon={faArchive}  />{" Archiver"}</Dropdown.Item>}
                 {hasAccess && $glVars.context.activeWorkPlanStateTab == 'archive' && <Dropdown.Item onClick={() => this.props.onArchive(workPlan, false)}><FontAwesomeIcon icon={faArchive}  />{" Désarchiver"}</Dropdown.Item>}
@@ -253,9 +314,10 @@ class WorkPlanCard extends Component{
                     }
                     <FollowUpCard data={workPlan}/>
                 </div>
-            </>
+            </>       
+
         let main = <WorkPlanCollapsible progress={progress} data={workPlan} buttons={buttons} onClick={() => this.props.onEdit(workPlan.template.id, 'activities')}
-                        contentCollapsible={content} onDetail={this.onDetail}/>;
+                                contentCollapsible={content} onDetail={this.onDetail}/>;
 
         return main;
     }

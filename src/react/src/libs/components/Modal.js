@@ -5,6 +5,7 @@ import React, { Component } from 'react';
  */
 export class Modal extends Component{
     static defaultProps = {        
+        show: true,
         title: "",
         body: null,
         footer: null,
@@ -44,6 +45,6 @@ export class Modal extends Component{
                 </div>
             </div>;
 
-        return main;
+        return (this.props.show ? main : null);
     }
 }

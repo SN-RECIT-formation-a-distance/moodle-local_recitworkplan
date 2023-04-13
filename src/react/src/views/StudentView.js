@@ -19,7 +19,7 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 import React, { Component } from 'react';
-import { faSyncAlt, faArchive, faArrowLeft, faSync} from '@fortawesome/free-solid-svg-icons';
+import { faSyncAlt, faArchive, faArrowLeft, faSync, faHandPointRight} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {FeedbackCtrl, ToggleButtons} from '../libs/components/Components';
 import {$glVars, WorkPlanUtils} from '../common/common';
@@ -34,7 +34,7 @@ export class StudentView extends Component {
     constructor(props) {
         super(props);
 
-        this.state = {lastUpdate: 0, activeTab: 'ongoing', showHeader: true};
+        this.state = {lastUpdate: 0, activeTab: 'ongoing', showHeader: (props.workPlanId > 0 ? false : true)};
     }
  
     render() {
@@ -48,6 +48,7 @@ export class StudentView extends Component {
                         <div>
                             <ToggleButtons name="completionState" onChange={(e) => this.onCompletionStateChange(e)} type="radio" value={this.state.activeTab} options={
                                 [{value: "ongoing", text: <span><FontAwesomeIcon icon={faSyncAlt}  />{" En cours"}</span>}, 
+                                {value: "upcoming", text: <span><FontAwesomeIcon icon={faHandPointRight}  />{" À venir"}</span>},
                                 {value: "archive", text: <span><FontAwesomeIcon icon={faArchive}  />{" Archivés"}</span>}]}/>
                         </div>
                     </div> 

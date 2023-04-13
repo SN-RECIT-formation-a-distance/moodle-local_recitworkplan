@@ -300,8 +300,8 @@ class WebApi extends MoodleApi
         try{
             $this->canUserAccess('a');
             $templateId = clean_param($request['templateId'], PARAM_INT);
-            $state = isset($request['state']) ? clean_param($request['state'], PARAM_RAW) : null;
-            $result = $this->ctrl->cloneTemplate($templateId, $state);
+            $options = json_decode(json_encode($request['options']), FALSE);
+            $result = $this->ctrl->cloneTemplate($templateId, $options);
             return new WebApiResult(true, array('id' => $result));
         }
         catch(Exception $ex){

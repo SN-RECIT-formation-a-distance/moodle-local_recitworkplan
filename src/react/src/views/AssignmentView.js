@@ -684,9 +684,9 @@ export class ModalAssignmentForm extends Component{
                 </Form.Group>
 
                 <hr/>
-                <ButtonGroup className='d-flex'>
-                    <Button variant='secondary'  onClick={this.onClose}>Annuler</Button>
-                    <Button disabled={!this.state.flags.dataChanged} variant='success' type='submit'>Enregistrer</Button>
+                <ButtonGroup className='d-flex justify-content-end'>
+                    <Button style={{flex: 0}} variant='secondary'  onClick={this.onClose}>Annuler</Button>
+                    <Button style={{flex: 0}} disabled={!this.state.flags.dataChanged} variant='success' type='submit'>Enregistrer</Button>
                 </ButtonGroup>
             </Form>;
 

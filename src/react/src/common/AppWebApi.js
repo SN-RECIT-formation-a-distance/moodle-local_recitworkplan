@@ -143,8 +143,8 @@ export class AppWebApi extends WebApi
         this.post(this.gateway, data, onSuccess);
     }  
 
-    cloneTemplate(templateId, state, onSuccess){
-        let data = {templateId: templateId, state: state, service: "cloneTemplate"};
+    cloneTemplate(templateId, options, onSuccess){
+        let data = {templateId: templateId, options: options, service: "cloneTemplate"};
         this.post(this.gateway, data, onSuccess);
     }
 

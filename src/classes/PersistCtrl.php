@@ -283,14 +283,15 @@ class PersistCtrl extends MoodlePersistCtrl
         }
     }
 
-    public function cloneTemplate($templateId, $state = null){
+    public function cloneTemplate($templateId, $options){
         try{
+            $state = (is_numeric($options->state) ? $options->state : 'state');
+            $collaboratorids = ($options->keepCollaborators ? 'collaboratorids' : "''");
+            
+            $query = "insert into {recit_wp_tpl} (creatorid, collaboratorids, name, description, communication_url, lastupdate, state, tpltype, options) 
+                        select {$this->signedUser->id}, $collaboratorids, ". $this->mysqlConn->sql_concat('name', "'".get_string('cloned', 'local_recitworkplan')."'").", description, 
+                        communication_url, " . time() . ", $state, tpltype, options from {recit_wp_tpl} where id = $templateId";
 
-            if (!is_numeric($state)){
-                $query = "insert into {recit_wp_tpl} (creatorid, name, description, communication_url, lastupdate, state, tpltype) select {$this->signedUser->id}, ". $this->mysqlConn->sql_concat('name', "'".get_string('cloned', 'local_recitworkplan')."'").", description, communication_url,  " . time() . ", state, tpltype from {recit_wp_tpl} where id = $templateId";
-            }else{
-                $query = "insert into {recit_wp_tpl} (creatorid, name, description, communication_url, lastupdate, state, tpltype) select {$this->signedUser->id}, ". $this->mysqlConn->sql_concat('name', "'".get_string('cloned', 'local_recitworkplan')."'").", description, communication_url, " . time() . ", $state, tpltype from {recit_wp_tpl} where id = $templateId";
-            }
             $this->execSQL($query);
             $newTemplateId = $this->mysqlConn->get_record_sql("select id from {recit_wp_tpl} order by id desc limit 1")->id;
 
@@ -647,6 +648,14 @@ class PersistCtrl extends MoodlePersistCtrl
             $where .= " and t1.userid = $userId";
             $capabilities[] = RECITWORKPLAN_FOLLOW_CAPABILITY;
             $whereaccess .= " and (t5.course is null or t5.course in (".$this->getContextAccessIds($userId, $capabilities, 50)."))";
+
+            if ($state == 'ongoing'){
+                $whereaccess .= " and (t1.startdate < unix_timestamp())";
+            }
+            else if ($state == 'upcoming'){
+                $whereaccess .= " and (t1.startdate > unix_timestamp())";
+            }
+
         }else if (in_array($state, array('ongoing','archive'))){
             $where .= " and (t2.creatorid = $userId or ".$this->sql_find_in_set($userId, 't2.collaboratorids').")";
             $capabilities[] = RECITWORKPLAN_ASSIGN_CAPABILITY;
@@ -933,7 +942,7 @@ class Template{
     public $creator = array();
     public $collaboratorList = array();
     public $state = 0;
-    public $type = 0;
+    public $type = 'd';
     public $hasAccess = 1;
     public $lastUpdate = null;
     //@array of TemplateActivity
