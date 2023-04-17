@@ -543,14 +543,16 @@ class WorkPlanAssignmentsView extends Component{
                                                 </a>
                                             </div>
                                             <div className='text-muted'>
-                                            {`Échéance: ${UtilsDateTime.formatDateTime(item.endDate)} `}
-                                            <OverlayTrigger overlay={
-                                                <Tooltip>Le calcul de la date d'échéance s'éffectue de la façon suivante :<br/>
-                                                Nb. de semaines = Nb. d'heures du plan de travail / Rythme en h/semaine. Le résultat est arrondi à l'entier supérieur.<br/>
-                                                
-                                                Les heures supplémentaires sont ajoutées aux heures du plan de travail.</Tooltip>}>
-                                                <a><FontAwesomeIcon icon={faInfoCircle}/> </a>
-                                                </OverlayTrigger>
+                                                {`Échéance: ${UtilsDateTime.formatDateTime(item.endDate)} `}
+                                                {data.template.type === 'd' && 
+                                                    <OverlayTrigger overlay={
+                                                        <Tooltip>Le calcul de la date d'échéance s'éffectue de la façon suivante :<br/>
+                                                        Nb. de semaines = Nb. d'heures du plan de travail / Rythme en h/semaine. Le résultat est arrondi à l'entier supérieur.<br/>
+                                                        
+                                                        Les heures supplémentaires sont ajoutées aux heures du plan de travail.</Tooltip>}>
+                                                        <a><FontAwesomeIcon icon={faInfoCircle}/> </a>
+                                                    </OverlayTrigger>
+                                                }
                                             </div>
                                         </div>
                                         <div className='w-100-mobile'>

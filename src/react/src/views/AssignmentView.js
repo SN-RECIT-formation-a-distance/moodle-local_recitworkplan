@@ -406,13 +406,13 @@ export class StartEndDatesFormBatchAssignment extends Component{
                 <Form.Group as={Row}>
                     <Form.Label column sm="5">{"Date de début"}</Form.Label>
                     <Col sm="7">
-                        <DateTime required style={{display:'inline'}} onChange={this.onDataChange} name="startDate" value={this.state.data.startDate}/>
+                        <DateTime required onChange={this.onDataChange} name="startDate" value={this.state.data.startDate}/>
                     </Col>
                 </Form.Group>
                 <Form.Group as={Row}>
                     <Form.Label column sm="5">{"Échéance"}</Form.Label>
                     <Col sm="7">
-                        <DateTime disabled={(this.props.dataProvider.template.type == 'd')} style={{display:'inline'}} onChange={this.onDataChange} value={this.state.data.endDate} name="endDate"/>
+                        <DateTime disabled={(this.props.dataProvider.template.type == 'd')} onChange={this.onDataChange} value={this.state.data.endDate} name="endDate"/>
                     </Col>
                 </Form.Group>
                 <Form.Group as={Row}>
@@ -669,7 +669,7 @@ export class ModalAssignmentForm extends Component{
                     <Form.Control.Feedback type="invalid">Veuillez indiquer une date de début</Form.Control.Feedback>
                 </Form.Group>
                 <Form.Group>
-                    <Form.Label>{"Fin"}</Form.Label>
+                    <Form.Label>{"Échéance"}</Form.Label>
                     <DateTime min={UtilsDateTime.formatDateTime(dateMin.getTime() / 1000, 'T')} disabled={this.props.metadata.type === 'd'} value={item.endDate} name="endDate" onChange={this.onDataChange} />
                     <Form.Text className="text-muted">Si le plan est dynamique, alors l'échéance est calculée dynamiquement.</Form.Text>
                 </Form.Group>
