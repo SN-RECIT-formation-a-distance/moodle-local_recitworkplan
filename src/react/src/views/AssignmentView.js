@@ -410,7 +410,7 @@ export class StartEndDatesFormBatchAssignment extends Component{
                     </Col>
                 </Form.Group>
                 <Form.Group as={Row}>
-                    <Form.Label column sm="5">{"Date de fin"}</Form.Label>
+                    <Form.Label column sm="5">{"Échéance"}</Form.Label>
                     <Col sm="7">
                         <DateTime disabled={(this.props.dataProvider.template.type == 'd')} style={{display:'inline'}} onChange={this.onDataChange} value={this.state.data.endDate} name="endDate"/>
                     </Col>
@@ -671,7 +671,7 @@ export class ModalAssignmentForm extends Component{
                 <Form.Group>
                     <Form.Label>{"Fin"}</Form.Label>
                     <DateTime min={UtilsDateTime.formatDateTime(dateMin.getTime() / 1000, 'T')} disabled={this.props.metadata.type === 'd'} value={item.endDate} name="endDate" onChange={this.onDataChange} />
-                    <Form.Text className="text-muted">Si le plan est dynamique, alors la date de fin est calculée dynamiquement.</Form.Text>
+                    <Form.Text className="text-muted">Si le plan est dynamique, alors l'échéance est calculée dynamiquement.</Form.Text>
                 </Form.Group>
                 <Form.Group>
                     <Form.Label>{"Commentaire"}</Form.Label>

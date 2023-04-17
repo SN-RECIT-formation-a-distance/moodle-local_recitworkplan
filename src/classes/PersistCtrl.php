@@ -845,7 +845,7 @@ class PersistCtrl extends MoodlePersistCtrl
             (select t1.id assignmentId, t1.templateid, min(t1.startdate) startdate, 
             (case
                 when t4.tpltype = 's' then t1.enddate 
-                when t4.tpltype = 'd' and t1.nb_hours_per_week > 0 then ".$this->sql_time_to_secs($this->sql_to_time('min(t1.startdate)'))." + (sum(t2.nb_hours_completion) / min(t1.nb_hours_per_week) * ".$secsInAWeek.") 
+                when t4.tpltype = 'd' and t1.nb_hours_per_week > 0 then min(t1.startdate) + (sum(t2.nb_hours_completion) / min(t1.nb_hours_per_week) * ".$secsInAWeek.") 
                 else 0 
             end) enddate, t4.tpltype as templatetype,
             sum((case when coalesce(t3.completionstate,0) = 0 then 1 else 0 end)) nbIncompleteAct,
@@ -1229,8 +1229,8 @@ class Assignment{
     }
 
     public function setHoursLate($template){
-        if($this->nbHoursPerWeek == 0){ return; }
         if(empty($template)){ return;}
+        if($template->type == 'd' && $this->nbHoursPerWeek == 0){ return; }
         if($this->endDate - time() < 0){return;} //If enddate passed we do nothing
 
         $nbHoursCompletion = 0;
@@ -1248,12 +1248,19 @@ class Assignment{
         $tmp = new DateTime();
         $tmp->setTimestamp($this->startDate);
 
-        $nbWeeksElapsed = floor($tmp->diff(new DateTime())->days/7); //Round to lowest number
-        $nbHoursElapsed = $nbWeeksElapsed * $this->nbHoursPerWeek;
-        $nbHoursElapsed = $nbHoursElapsed - $this->nbAdditionalHours;
-        if ($nbHoursElapsed < 0){
-            $nbHoursElapsed = 0;
+        if($template->type == 'd'){
+            $nbWeeksElapsed = floor($tmp->diff(new DateTime())->days/7); //Round to lowest number
+
+            $nbHoursElapsed = $nbWeeksElapsed * $this->nbHoursPerWeek;
+            $nbHoursElapsed = $nbHoursElapsed - $this->nbAdditionalHours;
+            $nbHoursElapsed = max($nbHoursElapsed, 0);
         }
+        else if($template->type == 's'){
+            $timePlanned = $this->endDate - $this->startDate;
+            $ellapsedPlanned = time() - $this->startDate;
+            $nbHoursElapsed = $nbHoursCompletion * ($ellapsedPlanned / $timePlanned);
+        }
+
         $this->nbHoursLate = $nbHoursElapsed - $nbHoursCompleted;
     }
 }

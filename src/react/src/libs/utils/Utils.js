@@ -350,6 +350,12 @@ export class UtilsDateTime
 
         return (hour * 60) + minutes;
     };
+
+    static formatHours2Clocktime(hours){
+        let obj = new Date(0,0);
+        obj.setSeconds(+hours * 60 * 60);
+        return obj.toTimeString().slice(0, 5);
+    }
 };
 
 export class UtilsTreeStruct

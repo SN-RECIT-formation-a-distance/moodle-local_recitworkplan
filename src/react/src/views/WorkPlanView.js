@@ -531,7 +531,6 @@ class WorkPlanAssignmentsView extends Component{
                                                     <div>Groupe: <span className='font-weight-bold'>{` ${item.user.groupList}`}</span></div>
                                                     <div>Dernière connexion: {UtilsDateTime.toTimeString(item.user.lastAccess)}</div>
                                                     <div>{`Début: ${UtilsDateTime.formatDateTime(item.startDate)}`}</div>
-                                                    <div>{`Fin: ${UtilsDateTime.formatDateTime(item.endDate)}`}</div>
                                                     <div>{`Durée: ${txtDuration}`}</div>
                                                     <div>{`Rythme: ${item.nbHoursPerWeek} h/semaine`}</div>
                                                 </Tooltip>}>
@@ -544,7 +543,7 @@ class WorkPlanAssignmentsView extends Component{
                                                 </a>
                                             </div>
                                             <div className='text-muted'>
-                                            {`Échéance: ${UtilsDateTime.getDate(item.endDate)} `}
+                                            {`Échéance: ${UtilsDateTime.formatDateTime(item.endDate)} `}
                                             <OverlayTrigger overlay={
                                                 <Tooltip>Le calcul de la date d'échéance s'éffectue de la façon suivante :<br/>
                                                 Nb. de semaines = Nb. d'heures du plan de travail / Rythme en h/semaine. Le résultat est arrondi à l'entier supérieur.<br/>

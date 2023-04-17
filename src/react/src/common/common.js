@@ -26,7 +26,7 @@ export class WorkPlanUtils {
         return `${count}/${activities.length}`;
     }
 
-    static getCompletionState(item){
+   /* static getCompletionState(item){
         let result = "";
 
         switch(item.completionState){
@@ -39,7 +39,7 @@ export class WorkPlanUtils {
         }
 
         return result;
-    }
+    }*/
 
     static getWorkPlanProgress(workPlan, studentId){
         let progress = {text: '', value: 0, color: 'bg-primary'};

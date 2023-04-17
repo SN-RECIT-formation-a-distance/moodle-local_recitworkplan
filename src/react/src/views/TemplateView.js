@@ -584,7 +584,7 @@ class ModalTemplateForm extends Component{
                                 options={ModalTemplateForm.tplTypeList}/>
                         <Form.Text className="text-muted">
                             <strong>Statique :</strong> Les dates de début et de fin sont définies lors des affectations de manière statique.<br/>
-                            <strong>Dynamique :</strong> La date de début est définie alors que la date de fin se calcule dynamiquement selon un rythme de travail défini en heures/semaine. Dans tous les cas, les valeurs peuvent être personnalisées pour chaque apprenant.
+                            <strong>Dynamique :</strong> La date de début est définie alors que l'échéance se calcule dynamiquement selon un rythme de travail défini en heures/semaine. Dans tous les cas, les valeurs peuvent être personnalisées pour chaque apprenant.
                         </Form.Text>
                     </Col>
                 </Form.Group>

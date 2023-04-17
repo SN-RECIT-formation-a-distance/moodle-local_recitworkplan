@@ -408,10 +408,10 @@ export class AssignmentFollowUp extends Component{
             result.push(<CustomBadge key={result.length} variant="bg-warning" text="Échu"/>);
         }
         else if (item.nbHoursLate != 0 && this.props.template.options.showHoursLate == 1){
-            let text = `En retard de ${item.nbHoursLate}h`;
-            let variant = 'bg-warning';
+            let text = `Retard posible de ${UtilsDateTime.formatHours2Clocktime(item.nbHoursLate)}`;
+            let variant = 'bg-info';
             if (item.nbHoursLate < 0){
-                text = `En avance de ${0-item.nbHoursLate}h`
+                text = `En avance de ${UtilsDateTime.formatHours2Clocktime(-item.nbHoursLate)}`
                 variant = 'bg-success';
             }
             text = 
