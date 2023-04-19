@@ -653,10 +653,10 @@ class PersistCtrl extends MoodlePersistCtrl
             $whereaccess .= " and (t5.course is null or t5.course in (".$this->getContextAccessIds($userId, $capabilities, 50)."))";
 
             if ($state == 'ongoing'){
-                $whereaccess .= " and (t1.startdate < unix_timestamp())";
+                $where .= " and (t1.startdate <= unix_timestamp())";
             }
             else if ($state == 'upcoming'){
-                $whereaccess .= " and (t1.startdate > unix_timestamp())";
+                $where .= " and (t1.startdate > unix_timestamp())";
             }
 
         }else if (in_array($state, array('ongoing','archive'))){

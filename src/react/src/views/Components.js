@@ -427,7 +427,7 @@ export class AssignmentFollowUp extends Component{
             result.push(<CustomBadge key={result.length} variant="bg-success" text="En cours"/>);
         }
         else if((item.completionState == 0) && (item.startDate > (now.getTime()/1000))){
-            result.push(<CustomBadge key={result.length} variant="bg-success" text="A commencer"/>);
+            result.push(<CustomBadge key={result.length} variant="bg-success" text="À venir"/>);
         }
 
         if(item.completionState == 3){

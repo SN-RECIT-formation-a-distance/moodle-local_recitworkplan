@@ -302,7 +302,7 @@ export class StudentTemplateDetail extends Component {
                 <div style={{ justifyContent: 'space-between', display: "flex", alignItems: "center", flexWrap: 'wrap'}}>
                     <div>
                         <div className='text-muted'>{`Échéance: ${UtilsDateTime.formatDateTime(this.state.assignment.endDate, " ", "Non définie")}`}</div>
-                        <div className='text-muted'>{`Rythme: ${this.state.assignment.nbHoursPerWeek} (h/semaine)`}</div>
+                        {reportData.template.type === 'd' && <div className='text-muted'>{`Rythme: ${this.state.assignment.nbHoursPerWeek} (h/semaine)`}</div>}
                     </div>
                     <div>
                         <div className='text-muted d-flex flex-column align-items-center'>

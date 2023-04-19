@@ -60,6 +60,7 @@ export class WorkPlanListView extends Component{
         this.getData = this.getData.bind(this);
         this.getDataResult = this.getDataResult.bind(this);
         this.onCopy = this.onCopy.bind(this);
+        this.onCopyEnd = this.onCopyEnd.bind(this);
 
         this.state = {
             dataProvider: [], 
@@ -136,7 +137,7 @@ export class WorkPlanListView extends Component{
 
                 {false && <Pagination pagination={this.state.pagination} onChangePage={(p) => this.changePage(p)}/>}      
 
-                {this.state.onCopy.templateId > 0 && <ModalWorkPlanCopy data={this.state.onCopy} onClose={() => this.onCopy(0)} />}
+                {this.state.onCopy.templateId > 0 && <ModalWorkPlanCopy data={this.state.onCopy} onClose={this.onCopyEnd} />}
             </div>;
 
         let form = <WorkPlanView templateId={this.state.templateId} editTab={this.state.editTab} onClose={this.onClose}/>;
@@ -199,6 +200,15 @@ export class WorkPlanListView extends Component{
     onCopy(templateId, title, state){
        this.setState({onCopy: {templateId: templateId, title: title, state: state}});
     }
+
+    onCopyEnd(refresh){
+        let callback = null;
+        if(refresh){
+            callback = this.getData;
+        }
+
+        this.setState({onCopy: {templateId: 0, title: '', state: 0}}, callback);
+    }
 }
 
 class ModalWorkPlanCopy extends Component{
@@ -253,7 +263,7 @@ class ModalWorkPlanCopy extends Component{
             }
             else{
                 FeedbackCtrl.instance.showInfo($glVars.i18n.tags.appName, $glVars.i18n.tags.msgSuccess, 3);
-                that.props.onClose();
+                that.props.onClose(true);
             }
         };
 
@@ -532,16 +542,18 @@ class WorkPlanAssignmentsView extends Component{
                                                     <div>Dernière connexion: {UtilsDateTime.toTimeString(item.user.lastAccess)}</div>
                                                     <div>{`Début: ${UtilsDateTime.formatDateTime(item.startDate)}`}</div>
                                                     <div>{`Durée: ${txtDuration}`}</div>
-                                                    <div>{`Rythme: ${item.nbHoursPerWeek} h/semaine`}</div>
+                                                    {data.template.type === 'd' && <div>{`Rythme: ${item.nbHoursPerWeek} h/semaine`}</div>}
                                                 </Tooltip>}>
                                                 <a><FontAwesomeIcon icon={faInfoCircle}/> </a>
                                             </OverlayTrigger>
                                             
-                                            <div className='text-muted'>
-                                                <a href='#' onClick={() => this.setState({showAssignmentAdditionalHours: item})}>
-                                                    {`Heures supplémentaires: ${item.nbAdditionalHours}h`}
-                                                </a>
-                                            </div>
+                                            {data.template.type === 'd' && 
+                                                <div className='text-muted'>
+                                                    <a href='#' onClick={() => this.setState({showAssignmentAdditionalHours: item})}>
+                                                        {`Heures supplémentaires: ${item.nbAdditionalHours}h`}
+                                                    </a>
+                                                </div>
+                                            }
                                             <div className='text-muted'>
                                                 {`Échéance: ${UtilsDateTime.formatDateTime(item.endDate, " ", "Non définie")} `}
                                                 {data.template.type === 'd' && 
