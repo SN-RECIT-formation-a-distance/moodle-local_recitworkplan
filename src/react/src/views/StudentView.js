@@ -175,7 +175,7 @@ class StudentTemplateTile extends WorkPlanCustomCard {
                 <a className='m-2' title="Attribué par" href={this.state.assignment.assignor.url} target="_blank"><span dangerouslySetInnerHTML={{__html: this.state.assignment.assignor.avatar}}></span></a>
                 <div>
                     {progress.text.length > 0 && <CustomBadgeCompletion className='m-2' title="Le nombre d'activités complétées / le nombre d'activités" stats={progress.text}/>}
-                    <div className='m-2 text-muted'>{`Échéance: ${UtilsDateTime.getDate(this.state.assignment.endDate)}`}</div>
+                    <div className='m-2 text-muted'>{`Échéance: ${UtilsDateTime.formatDateTime(this.state.assignment.endDate, " ", "Non définie")}`}</div>
                     <div className='m-2 text-muted'>{`Rythme: ${this.state.assignment.nbHoursPerWeek} (h/semaine)`}</div>
                 </div>
                 
@@ -301,7 +301,7 @@ export class StudentTemplateDetail extends Component {
                 
                 <div style={{ justifyContent: 'space-between', display: "flex", alignItems: "center", flexWrap: 'wrap'}}>
                     <div>
-                        <div className='text-muted'>{`Échéance: ${UtilsDateTime.getDate(this.state.assignment.endDate)}`}</div>
+                        <div className='text-muted'>{`Échéance: ${UtilsDateTime.formatDateTime(this.state.assignment.endDate, " ", "Non définie")}`}</div>
                         <div className='text-muted'>{`Rythme: ${this.state.assignment.nbHoursPerWeek} (h/semaine)`}</div>
                     </div>
                     <div>

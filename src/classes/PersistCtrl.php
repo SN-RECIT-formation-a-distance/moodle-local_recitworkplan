@@ -440,7 +440,7 @@ class PersistCtrl extends MoodlePersistCtrl
         
         $query = "select t1.nb_hours_per_week nbhoursperweek,
         t1.completionstate wpcompletionstate, t2.id templateid, t2.creatorid creatorid, t3.cmid, t3.nb_hours_completion nbhourscompletion,
-        t1.userid, t6.completionstate activitycompletionstate, t2.state templatestate, t2.tpltype as templatetype
+        t1.userid, t6.completionstate activitycompletionstate, t2.state templatestate, t2.tpltype as templatetype, t1.startdate, t1.enddate
         from {recit_wp_tpl} t2
         left join {recit_wp_tpl_assign} t1 on t1.templateid = t2.id
         left join {recit_wp_tpl_act} t3 on t3.templateid = t2.id
@@ -477,10 +477,13 @@ class PersistCtrl extends MoodlePersistCtrl
             $stats->workPlanCompletion = 0;
         }
 
-        $query = "SELECT COUNT(DISTINCT userid) count FROM workplans WHERE wpcompletionstate = 2 AND templateid=?";
-
+        $query = "SELECT COUNT(DISTINCT userid) count FROM workplans WHERE wpcompletionstate = 2 and (enddate > 0 and unix_timestamp() < enddate) AND templateid=?";
         $rst = $DB->get_record_sql($query, $vars);
         $stats->nbLateStudents = intval($rst->count);
+
+        $query = "SELECT COUNT(DISTINCT userid) count FROM workplans WHERE wpcompletionstate in (0, 2) and (enddate > 0 and unix_timestamp() > enddate) AND templateid=?";
+        $rst = $DB->get_record_sql($query, $vars);
+        $stats->nbFailedStudents = intval($rst->count);
 
         $query = "select ". $this->sql_uniqueid() ." uniqueid, count(distinct userid) count, cmid from workplans where activitycompletionstate in (1,2,3) and nbhourscompletion > 0 and templateid = ? group by cmid";
 
@@ -862,7 +865,7 @@ class PersistCtrl extends MoodlePersistCtrl
 
             if(!empty($rst)){
                 foreach($rst as $obj){
-                    $value = array('completionstate' => $obj->completionstate, 'id' => $obj->assignmentid);
+                    $value = array('completionstate' => $obj->completionstate, 'enddate' => $obj->enddate, 'id' => $obj->assignmentid);
                     $query = $this->mysqlConn->update_record("recit_wp_tpl_assign", $value);
                 }
             }

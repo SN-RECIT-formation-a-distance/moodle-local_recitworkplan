@@ -543,7 +543,7 @@ class WorkPlanAssignmentsView extends Component{
                                                 </a>
                                             </div>
                                             <div className='text-muted'>
-                                                {`Échéance: ${UtilsDateTime.formatDateTime(item.endDate)} `}
+                                                {`Échéance: ${UtilsDateTime.formatDateTime(item.endDate, " ", "Non définie")} `}
                                                 {data.template.type === 'd' && 
                                                     <OverlayTrigger overlay={
                                                         <Tooltip>Le calcul de la date d'échéance s'éffectue de la façon suivante :<br/>

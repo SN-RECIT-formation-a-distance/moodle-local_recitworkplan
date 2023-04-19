@@ -199,7 +199,8 @@ export class ModalAssignmentPicker extends Component{
             nbHoursPerWeek: this.state.rhythme == '' ? 0 : this.state.rhythme,
             comment: '',
             startDate: new Date().getTime()/1000,
-            endDate: 0
+            endDate: 0,
+            completionState: 0
         };
         if (isNaN(result.nbHoursPerWeek)) result.nbHoursPerWeek = 0;
 
@@ -646,8 +647,11 @@ export class ModalAssignmentForm extends Component{
         this.onDataChange = this.onDataChange.bind(this);
         this.onClose = this.onClose.bind(this);
 
+        let copy = JsNx.clone(props.data);
+        copy.endDate = (this.props.metadata.type === 'd' ? 0 : copy.endDate); // if workplan is dynamic then it resets the enddate
+        
         this.state = {
-            data: JsNx.clone(props.data), 
+            data: copy, 
             flags: {dataChanged: false},
             formValidated: false
         };
@@ -680,7 +684,7 @@ export class ModalAssignmentForm extends Component{
                 <Form.Group>
                     <Form.Label>{"H/semaine"}</Form.Label>
                     <InputNumber disabled={this.props.metadata.type === 's'} value={item.nbHoursPerWeek} name="nbHoursPerWeek" onChange={this.onDataChange} />
-                    <Form.Text className="text-muted">Si le plan est dynamique, alors le rythme de travail n'est plus pris en compte.</Form.Text>
+                    <Form.Text className="text-muted">Si le plan de travail est statique, alors le rythme de travail n'est pas pris en compte.</Form.Text>
                 </Form.Group>
 
                 <hr/>
@@ -732,7 +736,7 @@ export class ModalAssignmentForm extends Component{
             });
         }
 
-        if(this.state.flags.dataChanged){
+        if(this.state.flags.dataChanged){           
             $glVars.webApi.saveAssignment([this.state.data], 'update', callback);
         }
     }

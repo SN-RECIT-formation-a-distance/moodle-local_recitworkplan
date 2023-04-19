@@ -254,9 +254,9 @@ export class UtilsDateTime
         }
     }
 
-    static formatDateTime(value, timeSeparator){
+    static formatDateTime(value, timeSeparator, defaultValue){
         timeSeparator = timeSeparator || " ";
-        let result = "";
+        let result = defaultValue || "";
 
         if(Number.isInteger(value) && value > 0){
             let obj = new Date(value*1000);

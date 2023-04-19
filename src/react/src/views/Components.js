@@ -152,7 +152,7 @@ export class WorkPlanCollapsible extends Component{
                 </div>
 
                 <Collapse in={this.state.collapse}>
-                    <div id={`collapse-${workPlan.template.id}`} className='row align-items-center justify-content-center'>
+                    <div id={`collapse-${workPlan.template.id}`} className='row align-items-center justify-content-center p-1'>
                         {this.props.contentCollapsible}
                     </div>
                 </Collapse>
@@ -375,10 +375,11 @@ export class FollowUpCard extends Component{
 
             main =
                 <>
+                    {notArchived && workPlan.stats && workPlan.stats.nbFailedStudents > 0 && <CustomBadge variant="bg-warning" text="Échu" nbIndicator={workPlan.stats.nbFailedStudents}/>}
                     {notArchived && workPlan.stats && workPlan.stats.nbLateStudents > 0 && <CustomBadge variant="late" nbIndicator={workPlan.stats.nbLateStudents}/>}
                     {notArchived && actStats.nbAwaitingGrade > 0 && <CustomBadge variant="correction" nbIndicator={actStats.nbAwaitingGrade}/>}
                     {notArchived && actStats.nbFails > 0 && <CustomBadge variant="failure" nbIndicator={actStats.nbFails}/>}
-                    {noResult && <span className='text-muted'>{`Aucun suivi à faire.`}</span>}
+                    {noResult && <span className='m-1 text-muted'>{`Aucun suivi à faire.`}</span>}
                 </>;
         }
 
@@ -397,14 +398,13 @@ export class AssignmentFollowUp extends Component{
         let item = this.props.data;
         let result = [];
 
-
         if(item.completionState == 1){
             result.push(<CustomBadge key={result.length} variant="bg-info" text="Archivé"/>);
         }
 
         let now = new Date();
         
-        if((item.endDate > 0) && (item.endDate < (now.getTime()/1000))){
+        if((['0', '2'].includes(item.completionState.toString())) && (item.endDate > 0) && (item.endDate < (now.getTime()/1000))){
             result.push(<CustomBadge key={result.length} variant="bg-warning" text="Échu"/>);
         }
         else if (item.nbHoursLate != 0 && this.props.template.options.showHoursLate == 1){
