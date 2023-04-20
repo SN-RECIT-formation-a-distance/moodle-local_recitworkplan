@@ -311,11 +311,18 @@ class WorkPlanCard extends Component{
                 {hasAccess && $glVars.context.activeWorkPlanStateTab == 'archive' && <Dropdown.Item onClick={() => this.props.onArchive(workPlan, false)}><FontAwesomeIcon icon={faArchive}  />{" Désarchiver"}</Dropdown.Item>}
             </DropdownButton>;
 
+        let collaboratorList = [];
+        for(let item of workPlan.template.collaboratorList){
+            collaboratorList.push(`${item.firstName} ${item.lastName}`);
+        }
+
         let content =
             <>
                 <div title="Créateur" className='d-flex justify-content-center align-items-center col-12 col-md-3' style={{flexDirection: 'column'}} >
                     <div dangerouslySetInnerHTML={{__html: workPlan.template.creator.avatar}}></div>
-                    <div className='text-muted' style={{position: 'absolute', bottom: 0, right: -5}} > {workPlan.template.collaboratorList.length > 0 && <FontAwesomeIcon icon={faUserFriends} title={`Collaborateurs: ${workPlan.template.collaboratorList[0].firstName} ${workPlan.template.collaboratorList[0].lastName} et plus`}/>} </div>
+                    <div className='text-muted' style={{position: 'absolute', bottom: 0, right: -5}} > 
+                        {collaboratorList.length > 0 && 
+                            <FontAwesomeIcon icon={faUserFriends} title={`Collaborateurs: ${collaboratorList.join(", ")}`}/>} </div>
                 </div>
 
                 <div className='d-flex justify-content-center flex-wrap col-12 col-md-9'>

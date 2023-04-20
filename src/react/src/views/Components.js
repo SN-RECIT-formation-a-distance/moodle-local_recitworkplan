@@ -277,8 +277,8 @@ export class CustomBadge extends Component{
                 </OverlayTrigger>;
                 break;
             case 'late': 
-                variant = 'bg-warning';
-                text = <>En retard</>;
+                variant = 'bg-info';
+                text = <>Retard possible</>;
                 break;
         }
 
@@ -408,7 +408,7 @@ export class AssignmentFollowUp extends Component{
             result.push(<CustomBadge key={result.length} variant="bg-warning" text="Échu"/>);
         }
         else if (item.nbHoursLate != 0 && this.props.template.options.showHoursLate == 1){
-            let text = `Retard posible de ${UtilsDateTime.formatHours2Clocktime(item.nbHoursLate)}`;
+            let text = `Retard possible de ${UtilsDateTime.formatHours2Clocktime(item.nbHoursLate)}`;
             let variant = 'bg-info';
             if (item.nbHoursLate < 0){
                 text = `En avance de ${UtilsDateTime.formatHours2Clocktime(-item.nbHoursLate)}`
@@ -429,12 +429,10 @@ export class AssignmentFollowUp extends Component{
         else if((item.completionState == 0) && (item.startDate > (now.getTime()/1000))){
             result.push(<CustomBadge key={result.length} variant="bg-success" text="À venir"/>);
         }
-
-        if(item.completionState == 3){
+        else if(item.completionState == 3){
             result.push(<CustomBadge key={result.length} variant="completed"/>);
         }
-
-        if(item.completionState == 4){
+        else if(item.completionState == 4){
             result.push(<CustomBadge key={result.length} variant="bg-info" text="Inactif"/>);
         }
 

@@ -209,13 +209,11 @@ class PersistCtrl extends MoodlePersistCtrl
     }
 
     public function getTemplate($userId, $templateId){
-        global $DB;
-
         $capabilities = array(RECITWORKPLAN_ASSIGN_CAPABILITY, RECITWORKPLAN_MANAGE_CAPABILITY);
         $where = "and (t4.id is null or (t4.category in (".$this->getContextAccessIds($userId, $capabilities, 40).") or t3.course in (".$this->getContextAccessIds($userId, $capabilities, 50).")))";
 
         $query = "select ". $this->sql_uniqueid() ." uniqueid, t1.id templateid, t1.creatorid, t1.name templatename, t1.state templatestate, t1.tpltype templatetype, t1.communication_url communicationurl, t1.description templatedesc, (case when t1.lastupdate > 0 then t1.lastupdate else null end) lastupdate, t4.fullname coursename, 
-        t2.id tplactid, t2.cmid, t2.nb_hours_completion nbhourscompletion, t2.slot, t4.id courseid, t4.shortname coursename, t5.id categoryid, t5.name categoryname
+        t2.id tplactid, t2.cmid, t2.nb_hours_completion nbhourscompletion, t2.slot, t4.id courseid, t4.shortname coursename, t5.id categoryid, t5.name categoryname, t1.collaboratorids, t1.options templateoptions
         from {recit_wp_tpl} t1
         left join {recit_wp_tpl_act} t2 on t1.id = t2.templateid
         left join {course_modules} t3 on t2.cmid = t3.id
@@ -254,7 +252,7 @@ class PersistCtrl extends MoodlePersistCtrl
 
     public function saveTemplate($data){
         try{	
-            $result = $data;
+            $templateId = $data->id;
             $collaboratorids = array();
             if (!empty($data->collaboratorList)){
                 foreach ($data->collaboratorList as $u){
@@ -269,14 +267,14 @@ class PersistCtrl extends MoodlePersistCtrl
 
                 $this->mysqlConn->insert_record("recit_wp_tpl", $values);
 
-                $result->id = $this->mysqlConn->get_record_sql("select id from {recit_wp_tpl} order by id desc limit 1")->id;
+                $templateId = $this->mysqlConn->get_record_sql("select id from {recit_wp_tpl} order by id desc limit 1")->id;
             }
             else{
                 $values['id'] = $data->id;
                 $this->mysqlConn->update_record("recit_wp_tpl", $values);
             }
 
-            return $result;
+            return $this->getTemplate($this->signedUser->id, $templateId);
         }
         catch(\Exception $ex){
             throw $ex;
@@ -840,8 +838,8 @@ class PersistCtrl extends MoodlePersistCtrl
             $query = "select assignmentid, templateid,  
             (case 
                 when nbIncompleteAct = 0 then 3 
-                when templatetype = 's' and UNIX_TIMESTAMP() > enddate and nbIncompleteAct > 0 then 2 
-                when templatetype = 'd' and nb_hours_per_week > 0 and UNIX_TIMESTAMP() > enddate and nbIncompleteAct > 0 then 2 
+                -- when templatetype = 's' (always ongoing)
+                when templatetype = 'd' and nb_hours_per_week > 0 and startdate <= UNIX_TIMESTAMP() and UNIX_TIMESTAMP() <= enddate and nbIncompleteAct > 0 then 2 
                 else 0 end) completionstate, 
             nbIncompleteAct, startdate, enddate, cmids 
             FROM
