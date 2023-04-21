@@ -19,15 +19,15 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 import React, { Component } from 'react';
-import { Card, Tabs, Tab, Button, Form, DropdownButton, Dropdown, ButtonGroup, ToggleButtonGroup, ToggleButton, OverlayTrigger, Tooltip, Collapse} from 'react-bootstrap';
-import { faPencilAlt,  faPlus, faTrashAlt, faCopy, faTasks, faArrowLeft, faEllipsisV, faSyncAlt, faBookmark, faChevronUp, faChevronDown, faArchive, faChalkboardTeacher, faRedoAlt, faUserFriends, faUserAltSlash, faUserAlt, faClock, faAmericanSignLanguageInterpreting, faCogs, faInfoCircle} from '@fortawesome/free-solid-svg-icons';
+import { Card, Tabs, Tab, Button, Form, DropdownButton, Dropdown, ButtonGroup, ToggleButtonGroup, ToggleButton, OverlayTrigger, Tooltip} from 'react-bootstrap';
+import { faPencilAlt,  faPlus, faTrashAlt, faCopy, faArrowLeft, faEllipsisV, faSyncAlt, faBookmark, faChevronUp, faChevronDown, faArchive, faChalkboardTeacher, faUserFriends, faUserAltSlash, faUserAlt, faClock, faCogs, faInfoCircle} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { FeedbackCtrl, ToggleButtons, Modal } from '../libs/components/Components';
 import {$glVars, Options, WorkPlanUtils} from '../common/common';
 import { JsNx, UtilsString, UtilsDateTime } from '../libs/utils/Utils';
 import { Pagination } from '../libs/components/Pagination';
 import {ActivityPicker, WorkPlanTemplateView} from './TemplateView';
-import { UserActivityList, CustomCard, CustomHeader, CustomButton, CustomBadge, CustomBadgeCompletion, CustomFormControl, FollowUpCard, AssignmentFollowUp, WorkPlanCustomCard, WorkPlanCollapsible  } from './Components';
+import { UserActivityList, CustomCard, CustomHeader, CustomButton, CustomBadge, CustomBadgeCompletion, CustomFormControl, FollowUpCard, AssignmentFollowUp, WorkPlanCollapsible, WorkPlanFollowUp  } from './Components';
 import { ModalAssignmentPicker, ModalAssignmentForm, ModalAssignmentAdditionalHoursForm, ModalAssignmentMassActions, ModalAssignmentAdditionalHoursHistory } from './AssignmentView';
 import {StudentWorkPlanList} from './StudentView';
 
@@ -329,7 +329,7 @@ class WorkPlanCard extends Component{
                     {workPlan.stats && workPlan.stats.nbStudents > 0 && 
                         <CustomBadgeCompletion title="Le nombre d'élèves qui ont complété le plan de travail / le nombre total d'élèves assigné au plan de travail" stats={`${workPlan.stats.workPlanCompletion}/${workPlan.stats.nbStudents}`}/>
                     }
-                    <FollowUpCard data={workPlan}/>
+                    <WorkPlanFollowUp data={workPlan}/>
                 </div>
             </>       
 
@@ -519,7 +519,7 @@ class WorkPlanAssignmentsView extends Component{
                 </CustomHeader>            
 
                 <div>
-                    {assignments.map((item, index) => {
+                    {assignments.map((item, iAssignment) => {
                             let progressValue = 0;
                             let progressText  = `0/${data.stats.nbActivities}`;
                             if(data.stats.assignmentcompleted[`${item.user.id}`]){
@@ -535,7 +535,7 @@ class WorkPlanAssignmentsView extends Component{
                             let txtDuration = (item.nbHoursPerWeek > 0 ? `${Math.ceil(nbHoursCompletionTotal / item.nbHoursPerWeek)} semaines` : '');
 
                             let card = 
-                                <CustomCard key={index} progressText={progressText} progressValue={`${progressValue}%`}>
+                                <CustomCard key={iAssignment} progressText={progressText} progressValue={`${progressValue}%`}>
                                     <div className='grid-assignments'>
                                         <Button variant={'link'} onClick={() => this.onDetail(this.state.detail == item.id ? -1 : item.id)}><FontAwesomeIcon icon={this.state.detail == item.id ? faChevronUp : faChevronDown}/></Button>
                                         <div>
@@ -575,7 +575,7 @@ class WorkPlanAssignmentsView extends Component{
                                             </div>
                                         </div>
                                         <div className='w-100-mobile'>
-                                            <AssignmentFollowUp data={item} template={this.props.data.template}/>
+                                            <AssignmentFollowUp data={data} iAssignment={iAssignment}/>
                                         </div>
                                         <div className="p-2 text-muted d-flex" style={{alignItems: 'center', justifyContent: 'flex-end'}}>
                                             <CustomBadgeCompletion title="Le nombre d'affectations complétées / le nombre d'activités avec une durée plus grande que 0" stats={progressText}/>

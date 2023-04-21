@@ -154,7 +154,7 @@ class StudentTemplateTile extends WorkPlanCustomCard {
         this.onDetail = this.onDetail.bind(this);
         this.onClick = this.onClick.bind(this);
 
-        this.state = {assignment: props.data.assignments[0], data: props.data};
+        this.state = {data: props.data};
     }
 
     componentDidUpdate(prevProps){
@@ -166,20 +166,21 @@ class StudentTemplateTile extends WorkPlanCustomCard {
     render() {
         if (!this.state.data) return null;
         let data = this.state.data;
-        let studentId = this.state.assignment.user.id;
+        let assignment = data.assignments[0];
+        let studentId = assignment.user.id;
         let progress = WorkPlanUtils.getWorkPlanProgress(data, studentId);
-        progress.color = StudentTemplateTile.getProgressBarRythmColor(data, this.state.assignment);
+        progress.color = StudentTemplateTile.getProgressBarRythmColor(data, assignment);
 
         let content = 
             <>
-                <a className='m-2' title="Attribué par" href={this.state.assignment.assignor.url} target="_blank"><span dangerouslySetInnerHTML={{__html: this.state.assignment.assignor.avatar}}></span></a>
+                <a className='m-2' title="Attribué par" href={assignment.assignor.url} target="_blank"><span dangerouslySetInnerHTML={{__html: assignment.assignor.avatar}}></span></a>
                 <div>
                     {progress.text.length > 0 && <CustomBadgeCompletion className='m-2' title="Le nombre d'activités complétées / le nombre d'activités" stats={progress.text}/>}
-                    <div className='m-2 text-muted'>{`Échéance: ${UtilsDateTime.formatDateTime(this.state.assignment.endDate, " ", "Non définie")}`}</div>
-                    <div className='m-2 text-muted'>{`Rythme: ${this.state.assignment.nbHoursPerWeek} (h/semaine)`}</div>
+                    <div className='m-2 text-muted'>{`Échéance: ${UtilsDateTime.formatDateTime(assignment.endDate, " ", "Non définie")}`}</div>
+                    <div className='m-2 text-muted'>{`Rythme: ${assignment.nbHoursPerWeek} (h/semaine)`}</div>
                 </div>
                 
-                <FollowUpCard data={data}/>
+                <AssignmentFollowUp data={data} iAssignment={0}/>
             </>;
 
         let main = <WorkPlanCollapsible progress={progress} data={data} onClick={this.onClick} 
@@ -253,7 +254,7 @@ export class StudentTemplateDetail extends Component {
     constructor(props) {
         super(props);
 
-        this.state = {dataProvider: null};
+        this.state = {data: null};
     }
 
     componentDidMount(){
@@ -274,44 +275,45 @@ export class StudentTemplateDetail extends Component {
             return;
         }
  
-        this.setState({dataProvider: result.data, assignment: result.data.assignments[0]});
+        this.setState({data: result.data});
     }
 
     render(){
-        if (!this.state.dataProvider) return null;
+        if (this.state.data === null){ return null; }
 
-        let reportData = this.state.dataProvider;
+        let data = this.state.data;
+        let assignment = data.assignments[0];
         let progressValue = {text: '', value: 0};
-        let progressText  = `0/${reportData.stats.nbActivities}`;
+        let progressText  = `0/${data.stats.nbActivities}`;
 
-        if(reportData.stats.assignmentcompleted[`${this.state.assignment.user.id}`]){
-            progressValue = WorkPlanUtils.getAssignmentProgress(reportData.template.activities, this.state.assignment);
-            progressText = `${reportData.stats.assignmentcompleted[`${this.state.assignment.user.id}`]}/${reportData.stats.nbActivities}`;
+        if(data.stats.assignmentcompleted[`${assignment.user.id}`]){
+            progressValue = WorkPlanUtils.getAssignmentProgress(data.template.activities, assignment);
+            progressText = `${data.stats.assignmentcompleted[`${assignment.user.id}`]}/${data.stats.nbActivities}`;
         }
 
-        let rythmeColor = StudentTemplateTile.getProgressBarRythmColor(reportData, this.state.assignment);
+        let rythmeColor = StudentTemplateTile.getProgressBarRythmColor(data, assignment);
 
         let main = <>
         <CustomHeader btnBefore={<CustomButton className="mr-1" title="Revenir" onClick={this.props.onBack} faIcon={faArrowLeft}/>} btnAfter={<CustomButton title="Rafraichir" onClick={() => this.getData()} faIcon={faSync}/>}/>
             <CustomCard progressColor={rythmeColor} progressText={progressText} progressValue={`${progressValue}%`}>
                 <div className='mb-3'>
-                    <div className='h4'>{reportData.template.name}</div>
-                    <p>{reportData.template.description}</p>
+                    <div className='h4'>{data.template.name}</div>
+                    <p>{data.template.description}</p>
                 </div>
                 
                 <div style={{ justifyContent: 'space-between', display: "flex", alignItems: "center", flexWrap: 'wrap'}}>
                     <div>
-                        <div className='text-muted'>{`Échéance: ${UtilsDateTime.formatDateTime(this.state.assignment.endDate, " ", "Non définie")}`}</div>
-                        {reportData.template.type === 'd' && <div className='text-muted'>{`Rythme: ${this.state.assignment.nbHoursPerWeek} (h/semaine)`}</div>}
+                        <div className='text-muted'>{`Échéance: ${UtilsDateTime.formatDateTime(assignment.endDate, " ", "Non définie")}`}</div>
+                        {data.template.type === 'd' && <div className='text-muted'>{`Rythme: ${assignment.nbHoursPerWeek} (h/semaine)`}</div>}
                     </div>
                     <div>
                         <div className='text-muted d-flex flex-column align-items-center'>
-                            <a href={this.state.assignment.assignor.url} target="_blank"><span dangerouslySetInnerHTML={{__html: this.state.assignment.assignor.avatar}}></span></a>
+                            <a href={assignment.assignor.url} target="_blank"><span dangerouslySetInnerHTML={{__html: assignment.assignor.avatar}}></span></a>
                             {`Attribué par `}
-                            {reportData.template.communicationUrl && reportData.template.communicationUrl.length > 0 && <div className='text-muted'><a href={reportData.template.communicationUrl} target="_blank">Contacter</a></div>}
+                            {data.template.communicationUrl && data.template.communicationUrl.length > 0 && <div className='text-muted'><a href={data.template.communicationUrl} target="_blank">Contacter</a></div>}
                         </div>    
                     </div>
-                    <AssignmentFollowUp data={this.state.assignment} template={reportData.template}/>
+                    <AssignmentFollowUp data={data} iAssignment={0}/>
                     <div>
                         <CustomBadgeCompletion title="Le nombre d'activités complétées / le nombre d'activités" stats={progressText}/>
                     </div>
@@ -320,8 +322,8 @@ export class StudentTemplateDetail extends Component {
                     <strong>{"Activités"}</strong>
                 </div>
                     <div style={{width:'100%'}}>                        
-                        {reportData.template.activities.map((item, index) => {
-                                return (<UserActivityList user={this.state.assignment.user} data={item} key={index}/>);                                     
+                        {data.template.activities.map((item, index) => {
+                                return (<UserActivityList user={assignment.user} data={item} key={index}/>);                                     
                             }
                         )}
                 </div>

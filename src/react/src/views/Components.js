@@ -354,7 +354,7 @@ export class CustomFormControl extends Component{
     }
 }
 
-export class FollowUpCard extends Component{
+export class WorkPlanFollowUp extends Component{
     static defaultProps = {        
         data: null,
     };
@@ -366,10 +366,10 @@ export class FollowUpCard extends Component{
             let workPlan = this.props.data;
             let actStats = WorkPlanUtils.getActivityStats(workPlan);
 
-            let noResult = !(
+            /*let noResult = !(
                         (workPlan.stats && workPlan.stats.nbLateStudents > 0) || 
                         (actStats.nbAwaitingGrade > 0) || 
-                        (actStats.nbFails > 0));
+                        (actStats.nbFails > 0));*/
 
             let notArchived = !WorkPlanUtils.isArchived(JsNx.at(workPlan.assignments, 0, null));
 
@@ -379,8 +379,9 @@ export class FollowUpCard extends Component{
                     {notArchived && workPlan.stats && workPlan.stats.nbLateStudents > 0 && <CustomBadge variant="late" nbIndicator={workPlan.stats.nbLateStudents}/>}
                     {notArchived && actStats.nbAwaitingGrade > 0 && <CustomBadge variant="correction" nbIndicator={actStats.nbAwaitingGrade}/>}
                     {notArchived && actStats.nbFails > 0 && <CustomBadge variant="failure" nbIndicator={actStats.nbFails}/>}
-                    {noResult && <span className='m-1 text-muted'>{`Aucun suivi à faire.`}</span>}
                 </>;
+
+                //{noResult && <span className='m-1 text-muted'>{`Aucun suivi à faire.`}</span>}
         }
 
         return main;
@@ -390,70 +391,106 @@ export class FollowUpCard extends Component{
 export class AssignmentFollowUp extends Component{
     static defaultProps = {        
         data: null,
-        template: null,
-        userActivity: null
+        iAssignment: 0
     };
 
     render(){
-        let item = this.props.data;
+        let main =
+            <div>
+                {this.getWorkPlanState()}
+                {this.getActivitiesFollowup()}
+            </div>;
+
+        return main;
+    }
+
+    getActivitiesFollowup(){
         let result = [];
+        let activities = this.props.data.assignments[this.props.iAssignment].user.activities;
+
+        let el = JsNx.getItem(activities, 'followup', 1, null);
+
+        if(el){
+            result.push(<CustomBadge key={result.length} variant="correction"/>);
+        }
+        
+        el =  JsNx.getItem(activities, 'followup', 2, null);
+        
+        if(el){
+            result.push(<CustomBadge key={result.length} variant="feedback"/>);
+        }
+        
+        el = JsNx.getItem(activities, 'passed', 0, null);
+        
+        if(el){
+            result.push(<CustomBadge key={result.length} variant="failure"/>);
+        }
+
+        return result;
+    }
+
+    getWorkPlanState(){
+        let item = this.props.data.assignments[this.props.iAssignment];
 
         if(item.completionState == 1){
-            result.push(<CustomBadge key={result.length} variant="bg-info" text="Archivé"/>);
+            return <CustomBadge variant="bg-info" text="Archivé"/>;
         }
+        else if(item.completionState == 4){
+            return <CustomBadge variant="bg-info" text="Inactif"/>
+        }
+        else{
+            return this.getActiveWorkPlanDetails();
+        }
+    }
 
-        let now = new Date();
-        
-        if((['0', '2'].includes(item.completionState.toString())) && (item.endDate > 0) && (item.endDate < (now.getTime()/1000))){
-            result.push(<CustomBadge key={result.length} variant="bg-warning" text="Échu"/>);
+    getActiveWorkPlanDetails(){
+        let item = this.props.data.assignments[this.props.iAssignment];
+        let now = new Date().getTime()/1000;
+
+        if((item.completionState == 0) && (item.startDate > (now))){
+            return <CustomBadge variant="bg-success" text="À venir"/>;
         }
-        else if (item.nbHoursLate != 0 && this.props.template.options.showHoursLate == 1){
+        else if((['0', '2'].includes(item.completionState.toString())) && (item.endDate > 0) && (item.endDate < (now))){
+            return <CustomBadge variant="bg-warning" text="Échu"/>;
+        }
+        else{
+            return this.getOngoingWorkPlanDetails();
+        }
+    }
+
+    getOngoingWorkPlanDetails(){
+        let item = this.props.data.assignments[this.props.iAssignment];
+        let result = null;
+
+        if(item.completionState == 3){
+            return <CustomBadge variant="completed"/>;
+        }
+        else if(item.completionState == 2){
+            result = <CustomBadge variant="late"/>
+        }
+        else if(item.completionState == 0){
+            result = <CustomBadge variant="bg-success" text="En cours"/>;
+        }
+        
+        if (item.nbHoursLate != 0 && this.props.data.template.options.showHoursLate == 1){
             let text = `Retard possible de ${UtilsDateTime.formatHours2Clocktime(item.nbHoursLate)}`;
             let variant = 'bg-info';
+
             if (item.nbHoursLate < 0){
                 text = `En avance de ${UtilsDateTime.formatHours2Clocktime(-item.nbHoursLate)}`
                 variant = 'bg-success';
             }
+
             text = 
             <OverlayTrigger overlay={<Tooltip>On compare le nombre d'heures restantes à réaliser au plan de travail aux nombres d'heures restantes selon la date d'échéance du plan de travail.</Tooltip>}>
               <span className="d-inline-block">
                 {text} <FontAwesomeIcon icon={faInfoCircle}/>
               </span>
             </OverlayTrigger>;
-            result.push(<CustomBadge key={result.length} variant={variant} text={text}/>);
-        }else if(item.completionState == 2){
-            result.push(<CustomBadge key={result.length} variant="late"/>);
-        }else if((item.completionState == 0) && (item.startDate < (now.getTime()/1000))){
-            result.push(<CustomBadge key={result.length} variant="bg-success" text="En cours"/>);
-        }
-        else if((item.completionState == 0) && (item.startDate > (now.getTime()/1000))){
-            result.push(<CustomBadge key={result.length} variant="bg-success" text="À venir"/>);
-        }
-        else if(item.completionState == 3){
-            result.push(<CustomBadge key={result.length} variant="completed"/>);
-        }
-        else if(item.completionState == 4){
-            result.push(<CustomBadge key={result.length} variant="bg-info" text="Inactif"/>);
+
+            result = <CustomBadge variant={variant} text={text}/>;
         }
 
-        let el =  JsNx.getItem(this.props.data.user.activities, 'followup', 1, null);
-
-        if(el){
-            result.push(<CustomBadge key={result.length} variant="correction"/>);
-        }
-        
-        el =  JsNx.getItem(this.props.data.user.activities, 'followup', 2, null);
-        
-        if(el){
-            result.push(<CustomBadge key={result.length} variant="feedback"/>);
-        }
-        
-        el = JsNx.getItem(this.props.data.user.activities, 'passed', 0, null);
-        
-        if(el){
-            result.push(<CustomBadge key={result.length} variant="failure"/>);
-        }
-
-        return <div>{result}</div>;
+        return result;
     }
 }

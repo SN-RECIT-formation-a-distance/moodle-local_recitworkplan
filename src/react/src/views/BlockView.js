@@ -22,7 +22,7 @@ import React, { Component } from 'react';
 import { FeedbackCtrl } from '../libs/components/Components';
 import {$glVars, Options, WorkPlanUtils} from '../common/common';
 import {  UtilsDateTime  } from '../libs/utils/Utils';
-import { FollowUpCard, CustomBadgeCompletion, CustomBadge, WorkPlanCustomCard, WorkPlanCollapsible  } from './Components';
+import { WorkPlanFollowUp, CustomBadgeCompletion, CustomBadge, WorkPlanCustomCard, WorkPlanCollapsible, AssignmentFollowUp  } from './Components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 
@@ -107,7 +107,7 @@ export class WorkPlanStudentCardBlock extends WorkPlanCustomCard{
                 <>
                     <CustomBadgeCompletion className="m-1" title="Le nombre d'activités complétées / le nombre d'activités" stats={progress.text}/>
                     <div className='m-1 text-muted'>{`Échéance: ${UtilsDateTime.formatDateTime(assignment.endDate, " ", "Non définie")}`}</div>
-                    <FollowUpCard data={workPlan}/>
+                    <AssignmentFollowUp data={workPlan} iAssignment={0}/>
                 </>;
         }
        
@@ -195,7 +195,7 @@ export class WorkPlanCardBlock extends Component{
         let workPlan = this.state.data;
         let progress = WorkPlanUtils.getWorkPlanProgress(workPlan);
 
-        let content = <FollowUpCard data={workPlan}/>;
+        let content = <WorkPlanFollowUp data={workPlan}/>;
 
         let main = <WorkPlanCollapsible progress={progress} data={workPlan} onClick={this.onClick}
                             contentCollapsible={content} onDetail={this.onDetail}/>;

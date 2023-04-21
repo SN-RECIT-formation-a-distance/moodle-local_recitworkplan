@@ -386,7 +386,7 @@ export class ActivityPicker extends Component{
 
     onClose(){
         if(this.state.flags.dataChanged){
-            $glVars.webApi.processWorkPlan({templateId: this.state.data.id});
+            $glVars.webApi.processWorkPlan(this.state.data.id);
         }
         this.props.onClose(this.state.flags.dataChanged);
     }
