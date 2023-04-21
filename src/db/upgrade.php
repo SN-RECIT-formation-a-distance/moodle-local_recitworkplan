@@ -93,5 +93,17 @@ function xmldb_local_recitworkplan_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, $newversion, 'local', 'recitworkplan');
     }
 
+    $newversion = 2023032902;
+    if ($oldversion < $newversion) {
+        $table = new xmldb_table('recit_wp_tpl_assign');
+        $field = new xmldb_field('nbhourslate', XMLDB_TYPE_FLOAT, '10', null, XMLDB_NOTNULL, null, '0', 'completionstate');
+
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        upgrade_plugin_savepoint(true, $newversion, 'local', 'recitworkplan');
+    }
+
     return true;
 }

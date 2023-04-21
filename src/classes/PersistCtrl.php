@@ -576,7 +576,7 @@ class PersistCtrl extends MoodlePersistCtrl
         t1.completionstate wpcompletionstate, t2.id templateid, t2.creatorid, t2.name templatename, t2.state templatestate, t2.tpltype as templatetype, t2.options templateoptions,
         t7.fullname coursename, t7.id courseid, t2.description templatedesc, t2.lastupdate lastupdate, t3.cmid,
         t3.nb_hours_completion nbhourscompletion, t6.completionstate activitycompletionstate, 
-        t1.assignorid, t2.collaboratorids, 
+        t1.assignorid, t2.collaboratorids, t1.nbhourslate,
         assignor.picture assignorpicture, assignor.imagealt assignorimagealt, assignor.email assignoremail, assignor.alternatename assignoralternatename, assignor.firstname assignorfirstname, assignor.lastname assignorlastname, assignor.lastnamephonetic assignorlastnamephonetic, assignor.firstnamephonetic assignorfirstnamephonetic, 
         t8.name categoryname, t3.id tplactid, t1.comment, t2.communication_url communicationurl, fup.followup, COALESCE(grade.passed, -1) passed, grade.grade, t3.slot,
         t1.userid, users.firstname, users.lastname, users.picture, users.imagealt, users.email, users.firstnamephonetic, users.lastnamephonetic, users.alternatename, users.lastaccess lastaccess, g.grouplist
@@ -621,7 +621,6 @@ class PersistCtrl extends MoodlePersistCtrl
                 $result->addAssignment($item);
             }  
     
-            $result->setHoursLate();
             $result->stats = $this->getWorkPlanStats($templateId, ($isStudent ? $userId : null));
         }
 
@@ -676,7 +675,7 @@ class PersistCtrl extends MoodlePersistCtrl
         where $whereaccess";
 
         $query = "select ". $this->sql_uniqueid() ." uniqueid, t1.id, t1.nb_hours_per_week nbhoursperweek, t1_1.nb_additional_hours nbadditionalhours, t1.startdate startdate, t1.enddate,
-        t1.completionstate wpcompletionstate, t2.id templateid, t2.creatorid creatorid, t2.name templatename, 
+        t1.completionstate wpcompletionstate, t2.id templateid, t2.creatorid creatorid, t2.name templatename, t1.nbhourslate,
         t7.fullname coursename, t7.id courseid, t2.description templatedesc, t2.communication_url communicationurl, 
         t2.lastupdate lastupdate, t3.cmid, t3.nb_hours_completion nbhourscompletion,
         t4.id userid, t4.email, t4.firstname, t4.alternatename, t4.lastname,
@@ -814,7 +813,6 @@ class PersistCtrl extends MoodlePersistCtrl
     }
 
     public function setAssignmentCompletionState($userId, $cmId, $tplId = 0){
-        $secsInAWeek = 604800;
         try{
             $args = array();
             if($tplId > 0){
@@ -833,29 +831,46 @@ class PersistCtrl extends MoodlePersistCtrl
              * t1.completionstate not in (1,4) is to avoid archived/inactive assignments
              * t2.nbhourscompletion > 0 is to ignore activities assigned with 0h 
              */
-            $query = "select assignmentid, templateid,  
-            (case 
-                when nbIncompleteAct = 0 then 3 
-                -- when templatetype = 's' (always ongoing)
-                when templatetype = 'd' and nb_hours_per_week > 0 and startdate <= UNIX_TIMESTAMP() and UNIX_TIMESTAMP() <= enddate and nbIncompleteAct > 0 then 2 
-                else 0 end) completionstate
-            FROM
-            (select t1.id assignmentId, t1.templateid, min(t1.startdate) startdate, enddate, t4.tpltype as templatetype,
-            sum((case when coalesce(t3.completionstate,0) = 0 then 1 else 0 end)) nbIncompleteAct,
-            ". $this->sql_group_concat('t2.cmid')." cmids, t1.nb_hours_per_week
-            from mdl_recit_wp_tpl_assign t1 
-            inner join mdl_recit_wp_tpl_act t2 on t1.templateid = t2.templateid 
-            inner join mdl_recit_wp_tpl as t4 on t2.templateid = t4.id
-            left join mdl_course_modules_completion t3 on t2.cmid = t3.coursemoduleid and t1.userid = t3.userid           
-            where t1.completionstate not in (1,4) and $whereStmt1 and t2.nb_hours_completion > 0
-            group by t1.userid, t1.id) tab
-            where $whereStmt2";
-           
+            $query = "select *,  
+                        (case 
+                            when nb_incomplete_act = 0 then 3 
+                            when nb_incomplete_act > 0 and nbhourslate > 0 then 2 
+                            else 0 end) completionstate
+                            
+                        from 
+                        (select assignmentid, 
+                            (case 
+                                when nb_incomplete_act = 0 then 0
+                                when enddate < unix_timestamp() then 0
+                                when templatetype = 'd' and nb_hours_per_week > 0 then greatest(nbWeeksElapsed - nb_additional_hours, 0) - nb_hours_completed
+                                when templatetype = 's' then (nb_hours_completion * (unix_timestamp() - startdate) / (enddate - startdate)) - nb_hours_completed
+                                else 0 end) as nbhourslate, 
+                                nb_incomplete_act
+                            from
+                                (select t1.id assignmentid, t1.templateid, min(t1.startdate) startdate, enddate, t4.tpltype as templatetype,
+                                    sum((case when coalesce(t3.completionstate,0) = 0 then 1 else 0 end)) nb_incomplete_act,
+                                    group_concat(t2.cmid) cmids, t1.nb_hours_per_week,  t1.userid,
+                                    sum(t2.nb_hours_completion) as nb_hours_completion,
+                                    coalesce((select sum(t5.nb_additional_hours) from  mdl_recit_wp_additional_hours t5 where t1.id = t5.assignmentid),0) as nb_additional_hours,
+                                    sum(if(t3.completionstate != 0 and t3.coursemoduleid = t2.cmid, 1, 0)) as nb_hours_completed,
+                                    (case 
+                                    when t4.tpltype = 'd' then floor(timestampdiff(WEEK, FROM_UNIXTIME(t1.startdate), now())) * t1.nb_hours_per_week
+                                    when t4.tpltype = 's' then 0
+                                    else 0 end) as nbWeeksElapsed
+                                    from mdl_recit_wp_tpl_assign t1 
+                                    inner join mdl_recit_wp_tpl_act t2 on t1.templateid = t2.templateid 
+                                    inner join mdl_recit_wp_tpl as t4 on t2.templateid = t4.id
+                                    left join mdl_course_modules_completion t3 on t2.cmid = t3.coursemoduleid and t1.userid = t3.userid           
+                                    where t1.completionstate not in (1,4) and $whereStmt1 and t2.nb_hours_completion > 0
+                                    group by t1.userid, t1.id) as tab
+                                    where $whereStmt2
+                                    ) as tab2";
+            
             $rst = $this->getRecordsSQL($query, $args);
 
             if(!empty($rst)){
                 foreach($rst as $obj){
-                    $value = array('completionstate' => $obj->completionstate, 'id' => $obj->assignmentid);
+                    $value = array('completionstate' => $obj->completionstate, 'nbhourslate' => $obj->nbhourslate, 'id' => $obj->assignmentid);
                     $query = $this->mysqlConn->update_record("recit_wp_tpl_assign", $value);
                 }
             }
@@ -867,7 +882,10 @@ class PersistCtrl extends MoodlePersistCtrl
         }
     }
 
-    public function setEndDate($templateId){
+    /**
+     * This function only applies to dynamic work plans
+     */
+    public function setAssignmentEndDate($templateId){
         try{
             $secsInAWeek = 604800;
             $query = "select coalesce(assignmentId, 0) as assignmentid, coalesce(startdate + (nbWeeks * $secsInAWeek), 0) as enddate from
@@ -954,7 +972,7 @@ class PersistCtrl extends MoodlePersistCtrl
     }
 
     public function processWorkPlan($tplId){
-        $this->setEndDate($tplId);
+        $this->setAssignmentEndDate($tplId);
         $this->recalculateCalendarEvents($tplId);
         $this->setAssignmentCompletionState(0, 0, $tplId);
     }
@@ -1176,6 +1194,7 @@ class Assignment{
         $result->startDate = intval($dbData->startdate);
         $result->endDate = intval($dbData->enddate);
 
+        $result->nbHoursLate = (isset($dbData->nbhourslate) ? floatval($dbData->nbhourslate) : 0.0);
         $result->nbHoursPerWeek = floatval($dbData->nbhoursperweek);
         $result->nbAdditionalHours = floatval($dbData->nbadditionalhours);
         $result->comment = $dbData->comment;
@@ -1237,42 +1256,6 @@ class Assignment{
 
         return $cmUrl;
     }
-
-    public function setHoursLate($template){
-        if(empty($template)){ return;}
-        if($template->type == 'd' && $this->nbHoursPerWeek == 0){ return; }
-        if($this->endDate - time() < 0){return;} //If enddate passed we do nothing
-
-        $nbHoursCompletion = 0;
-        $nbHoursCompleted = 0;
-        foreach($template->activities as $item){
-            $nbHoursCompletion += $item->nbHoursCompletion;
-            foreach($this->user->activities as $item2){
-                if ($item->cmId == $item2->cmId && $item2->completionState !== 0){
-                    $nbHoursCompleted += $item->nbHoursCompletion;
-                    break;
-                }
-            }
-        }
-
-        $tmp = new DateTime();
-        $tmp->setTimestamp($this->startDate);
-
-        if($template->type == 'd'){
-            $nbWeeksElapsed = floor($tmp->diff(new DateTime())->days/7); //Round to lowest number
-
-            $nbHoursElapsed = $nbWeeksElapsed * $this->nbHoursPerWeek;
-            $nbHoursElapsed = $nbHoursElapsed - $this->nbAdditionalHours;
-            $nbHoursElapsed = max($nbHoursElapsed, 0);
-        }
-        else if($template->type == 's'){
-            $timePlanned = $this->endDate - $this->startDate;
-            $ellapsedPlanned = time() - $this->startDate;
-            $nbHoursElapsed = $nbHoursCompletion * ($ellapsedPlanned / $timePlanned);
-        }
-
-        $this->nbHoursLate = $nbHoursElapsed - $nbHoursCompleted;
-    }
 }
 
 class WorkPlan{
@@ -1306,14 +1289,6 @@ class WorkPlan{
         }
 
         $this->template->addActivity($dbData);
-    }
-
-    public function setHoursLate(){
-        foreach($this->assignments as $item){
-            if($item != null){
-                $item->setHoursLate($this->template);
-            }
-        }
     }
 }
 

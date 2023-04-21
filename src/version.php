@@ -21,7 +21,7 @@
  */
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2023032901;       // The current module version (Date: YYYYMMDDXX)
+$plugin->version   = 2023032902;       // The current module version (Date: YYYYMMDDXX)
 $plugin->release = 'v1.3.0-beta';
 $plugin->supported = [39, 410];      //  Moodle 3.9.x, 3.10.x and 3.11.x are supported.
 $plugin->requires  = 2020061500.00; // Moodle 3.9.0
