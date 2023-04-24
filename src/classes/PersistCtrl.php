@@ -842,7 +842,8 @@ class PersistCtrl extends MoodlePersistCtrl
                             (case 
                                 when nb_incomplete_act = 0 then 0
                                 when enddate < unix_timestamp() then 0
-                                when templatetype = 'd' and nb_hours_per_week > 0 then greatest(nbWeeksElapsed - nb_additional_hours, 0) - nb_hours_completed
+                                when templatetype = 'd' and nb_hours_per_week > 0 
+                                and (nb_hours_completed < (nbWeeksElapsed*nb_hours_per_week) or nb_hours_completed > (nbWeeksElapsed*(nb_hours_per_week+1))) then greatest(nbWeeksElapsed - nb_additional_hours, 0) - nb_hours_completed
                                 when templatetype = 's' then (nb_hours_completion * (unix_timestamp() - startdate) / (enddate - startdate)) - nb_hours_completed
                                 else 0 end) as nbhourslate, 
                                 nb_incomplete_act
@@ -852,7 +853,7 @@ class PersistCtrl extends MoodlePersistCtrl
                                     group_concat(t2.cmid) cmids, t1.nb_hours_per_week,  t1.userid,
                                     sum(t2.nb_hours_completion) as nb_hours_completion,
                                     coalesce((select sum(t5.nb_additional_hours) from  mdl_recit_wp_additional_hours t5 where t1.id = t5.assignmentid),0) as nb_additional_hours,
-                                    sum(if(t3.completionstate != 0 and t3.coursemoduleid = t2.cmid, 1, 0)) as nb_hours_completed,
+                                    sum(if(t3.completionstate != 0 and t3.coursemoduleid = t2.cmid, t2.nb_hours_completion, 0)) as nb_hours_completed,
                                     (case 
                                     when t4.tpltype = 'd' then floor(timestampdiff(WEEK, FROM_UNIXTIME(t1.startdate), now())) * t1.nb_hours_per_week
                                     when t4.tpltype = 's' then 0
