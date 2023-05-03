@@ -542,7 +542,7 @@ class WorkPlanAssignmentsView extends Component{
                                             <span dangerouslySetInnerHTML={{__html: item.user.avatar}}></span>
                                         </div>
                                         <div>
-                                            <a href='#' onClick={() => this.onOpenStudentView(item.user)}><strong>{item.user.firstName + " "}</strong></a>
+                                            <a href='#' onClick={() => this.onOpenStudentView(item.user)}><strong>{`${item.user.firstName} ${item.user.lastName} `}</strong></a>
                                             <OverlayTrigger overlay={
                                                 <Tooltip>
                                                     <div>Groupe: <span className='font-weight-bold'>{` ${item.user.groupList}`}</span></div>

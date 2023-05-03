@@ -51,4 +51,4 @@ $string['privacy:metadata:recit_wp_additional_hours'] = 'This table stores addit
 
 $string['cloned'] = 'Cloned';
 $string['servicenotfound'] = 'Service WebApi not found.';
-$string['invalidsesskey'] = 'Invalid Session Key.';
+$string['invalidsesskey'] = 'Your connection has expired. Please reconnect.';
