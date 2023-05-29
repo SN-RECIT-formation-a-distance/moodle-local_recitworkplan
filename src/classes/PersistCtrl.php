@@ -483,7 +483,7 @@ class PersistCtrl extends MoodlePersistCtrl
         $rst = $DB->get_record_sql($query, $vars);
         $stats->nbFailedStudents = intval($rst->count);
 
-        $query = "select ". $this->sql_uniqueid() ." uniqueid, count(distinct userid) count, cmid from workplans where activitycompletionstate in (1,2,3) and nbhourscompletion > 0 and templateid = ? group by cmid";
+        $query = "select ". $this->sql_uniqueid() ." uniqueid, count(distinct userid) count, cmid from workplans where activitycompletionstate in (1,2,3) and templateid = ? group by cmid";
 
         $rst = $DB->get_records_sql($query, $vars);
         foreach($rst as $r){
