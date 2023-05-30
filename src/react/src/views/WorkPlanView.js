@@ -751,7 +751,7 @@ class WorkPlanActivitiesView extends Component{
                                 <CustomCard key={index} progressText={`${progressValue}% (le nombre d'activités complètes / le nombre d'élèves)`} progressValue={`${progressValue}%`}>
                                     <div className='d-flex d-block-mobile align-items-center' style={{justifyContent: 'space-between'}}>
                                         <div>
-                                            <a className='font-weight-bold' href={item.cmUrl} target="_blank">{`${item.categoryName}/${item.courseName}/${item.cmName}`}</a>
+                                            <a className='font-weight-bold' href={item.cmUrl} target="_blank">{this.props.data.template.options.showCategory == 1 ? item.categoryName+'/' : ''}{`${item.courseName}/${item.cmName}`}</a>
                                             <span className='font-weight-bold'>{` (${item.nbHoursCompletion} heures)`}</span>
                                         </div>
                                         <div className='d-flex align-items-center flex-wrap'>                                           

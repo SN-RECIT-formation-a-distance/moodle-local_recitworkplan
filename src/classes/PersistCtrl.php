@@ -992,7 +992,7 @@ class Template{
     public $lastUpdate = null;
     //@array of TemplateActivity
     public $activities = array();
-    public $options = array('showHoursLate' => false);
+    public $options = array('showHoursLate' => false, 'showCategory' => true);
 
     public function __construct(){
     }

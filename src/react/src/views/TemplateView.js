@@ -678,10 +678,20 @@ class ModalTemplateOptionForm extends Component{
 
         let modalBody = 
             <Form>
+            <Form.Group as={Row}>
+                <Form.Label column sm="4">{"Afficher le temps en retard"}</Form.Label>
+                <Col sm="8">
+                    <ToggleButtons name="showHoursLate" value={[data.template.options.showHoursLate]} onClick={this.onDataChange}
+                            options={[
+                                {value: false, text:"Non"},
+                                {value: true, text:"Oui"}
+                            ]}/>
+                </Col>
+            </Form.Group>
                 <Form.Group as={Row}>
-                    <Form.Label column sm="4">{"Afficher le temps en retard"}</Form.Label>
+                    <Form.Label column sm="4">{"Afficher le nom de la catégorie dans la liste d'activité"}</Form.Label>
                     <Col sm="8">
-                        <ToggleButtons name="showHoursLate" value={[data.template.options.showHoursLate]} onClick={this.onDataChange}
+                        <ToggleButtons name="showCategory" value={[data.template.options.showCategory]} onClick={this.onDataChange}
                                 options={[
                                     {value: false, text:"Non"},
                                     {value: true, text:"Oui"}
