@@ -403,7 +403,12 @@ class PersistCtrl extends MoodlePersistCtrl
                 $obj->avatar = $OUTPUT->user_picture($item, array('size'=>30));
                 $obj->userUrl = (new \moodle_url('/user/profile.php', array('id' => $item->id)))->out();
                 $obj->userId = $item->id;
-                $obj->groupList = explode(',',$item->grouplist);
+
+                $obj->groupList = array();
+                if($item->grouplist){
+                    $obj->groupList = explode(',',$item->grouplist);
+                }
+                
                 $obj->firstName = $item->firstname;
                 $obj->lastName = $item->lastname;
                 $result[] = $obj;
@@ -413,29 +418,18 @@ class PersistCtrl extends MoodlePersistCtrl
         return $result;
     }
 
-    protected function getWorkPlanStats($templateId, $userId){
+    protected function getWorkPlanStats($templateId, $userId = 0){
         global $DB;
 
         $args = array('tpl' => $templateId);
         $where = "t2.id = :tpl";
-        if ($userId){
+        if ($userId > 0){
             $where .= " and t1.userid = :userid";
             $args['userid'] = $userId;
         }
 
-        /*$DB->execute('CREATE TEMPORARY TABLE workplans
-        (
-           nbhoursperweek BIGINT,
-           wpcompletionstate INT,
-           templateid BIGINT,
-           creatorid BIGINT,
-           cmid BIGINT,
-           nbhourscompletion BIGINT,
-           userid BIGINT,
-           activitycompletionstate INT,
-           templatestate INT
-        )');*/
-        
+        $tmpTableName = "tmlworkplan_$templateId"."_$userId";
+
         $query = "select t1.nb_hours_per_week nbhoursperweek,
         t1.completionstate wpcompletionstate, t2.id templateid, t2.creatorid creatorid, t3.cmid, t3.nb_hours_completion nbhourscompletion,
         t1.userid, t6.completionstate activitycompletionstate, t2.state templatestate, t2.tpltype as templatetype, t1.startdate, t1.enddate
@@ -447,11 +441,11 @@ class PersistCtrl extends MoodlePersistCtrl
         left join {course_categories} t8 on t7.category = t8.id
         left join {course_modules_completion} t6 on t5.id = t6.coursemoduleid and t6.userid = t1.userid
         where $where";
-        $DB->execute("CREATE TEMPORARY TABLE workplans $query", $args);
+        $DB->execute("CREATE TEMPORARY TABLE IF NOT EXISTS $tmpTableName $query", $args);
 
         $vars = array($templateId);
         $query = "select count(distinct cmid) nbactivities, count(DISTINCT userid) nbstudents
-            from workplans where templateid = ? and nbhourscompletion > 0 group by templateid";
+            from $tmpTableName where templateid = ? and nbhourscompletion > 0 group by templateid";
 
         $result = $DB->get_record_sql($query, $vars);
         $stats = new stdClass();
@@ -466,7 +460,7 @@ class PersistCtrl extends MoodlePersistCtrl
             $stats->nbStudents = intval($result->nbstudents);
         }
 
-        $query = "SELECT COUNT(DISTINCT userid) count FROM workplans WHERE wpcompletionstate = 3 AND templateid=?";
+        $query = "SELECT COUNT(DISTINCT userid) count FROM $tmpTableName WHERE wpcompletionstate = 3 AND templateid=?";
 
         $rst = $DB->get_record_sql($query, $vars);
         if ($rst){
@@ -475,29 +469,29 @@ class PersistCtrl extends MoodlePersistCtrl
             $stats->workPlanCompletion = 0;
         }
 
-        $query = "SELECT COUNT(DISTINCT userid) count FROM workplans WHERE wpcompletionstate = 2 and (enddate > 0 and unix_timestamp() < enddate) AND templateid=?";
+        $query = "SELECT COUNT(DISTINCT userid) count FROM $tmpTableName WHERE wpcompletionstate = 2 and (enddate > 0 and unix_timestamp() < enddate) AND templateid=?";
         $rst = $DB->get_record_sql($query, $vars);
         $stats->nbLateStudents = intval($rst->count);
 
-        $query = "SELECT COUNT(DISTINCT userid) count FROM workplans WHERE wpcompletionstate in (0, 2) and (enddate > 0 and unix_timestamp() > enddate) AND templateid=?";
+        $query = "SELECT COUNT(DISTINCT userid) count FROM $tmpTableName WHERE wpcompletionstate in (0, 2) and (enddate > 0 and unix_timestamp() > enddate) AND templateid=?";
         $rst = $DB->get_record_sql($query, $vars);
         $stats->nbFailedStudents = intval($rst->count);
 
-        $query = "select ". $this->sql_uniqueid() ." uniqueid, count(distinct userid) count, cmid from workplans where activitycompletionstate in (1,2,3) and templateid = ? group by cmid";
+        $query = "select ". $this->sql_uniqueid() ." uniqueid, count(distinct userid) count, cmid from $tmpTableName where activitycompletionstate in (1,2,3) and templateid = ? group by cmid";
 
         $rst = $DB->get_records_sql($query, $vars);
         foreach($rst as $r){
             $stats->activitycompleted[intval($r->cmid)] = intval($r->count);
         }
         
-        $query = "select ". $this->sql_uniqueid() ." uniqueid, userid, count(distinct cmid) count from workplans where activitycompletionstate in (1,2,3) and nbhourscompletion > 0 and templateid = ? group by userid";
+        $query = "select ". $this->sql_uniqueid() ." uniqueid, userid, count(distinct cmid) count from $tmpTableName where activitycompletionstate in (1,2,3) and nbhourscompletion > 0 and templateid = ? group by userid";
 
         $rst = $DB->get_records_sql($query, $vars);
         foreach($rst as $r){
             $stats->assignmentcompleted[intval($r->userid)] = intval($r->count);
         }
 
-        $DB->execute("drop table workplans");
+        $DB->execute("drop table $tmpTableName");
 
         return $stats;
     }
@@ -518,7 +512,7 @@ class PersistCtrl extends MoodlePersistCtrl
         group by t3.id, t1.id, tuser.userid)
         union
         (select cm_Id, min(cm_Name), time_Modified, count(*) nb_Items, userid, min(followup) from 
-        (SELECT  t1.id cm_Id, t2.name cm_Name, max(t3.timemodified) time_Modified, t3.userid, min(t3.attempt) quizAttempt, t4.questionusageid, ". $this->sql_group_concat('t5.state')." states,
+        (SELECT distinct t1.id cm_Id, t2.name cm_Name, max(t3.timemodified) time_Modified, t3.userid, min(t3.attempt) quizAttempt, t4.questionusageid, ". $this->sql_group_concat('t5.state', ",", "t5.id asc")." states,
         1 followup
         FROM 
         {course_modules} t1 
@@ -527,7 +521,7 @@ class PersistCtrl extends MoodlePersistCtrl
         inner join {question_attempts} t4 on  t4.questionusageid = t3.uniqueid
         inner join {question_attempt_steps} t5 on t4.id = t5.questionattemptid
         where t1.id in (select cmid from {recit_wp_tpl_act} where templateid = $templateId)
-        group by t1.id, t2.id, t4.id, t3.userid) tab
+        group by t1.id, t2.id, t3.userid, t4.id) tab 
         where right(states, 12) = 'needsgrading'
         group by cm_Id, time_Modified, userid)";
 
@@ -621,7 +615,7 @@ class PersistCtrl extends MoodlePersistCtrl
                 $result->addAssignment($item);
             }  
     
-            $result->stats = $this->getWorkPlanStats($templateId, ($isStudent ? $userId : null));
+            $result->stats = $this->getWorkPlanStats($templateId, ($isStudent ? $userId : 0));
         }
 
         if ($result->template){
