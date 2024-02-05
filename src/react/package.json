@@ -1,6 +1,6 @@
 {
   "name": "recit_workplan",
-  "version": "1.3.10-stable",
+  "version": "1.3.11-stable",
   "description": "RÉCIT Work Plan",
   "main": "index.js",
   "scripts": {

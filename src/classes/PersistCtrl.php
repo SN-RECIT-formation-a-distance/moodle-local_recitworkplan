@@ -411,6 +411,7 @@ class PersistCtrl extends MoodlePersistCtrl
                 
                 $obj->firstName = $item->firstname;
                 $obj->lastName = $item->lastname;
+                $obj->fullname = "$obj->lastName $obj->firstName";
                 $result[] = $obj;
             }
         } 
@@ -621,6 +622,8 @@ class PersistCtrl extends MoodlePersistCtrl
         if ($result->template){
             $result->template->orderBySlot();
         }
+
+        $result->orderAssignmentsByStudentFullname();
 
         return $result; 
     }
@@ -1139,51 +1142,50 @@ class Assignment{
         $result->templateId = $dbData->templateid;
       
         if((isset($dbData->userid)) && ($dbData->userid != 0)){
-            $user = new stdClass();
-            if (isset($dbData->picture)){
-                $user->id = $dbData->userid;
-                $user->firstname = $dbData->firstname;
-                $user->lastname = $dbData->lastname;
-                $user->alternatename = $dbData->alternatename;
-                $user->middlename = $dbData->alternatename;
-                $user->picture = $dbData->picture;
-                $user->imagealt = $dbData->imagealt;
-                $user->firstnamephonetic = $dbData->firstnamephonetic;
-                $user->lastnamephonetic = $dbData->lastnamephonetic;
-                $user->email = $dbData->email;
-            }
-            
             $result->user = new stdClass();
             $result->user->id = $dbData->userid;
             $result->user->firstName = $dbData->firstname;
             $result->user->lastName = $dbData->lastname;
+            $result->user->fullname = "{$result->user->lastName} {$result->user->firstName}";
             $result->user->groupList = (isset($dbData->grouplist) ? $dbData->grouplist : ''); 
             $result->user->lastAccess = (isset($dbData->lastaccess) ? $dbData->lastaccess : ''); 
+
+            $tmp = new stdClass();
             if (isset($dbData->picture)){
-                $result->user->avatar = $OUTPUT->user_picture($user, array('size'=> 50));
-                // $result->user->url = (new \moodle_url('/user/profile.php', array('id' => $result->user->id)))->out();
+                $tmp->id = $dbData->userid;
+                $tmp->firstname = $dbData->firstname;
+                $tmp->lastname = $dbData->lastname;
+                $tmp->alternatename = $dbData->alternatename;
+                $tmp->middlename = $dbData->alternatename;
+                $tmp->picture = $dbData->picture;
+                $tmp->imagealt = $dbData->imagealt;
+                $tmp->firstnamephonetic = $dbData->firstnamephonetic;
+                $tmp->lastnamephonetic = $dbData->lastnamephonetic;
+                $tmp->email = $dbData->email;
+                $result->user->avatar = $OUTPUT->user_picture($tmp, array('size'=> 50));
+                 // $result->user->url = (new \moodle_url('/user/profile.php', array('id' => $result->user->id)))->out();
             }
             $result->user->activities = array();
         }
         
         if((isset($dbData->assignorid)) && ($dbData->assignorid != 0)){
-            $user = new stdClass();
-            $user->id = $dbData->assignorid;
-            $user->firstname = $dbData->assignorfirstname;
-            $user->firstnamephonetic = $dbData->assignorfirstnamephonetic;
-            $user->lastnamephonetic = $dbData->assignorlastnamephonetic;
-            $user->alternatename = $dbData->assignoralternatename;
-            $user->middlename = $dbData->assignoralternatename;
-            $user->lastname = $dbData->assignorlastname;
-            $user->picture = $dbData->assignorpicture;
-            $user->imagealt = $dbData->assignorimagealt;
-            $user->email = $dbData->assignoremail;
+            $tmp = new stdClass();
+            $tmp->id = $dbData->assignorid;
+            $tmp->firstname = $dbData->assignorfirstname;
+            $tmp->firstnamephonetic = $dbData->assignorfirstnamephonetic;
+            $tmp->lastnamephonetic = $dbData->assignorlastnamephonetic;
+            $tmp->alternatename = $dbData->assignoralternatename;
+            $tmp->middlename = $dbData->assignoralternatename;
+            $tmp->lastname = $dbData->assignorlastname;
+            $tmp->picture = $dbData->assignorpicture;
+            $tmp->imagealt = $dbData->assignorimagealt;
+            $tmp->email = $dbData->assignoremail;
             $result->assignor = new stdClass();
             $result->assignor->id = $dbData->assignorid;
-            $result->assignor->firstName = $user->firstname;
-            $result->assignor->lastName = $user->lastname;
-            $result->assignor->url = (new \moodle_url('/user/profile.php', array('id' => $user->id)))->out();
-            $result->assignor->avatar = $OUTPUT->user_picture($user, array('size'=> 50));
+            $result->assignor->firstName = $tmp->firstname;
+            $result->assignor->lastName = $tmp->lastname;
+            $result->assignor->url = (new \moodle_url('/user/profile.php', array('id' => $tmp->id)))->out();
+            $result->assignor->avatar = $OUTPUT->user_picture($tmp, array('size'=> 50));
         }
 
         $result->startDate = intval($dbData->startdate);
@@ -1285,6 +1287,10 @@ class WorkPlan{
 
         $this->template->addActivity($dbData);
     }
+
+    public function orderAssignmentsByStudentFullname(){        
+        usort($this->assignments, "recitworkplan\orderStudentsByFullname");
+    }
 }
 
 class Pagination {
@@ -1385,4 +1391,8 @@ class MoodleCourseModule {
         }
         return $c;
     }
+}
+
+function orderStudentsByFullname($a, $b) {
+    return strnatcasecmp("{$a->user->fullname}", "{$b->user->fullname}");
 }

@@ -454,7 +454,7 @@ class WorkPlanAssignmentsView extends Component{
             if (!this.state.filter.includes('ongoing') && item.completionState == 0) return false;
             if (!this.state.filter.includes('inactive') && item.completionState == 4) return false;
             if(this.state.queryStr.length > 0){
-                return ((item.user.firstName.search(regexp) >= 0) || (item.user.lastName.search(regexp) >= 0) || (item.user.groupList.search(regexp) >= 0));
+                return ((item.user.fullname.search(regexp) >= 0) || (item.user.groupList.search(regexp) >= 0));
             }
             return true;
         });
@@ -542,7 +542,7 @@ class WorkPlanAssignmentsView extends Component{
                                             <span dangerouslySetInnerHTML={{__html: item.user.avatar}}></span>
                                         </div>
                                         <div>
-                                            <a href='#' onClick={() => this.onOpenStudentView(item.user)}><strong>{`${item.user.firstName} ${item.user.lastName} `}</strong></a>
+                                            <a href='#' onClick={() => this.onOpenStudentView(item.user)}><strong>{`${item.user.fullname} `}</strong></a>
                                             <OverlayTrigger overlay={
                                                 <Tooltip>
                                                     <div>Groupe: <span className='font-weight-bold'>{` ${item.user.groupList}`}</span></div>
@@ -620,7 +620,7 @@ class WorkPlanAssignmentsView extends Component{
                 let title =
                     <div className=' d-flex align-items-center'>
                         <span dangerouslySetInnerHTML={{__html: this.state.showUser.avatar}}></span>
-                        <span>{`${this.state.showUser.firstName} ${this.state.showUser.lastName}`}</span>
+                        <span>{`${this.state.showUser.fullname}`}</span>
                     </div>;
 
                 let body =  <StudentWorkPlanList userId={this.state.showUser.id}/>;

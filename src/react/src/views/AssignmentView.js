@@ -95,8 +95,7 @@ export class ModalAssignmentPicker extends Component{
             let show = true;
             if (found) show = false;
             if (this.state.dropdownLists.group && !item.groupList.includes(this.state.dropdownLists.group)) show = false;
-            let fullname = `${item.firstName} ${item.lastName}`;
-            if (this.state.dropdownLists.name.length > 1 && !fullname.toLowerCase().includes(this.state.dropdownLists.name.toLowerCase())) show = false;
+            if (this.state.dropdownLists.name.length > 1 && !item.fullname.toLowerCase().includes(this.state.dropdownLists.name.toLowerCase())) show = false;
             return show;
         });
     }
@@ -128,7 +127,7 @@ export class ModalAssignmentPicker extends Component{
                                         let row =
                                             <tr key={index}>
                                                 <td style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
-                                                    <a href={item.userUrl} target="_blank"><span dangerouslySetInnerHTML={{__html: item.avatar}}></span>{`${item.firstName} ${item.lastName}`}</a>
+                                                    <a href={item.userUrl} target="_blank"><span dangerouslySetInnerHTML={{__html: item.avatar}}></span>{`${item.fullname}`}</a>
                                                     <Button onClick={() => this.onAdd(item)} variant="link" title="Ajouter"><FontAwesomeIcon icon={faArrowRight}/></Button>
                                                 </td>
                                             </tr>
@@ -155,7 +154,7 @@ export class ModalAssignmentPicker extends Component{
                                                                 <div className='col-md-10'>
                                                                     <div>
                                                                         <span dangerouslySetInnerHTML={{__html: item.user.avatar}}></span>
-                                                                        <strong>{`${item.user.firstName} ${item.user.lastName}`}</strong>
+                                                                        <strong>{`${item.user.fullname}`}</strong> 
                                                                     </div>
                                                                     
                                                                 </div>
@@ -195,7 +194,7 @@ export class ModalAssignmentPicker extends Component{
         let result = {
             id: 0,
             templateId: this.state.data.template.id,
-            user: {id: item.userId, firstName: item.firstName, lastName: item.lastName, avatar: item.avatar},
+            user: {id: item.userId, firstName: item.firstName, lastName: item.lastName, fullname: item.fullname, avatar: item.avatar}, 
             nbHoursPerWeek: this.state.rhythme == '' ? 0 : this.state.rhythme,
             comment: '',
             startDate: new Date().getTime()/1000,
@@ -328,7 +327,7 @@ export class ModalAssignmentMassActions extends Component{
                                                 <span dangerouslySetInnerHTML={{__html: item.user.avatar}}></span>
                                             </div>
                                             <div>
-                                                <strong>{`${item.user.firstName} ${item.user.lastName}`}</strong><br/>
+                                                <strong>{`${item.user.fullname}`}</strong><br/>
                                                 <span className='text-muted'>Rythme: {item.nbHoursPerWeek}h/semaine</span><br/>
                                                 <span className='text-muted'>{item.nbAdditionalHours}h supplémentaires</span>
                                             </div>
@@ -901,7 +900,7 @@ export class ModalAssignmentAdditionalHoursHistory extends Component{
             </div>;
 
 
-        let main = <Modal title={'Heures supplémentaires de '+this.state.data.user.firstName+' '+this.state.data.user.lastName} body={body} style={{maxWidth: 1000, width: 'auto'}} onClose={this.onClose} />;
+        let main = <Modal title={'Heures supplémentaires de '+this.state.data.user.fullname} body={body} style={{maxWidth: 1000, width: 'auto'}} onClose={this.onClose} />;
 
         return (main);
     }
