@@ -261,7 +261,7 @@ export class CustomBadge extends Component{
                 break;
             case 'correction': 
                 variant = 'bg-info'; 
-                text = <>Travaux à corriger</>;
+                text = <>En attente de correction</>;
                 break;
             case 'feedback': 
                 variant = 'bg-warning'; 

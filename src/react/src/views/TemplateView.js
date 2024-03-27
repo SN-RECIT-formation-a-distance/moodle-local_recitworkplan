@@ -19,14 +19,15 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 import React, { Component } from 'react';
-import { Collapse, Row, Button, Form, FormGroup, InputGroup, FormControl, Col, Table, Badge, Card, ButtonGroup, Dropdown, DropdownButton} from 'react-bootstrap';
-import { faPencilAlt,  faTrashAlt, faPlusSquare,  faSearch, faCopy, faSync, faMinus, faPlus, faArrowsAlt, faArrowRight, faToolbox, faWrench, faEllipsisV} from '@fortawesome/free-solid-svg-icons';
+import { Collapse, Row, Button, Form, Col, Table, Badge, Card, ButtonGroup, Dropdown, DropdownButton} from 'react-bootstrap';
+import { faPencilAlt,  faTrashAlt, faMinus, faPlus, faArrowsAlt, faArrowRight, faWrench, faEllipsisV} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {ComboBoxPlus, FeedbackCtrl, DataGrid, Modal, Pagination, ToggleButtons} from '../libs/components/Components';
+import {ComboBoxPlus, FeedbackCtrl, DataGrid, Modal, ToggleButtons, ComboBox} from '../libs/components/Components';
 import {$glVars, WorkPlanUtils} from '../common/common';
 import { JsNx } from '../libs/utils/Utils';
-import { CustomButton, CustomHeader, CustomFormControl } from './Components';
-
+import { CustomFormControl } from './Components';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css'; 
 
 export class ActivityPicker extends Component{
     static defaultProps = {        
@@ -451,7 +452,7 @@ export class WorkPlanTemplateView extends Component{
                         <div className='mt-5'>
                             <Row className='m-4 border-bottom'>
                                 <Col className='text-muted' sm={2}>Description</Col>
-                                <Col sm={10} className=''>{data.template.description}</Col>
+                                <Col sm={10} className=''> <div dangerouslySetInnerHTML={{__html: data.template.description}}></div></Col>
                             </Row>
                             <Row className='m-4 border-bottom'>
                                 <Col className='text-muted' sm={2}>Type</Col>
@@ -571,10 +572,12 @@ class ModalTemplateForm extends Component{
                         <CustomFormControl required={true} type="text" value={data.template.name} name="name" onChange={this.onDataChange} />
                     </Col>
                 </Form.Group>
-                <Form.Group as={Row}>
+                <Form.Group as={Row}> 
                     <Form.Label column sm="3">{"Description"}</Form.Label>
                     <Col sm="9">
-                        <CustomFormControl as="textarea" rows={4} className='w-100' value={data.template.description || ''} name="description" onChange={this.onDataChange} />
+                        <ReactQuill style={{height:'250px', marginBottom: '3rem'}} className='w-100' theme="snow" 
+                                value={data.template.description || ''} 
+                                onChange={(value) => this.onDataChange({target: {value: value, name: 'description'}})} />
                     </Col>
                 </Form.Group>
                 <Form.Group as={Row}>
@@ -679,8 +682,8 @@ class ModalTemplateOptionForm extends Component{
         let modalBody = 
             <Form>
             <Form.Group as={Row}>
-                <Form.Label column sm="4">{"Afficher le temps en retard"}</Form.Label>
-                <Col sm="8">
+                <Form.Label column sm="6">{"Afficher le temps en retard"}</Form.Label>
+                <Col sm="6">
                     <ToggleButtons name="showHoursLate" value={[data.template.options.showHoursLate]} onClick={this.onDataChange}
                             options={[
                                 {value: false, text:"Non"},
@@ -688,17 +691,28 @@ class ModalTemplateOptionForm extends Component{
                             ]}/>
                 </Col>
             </Form.Group>
-                <Form.Group as={Row}>
-                    <Form.Label column sm="4">{"Afficher le nom de la catégorie dans la liste d'activité"}</Form.Label>
-                    <Col sm="8">
-                        <ToggleButtons name="showCategory" value={[data.template.options.showCategory]} onClick={this.onDataChange}
+            <Form.Group as={Row}>
+                <Form.Label column sm="6">{"Afficher le nom de la catégorie dans la liste d'activité"}</Form.Label>
+                <Col sm="6">
+                    <ToggleButtons name="showCategory" value={[data.template.options.showCategory]} onClick={this.onDataChange}
+                            options={[
+                                {value: false, text:"Non"},
+                                {value: true, text:"Oui"}
+                            ]}/>
+                </Col>
+            </Form.Group>
+            <Form.Group as={Row}>
+                <Form.Label column sm="6">{"Options d'affichage pour les étudiants"}</Form.Label>
+                <Col sm="6">
+                    <ComboBox placeholder={"Sélectionnez votre option"} name="showStudentWorkPlan" value={data.template.options.showStudentWorkPlan} onChange={this.onDataChange} 
                                 options={[
-                                    {value: false, text:"Non"},
-                                    {value: true, text:"Oui"}
+                                    {value: '0', text:"Description et activités"},
+                                    {value: '1', text:"Description"},
+                                    {value: '2', text:"Non visible"}
                                 ]}/>
-                    </Col>
-                </Form.Group>
-            </Form>;
+                </Col>
+            </Form.Group>
+        </Form>;
 
         let modalFooter = 
             <ButtonGroup>

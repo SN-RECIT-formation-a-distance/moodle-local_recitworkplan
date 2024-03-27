@@ -672,7 +672,7 @@ class PersistCtrl extends MoodlePersistCtrl
         where $whereaccess";
 
         $query = "select ". $this->sql_uniqueid() ." uniqueid, t1.id, t1.nb_hours_per_week nbhoursperweek, t1_1.nb_additional_hours nbadditionalhours, t1.startdate startdate, t1.enddate,
-        t1.completionstate wpcompletionstate, t2.id templateid, t2.creatorid creatorid, t2.name templatename, t1.nbhourslate,
+        t1.completionstate wpcompletionstate, t2.id templateid, t2.creatorid creatorid, t2.name templatename, t1.nbhourslate, t2.options templateoptions,
         t7.fullname coursename, t7.id courseid, t2.description templatedesc, t2.communication_url communicationurl, 
         t2.lastupdate lastupdate, t3.cmid, t3.nb_hours_completion nbhourscompletion,
         t4.id userid, t4.email, t4.firstname, t4.alternatename, t4.lastname,
@@ -989,7 +989,7 @@ class Template{
     public $lastUpdate = null;
     //@array of TemplateActivity
     public $activities = array();
-    public $options = array('showHoursLate' => false, 'showCategory' => true);
+    public $options = array('showHoursLate' => false, 'showCategory' => true, 'showStudentWorkPlan' => '0');
 
     public function __construct(){
     }
@@ -1012,6 +1012,12 @@ class Template{
         if (isset($dbData->templateoptions)){
             try {
                 $result->options = json_decode($dbData->templateoptions);
+
+                // set default value
+                if(!isset($result->options->showStudentWorkPlan)){
+                    $result->options->showStudentWorkPlan = '0';
+                }
+
             }catch(\Exception $e){
             }
         }

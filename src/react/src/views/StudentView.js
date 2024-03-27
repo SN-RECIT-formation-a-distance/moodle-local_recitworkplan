@@ -93,6 +93,8 @@ export class StudentWorkPlanList extends Component {
         let list = 
             <div className='tiles'>
                 {this.state.dataProvider.map((item, index) => {
+                        if(item.template.options.showStudentWorkPlan === '2'){ return null; }
+                        
                         let row = <StudentTemplateTile onClick={this.onDetail} key={index} data={item}/>
                         return (row);
                     }
@@ -298,7 +300,7 @@ export class StudentTemplateDetail extends Component {
             <CustomCard progressColor={rythmeColor} progressText={progressText} progressValue={`${progressValue}%`}>
                 <div className='mb-3'>
                     <div className='h4'>{data.template.name}</div>
-                    <p>{data.template.description}</p>
+                    <p dangerouslySetInnerHTML={{__html: data.template.description}}></p>
                 </div>
                 
                 <div style={{ justifyContent: 'space-between', display: "flex", alignItems: "center", flexWrap: 'wrap'}}>
@@ -318,15 +320,19 @@ export class StudentTemplateDetail extends Component {
                         <CustomBadgeCompletion title="Le nombre d'activités complétées / le nombre d'activités" stats={progressText}/>
                     </div>
                 </div>
-                <div className='mt-3 d-flex align-items-center'>
-                    <strong>{"Activités"}</strong>
-                </div>
-                    <div style={{width:'100%'}}>                        
-                        {data.template.activities.map((item, index) => {
-                                return (<UserActivityList user={assignment.user} data={item} key={index}/>);                                     
-                            }
-                        )}
-                </div>
+                {data.template.options.showStudentWorkPlan === '0' &&
+                    <>
+                        <div className='mt-3 d-flex align-items-center'>
+                            <strong>{"Activités"}</strong>
+                        </div>
+                        <div style={{width:'100%'}}>                        
+                            {data.template.activities.map((item, index) => {
+                                    return (<UserActivityList user={assignment.user} data={item} key={index}/>);                                     
+                                }
+                            )}
+                        </div>
+                    </>
+                }
             </CustomCard>
             </>
       

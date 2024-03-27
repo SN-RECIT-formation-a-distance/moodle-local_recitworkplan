@@ -28,7 +28,7 @@ export class ComboBox extends Component {
 
         let main = 
             <Form.Control as="select" {...spreadAttr}  onChange={this.onChange} value={this.props.value}>
-                <option  value="">{this.props.placeholder}</option>
+                {this.props.placeholder.length > 0 && <option disabled  value="">{this.props.placeholder}</option>}
                 {this.props.options.map(function(item, index){
                     return <option key={index} value={item.value}>{item.text}</option>;
                 })}
