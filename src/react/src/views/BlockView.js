@@ -57,19 +57,20 @@ export class StudentBlockView extends Component{
     }
 
     render(){
-        let dataProvider = this.state.dataProvider;
+        let dataProvider = this.state.dataProvider.filter((item) => item.template.options.showStudentWorkPlan !== '2');
         
+
         let main = 
             <div>
                 {this.state.loading && <FontAwesomeIcon icon={faSpinner} spin={true} className='m-auto' size={'3x'}/>}
                 <div className='tiles'>
-                    {dataProvider.map((workPlan, index) => {
+                    {dataProvider.length > 0 && dataProvider.map((workPlan, index) => {
                         let card = <WorkPlanStudentCardBlock key={index} data={workPlan}/>
 
                         return (card); 
-                    })}
-                </div>
-
+                    })} 
+                </div> 
+                {dataProvider.length === 0 && <div className='alert alert-primary'>Aucun plan de travail à afficher.</div>}
             </div>;
 
 
