@@ -358,6 +358,7 @@ class WorkPlanView extends Component{
         this.getDataResult = this.getDataResult.bind(this);
         this.getData = this.getData.bind(this);
         this.onSaveTemplate = this.onSaveTemplate.bind(this); 
+        this.onProcessWorkPlan = this.onProcessWorkPlan.bind(this);
 
         this.state = {tab: this.props.editTab, data: null};
     }
@@ -389,7 +390,13 @@ class WorkPlanView extends Component{
             return;
         }
        
-        this.setState({data: result.data.data});
+        let tab = this.state.tab;
+
+        if(result.data.data.assignments.length > 0){
+            tab = 'assignments';
+        }
+
+        this.setState({data: result.data.data, tab: tab});
     }
 
     render(){
@@ -401,7 +408,7 @@ class WorkPlanView extends Component{
                     {this.state.data.template.state == 1 && <CustomBadge variant='bg-warning' faIcon={faBookmark} text={" Gabarit"}/>}
                 </CustomHeader>
 
-                <WorkPlanTemplateView data={this.state.data} onSave={this.onSaveTemplate} />
+                <WorkPlanTemplateView data={this.state.data} onSave={this.onSaveTemplate} onProcessWorkPlan={this.onProcessWorkPlan} />
                     
                 <Tabs id="workPlanTabs" className="mt-5" variant="pills" activeKey={this.state.tab} onSelect={this.onTabChange}>
                     <Tab eventKey="activities" title="Activités">
@@ -424,6 +431,19 @@ class WorkPlanView extends Component{
         let data = this.state.data;
         data.template = template;
         this.setState({data: data});
+    }
+
+    onProcessWorkPlan(){
+        let that = this;
+        $glVars.webApi.processWorkPlan(this.state.data.template.id, (result) => {
+            if(!result.success){
+                $glVars.feedback.showError($glVars.i18n.tags.appName, result.msg);
+                return;
+            }
+
+            that.getData(that.state.data.template.id)
+            $glVars.feedback.showInfo($glVars.i18n.tags.appName, $glVars.i18n.tags.msgSuccess, 3);
+        })
     }
 }
 
@@ -576,7 +596,7 @@ class WorkPlanAssignmentsView extends Component{
                                             </div>
                                         </div>
                                         <div className='w-100-mobile'>
-                                            <AssignmentFollowUp data={data} iAssignment={iAssignment}/>
+                                            <AssignmentFollowUp data={data} assignmentId={item.id}/>
                                         </div>
                                         <div className="p-2 text-muted d-flex" style={{alignItems: 'center', justifyContent: 'flex-end'}}>
                                             <CustomBadgeCompletion title="Le nombre d'affectations complétées / le nombre d'activités avec une durée plus grande que 0" stats={progressText}/>

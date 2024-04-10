@@ -79,7 +79,7 @@ export class CustomCard extends Component{
 
     render(){
         let main =
-            <Card className='rounded m-2'>
+            <Card className='rounded m-2 mb-4'>
                 <div className={this.props.progressColor} title={this.props.progressText} style={{backgroundColor: '#0f6fc5', width: this.props.progressValue, height: '5px', maxWidth: "100%"}}></div>
                 <Card.Body style={{backgroundColor: "#f0f0f0"}} className='p-2'>
                     {this.props.children}
@@ -391,7 +391,7 @@ export class WorkPlanFollowUp extends Component{
 export class AssignmentFollowUp extends Component{
     static defaultProps = {        
         data: null,
-        iAssignment: 0
+        assignmentId: 0
     };
 
     render(){
@@ -406,7 +406,13 @@ export class AssignmentFollowUp extends Component{
 
     getActivitiesFollowup(){
         let result = [];
-        let activities = this.props.data.assignments[this.props.iAssignment].user.activities;
+        let assignment = JsNx.getItem(this.props.data.assignments, 'id', this.props.assignmentId, null);
+
+        if(assignment === null){
+            return result;
+        }
+
+        let activities = assignment.user.activities;
 
         let el = JsNx.getItem(activities, 'followup', 1, null);
 
@@ -430,7 +436,11 @@ export class AssignmentFollowUp extends Component{
     }
 
     getWorkPlanState(){
-        let item = this.props.data.assignments[this.props.iAssignment];
+        let item = JsNx.getItem(this.props.data.assignments, 'id', this.props.assignmentId, null);
+
+        if(item === null){
+            return null;
+        }
 
         if(item.completionState == 1){
             return <CustomBadge variant="bg-info" text="Archivé"/>;
@@ -444,7 +454,12 @@ export class AssignmentFollowUp extends Component{
     }
 
     getActiveWorkPlanDetails(){
-        let item = this.props.data.assignments[this.props.iAssignment];
+        let item = JsNx.getItem(this.props.data.assignments, 'id', this.props.assignmentId, null);
+
+        if(item === null){
+            return null;
+        }
+
         let now = new Date().getTime()/1000;
 
         if((item.completionState == 0) && (item.startDate > (now))){
@@ -459,8 +474,12 @@ export class AssignmentFollowUp extends Component{
     }
 
     getOngoingWorkPlanDetails(){
-        let item = this.props.data.assignments[this.props.iAssignment];
         let result = null;
+        let item = JsNx.getItem(this.props.data.assignments, 'id', this.props.assignmentId, null);
+
+        if(item === null){
+            return result;
+        }
 
         if(item.completionState == 3){
             return <CustomBadge variant="completed"/>;

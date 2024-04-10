@@ -20,7 +20,7 @@
  */
 import React, { Component } from 'react';
 import { Collapse, Row, Button, Form, Col, Table, Badge, Card, ButtonGroup, Dropdown, DropdownButton} from 'react-bootstrap';
-import { faPencilAlt,  faTrashAlt, faMinus, faPlus, faArrowsAlt, faArrowRight, faWrench, faEllipsisV} from '@fortawesome/free-solid-svg-icons';
+import { faPencilAlt,  faTrashAlt, faMinus, faPlus, faArrowsAlt, faArrowRight, faWrench, faEllipsisV, faSync} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {ComboBoxPlus, FeedbackCtrl, DataGrid, Modal, ToggleButtons, ComboBox} from '../libs/components/Components';
 import {$glVars, WorkPlanUtils} from '../common/common';
@@ -397,6 +397,7 @@ export class WorkPlanTemplateView extends Component{
     static defaultProps = {        
         data: null,
         onSave: null,
+        onProcessWorkPlan: null
     };
 
     constructor(props){
@@ -447,6 +448,7 @@ export class WorkPlanTemplateView extends Component{
                             <DropdownButton bsPrefix='rounded btn btn-sm btn-outline-primary' variant='' title={<FontAwesomeIcon icon={faEllipsisV} />}>
                                 <Dropdown.Item disabled={WorkPlanUtils.isArchived(JsNx.at(data.assignments, 0, null))} onClick={() => this.setState({editModal:true})}><FontAwesomeIcon icon={faPencilAlt} />{" Modifier"}</Dropdown.Item>
                                 <Dropdown.Item disabled={WorkPlanUtils.isArchived(JsNx.at(data.assignments, 0, null))} onClick={() => this.setState({optionModal:true})}><FontAwesomeIcon icon={faWrench} />{" Options"}</Dropdown.Item>
+                                <Dropdown.Item disabled={WorkPlanUtils.isArchived(JsNx.at(data.assignments, 0, null))} onClick={this.props.onProcessWorkPlan}><FontAwesomeIcon icon={faSync} />{" Rafraîchir"}</Dropdown.Item>
                             </DropdownButton>
                         </ButtonGroup>
                         <div className='mt-5'>
