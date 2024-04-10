@@ -31,3 +31,10 @@ function recitworkplan_course_module_completion_updated_event(\core\event\course
 
     \recitworkplan\PersistCtrl::getInstance($DB, $USER)->setAssignmentCompletionState($event->relateduserid, $event->contextinstanceid);
 }
+
+function recitworkplan_course_module_deleted_event(\core\event\course_module_deleted $event){
+    global $DB;
+
+    $cmid = $event->contextinstanceid;
+    $DB->delete_records('recit_wp_tpl_act', array('cmid' => $cmid));
+}

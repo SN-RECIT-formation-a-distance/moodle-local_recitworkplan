@@ -448,7 +448,7 @@ export class WorkPlanTemplateView extends Component{
                             <DropdownButton bsPrefix='rounded btn btn-sm btn-outline-primary' variant='' title={<FontAwesomeIcon icon={faEllipsisV} />}>
                                 <Dropdown.Item disabled={WorkPlanUtils.isArchived(JsNx.at(data.assignments, 0, null))} onClick={() => this.setState({editModal:true})}><FontAwesomeIcon icon={faPencilAlt} />{" Modifier"}</Dropdown.Item>
                                 <Dropdown.Item disabled={WorkPlanUtils.isArchived(JsNx.at(data.assignments, 0, null))} onClick={() => this.setState({optionModal:true})}><FontAwesomeIcon icon={faWrench} />{" Options"}</Dropdown.Item>
-                                <Dropdown.Item disabled={WorkPlanUtils.isArchived(JsNx.at(data.assignments, 0, null))} onClick={this.props.onProcessWorkPlan}><FontAwesomeIcon icon={faSync} />{" Rafraîchir"}</Dropdown.Item>
+                                <Dropdown.Item disabled={WorkPlanUtils.isArchived(JsNx.at(data.assignments, 0, null))} onClick={this.props.onProcessWorkPlan}><FontAwesomeIcon icon={faSync} />{" Recalculer"}</Dropdown.Item>
                             </DropdownButton>
                         </ButtonGroup>
                         <div className='mt-5'>

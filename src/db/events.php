@@ -26,5 +26,11 @@ $observers = array (
          'callback'  => 'recitworkplan_course_module_completion_updated_event',
          'includefile' => 'local/recitworkplan/lib.php',
          'internal'    => false,
-    )
+    ),
+    array (
+        'eventname'      => 'core\event\course_module_deleted',
+        'callback'  => 'recitworkplan_course_module_deleted_event',
+        'includefile' => 'local/recitworkplan/lib.php',
+        'internal'    => false,
+   )
 );
