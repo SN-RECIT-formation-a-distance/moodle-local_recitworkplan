@@ -432,6 +432,13 @@ export class AssignmentFollowUp extends Component{
             result.push(<CustomBadge key={result.length} variant="failure"/>);
         }
 
+        if(assignment.comment.length > 0){
+            result.push(<CustomBadge key={result.length} variant="bg-danger" 
+                text={<OverlayTrigger overlay={<Tooltip>{assignment.comment}</Tooltip>}>
+                        <span className="d-inline-block">Commentaire <FontAwesomeIcon icon={faInfoCircle}/></span>
+                    </OverlayTrigger>}/>);
+        }
+
         return result;
     }
 
