@@ -28,6 +28,7 @@ require_once __DIR__ . '/../lib.php';
 require_once __DIR__ . '/recitcommon/PersistCtrl.php';
 
 use DateTime;
+use Exception;
 use stdClass;
 
 /**
@@ -919,6 +920,7 @@ class PersistCtrl extends MoodlePersistCtrl
         global $CFG;
         $workPlan = $this->getWorkPlan($studentId, $templateId, true);
         if ($workPlan == null){ return; }
+        if ($workPlan->template == null){ return; }
 
         $name = "Fin du plan ".$workPlan->template->name;
         $desc = "<a href='".$CFG->wwwroot."/local/recitworkplan/view.php'>".$name."</a>"; 
@@ -972,7 +974,7 @@ class PersistCtrl extends MoodlePersistCtrl
     public function processWorkPlan($tplId){
         $this->setAssignmentEndDate($tplId);
         $this->recalculateCalendarEvents($tplId);
-        $this->setAssignmentCompletionState(0, 0, $tplId);
+        $this->setAssignmentCompletionState(0, 0, $tplId); 
     }
 }
 

@@ -177,12 +177,14 @@ class StudentTemplateTile extends WorkPlanCustomCard {
             <>
                 <a className='m-2' title="Attribué par" href={assignment.assignor.url} target="_blank"><span dangerouslySetInnerHTML={{__html: assignment.assignor.avatar}}></span></a>
                 <div>
-                    {progress.text.length > 0 && <CustomBadgeCompletion className='m-2' title="Le nombre d'activités complétées / le nombre d'activités" stats={progress.text}/>}
-                    <div className='m-2 text-muted'>{`Échéance: ${UtilsDateTime.formatDateTime(assignment.endDate, " ", "Non définie")}`}</div>
-                    <div className='m-2 text-muted'>{`Rythme: ${assignment.nbHoursPerWeek} (h/semaine)`}</div>
+                    {progress.text.length > 0 && 
+                        <CustomBadgeCompletion className='m-2' title="Le nombre d'activités complétées / le nombre d'activités" stats={progress.text}/>
+                    }
+                    <div className='m-2 text-muted'>{`Échéance: `}<b>{`${UtilsDateTime.formatDateTime(assignment.endDate, " ", "Non définie")}`}</b></div>
+                    <div className='m-2 text-muted'>{`Rythme: `}<b>{`${assignment.nbHoursPerWeek} (h/semaine)`}</b></div>
                 </div>
                 
-                <AssignmentFollowUp data={data} iAssignment={0}/>
+                <AssignmentFollowUp data={data} assignmentId={assignment.id}/>
             </>;
 
         let main = <WorkPlanCollapsible progress={progress} data={data} onClick={this.onClick} 
@@ -315,7 +317,7 @@ export class StudentTemplateDetail extends Component {
                             {data.template.communicationUrl && data.template.communicationUrl.length > 0 && <div className='text-muted'><a href={data.template.communicationUrl} target="_blank">Contacter</a></div>}
                         </div>    
                     </div>
-                    <AssignmentFollowUp data={data} iAssignment={0}/>
+                    <AssignmentFollowUp data={data} assignmentId={assignment.id}/>
                     <div>
                         <CustomBadgeCompletion title="Le nombre d'activités complétées / le nombre d'activités" stats={progressText}/>
                     </div>

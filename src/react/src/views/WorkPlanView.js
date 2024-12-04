@@ -116,7 +116,7 @@ export class WorkPlanListView extends Component{
 
         let main = 
             <div>
-                <CustomHeader title="Plans de travail" btnAfter={<CustomButton title='Créer un plan de travail.' onClick={this.onAdd} ><FontAwesomeIcon icon={faPlus}/></CustomButton>}>
+                <CustomHeader title="Plans de travail" btnAfter={<CustomButton title='Créer un plan de travail' onClick={this.onAdd} ><FontAwesomeIcon icon={faPlus}/></CustomButton>}>
                     <ToggleButtons name="completionState" onClick={this.onCompletionStateChange} type="radio" value={this.state.activeTab} options={[
                             {value: "ongoing", text: <span><FontAwesomeIcon icon={faSyncAlt} />{" En cours"}</span>}, 
                             {value: "archive", text:  <span><FontAwesomeIcon icon={faArchive} />{" Archivés"}</span>}, 
@@ -325,11 +325,13 @@ class WorkPlanCard extends Component{
                             <FontAwesomeIcon icon={faUserFriends} title={`Collaborateurs: ${collaboratorList.join(", ")}`}/>} </div>
                 </div>
 
-                <div className='d-flex justify-content-center flex-wrap col-12 col-md-9'>
+                <div className='d-flex justify-content-start flex-wrap col-12 col-md-9'>
                     {workPlan.stats && workPlan.stats.nbStudents > 0 && 
                         <CustomBadgeCompletion title="Le nombre d'élèves qui ont complété le plan de travail / le nombre total d'élèves assigné au plan de travail" stats={`${workPlan.stats.workPlanCompletion}/${workPlan.stats.nbStudents}`}/>
                     }
-                    <WorkPlanFollowUp data={workPlan}/>
+                    <div>
+                        <WorkPlanFollowUp data={workPlan}/>
+                    </div>
                 </div>
             </>       
 

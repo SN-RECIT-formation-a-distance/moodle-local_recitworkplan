@@ -307,12 +307,10 @@ export class CustomBadgeCompletion extends Component{
 
         let main = 
             <span className={this.props.className}>
-                <span title={this.props.title} className="text-muted">
-                    {"Achèvement "}
-                    <FontAwesomeIcon icon={faCheck}/>
-                </span>
+                <span title={this.props.title} className="text-muted">{"Achèvement: "}</span>
                 <span className='ml-2 mr-2 text-muted'>
-                    {this.props.stats}
+                    <b>{`${this.props.stats} `}</b>
+                    <FontAwesomeIcon className='text-success' icon={faCheck}/>
                 </span>
             </span>;
 
