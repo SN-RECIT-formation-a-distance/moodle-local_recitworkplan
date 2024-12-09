@@ -332,7 +332,8 @@ export class CustomFormControl extends Component{
         as: '',
         rows: null,
         max: 0,
-        required: false
+        required: false,
+        size: ''
     };
 
     render(){

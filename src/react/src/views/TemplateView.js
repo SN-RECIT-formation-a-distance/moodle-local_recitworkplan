@@ -20,7 +20,7 @@
  */
 import React, { Component } from 'react';
 import { Collapse, Row, Button, Form, Col, Table, Badge, Card, ButtonGroup, Dropdown, DropdownButton} from 'react-bootstrap';
-import { faPencilAlt,  faTrashAlt, faMinus, faPlus, faArrowsAlt, faArrowRight, faWrench, faEllipsisV, faSync} from '@fortawesome/free-solid-svg-icons';
+import { faPencilAlt,  faTrashAlt, faMinus, faPlus, faArrowsAlt, faArrowRight, faWrench, faEllipsisV, faSync, faAngleDoubleUp, faAngleDoubleDown} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {ComboBoxPlus, FeedbackCtrl, DataGrid, Modal, ToggleButtons, ComboBox} from '../libs/components/Components';
 import {$glVars, WorkPlanUtils} from '../common/common';
@@ -49,13 +49,17 @@ export class ActivityPicker extends Component{
         this.onFilterChange = this.onFilterChange.bind(this);
         this.onDragRow = this.onDragRow.bind(this);
         this.onDropRow = this.onDropRow.bind(this);
+        this.onDragEnter = this.onDragEnter.bind(this);
+        this.onDragEnd = this.onDragEnd.bind(this);
+        this.cleanDropzone = this.cleanDropzone.bind(this);
 
         this.state = {
             data: null, 
             collapse: true, 
             draggingItem: null, 
+            dropzone: null,
             loading: false,
-            showActivityNoAchievement: true,
+            showActivityNoAchievement: false,
             dropdownLists: {
                 categoryId: "0", 
                 categoryList: [], 
@@ -69,6 +73,8 @@ export class ActivityPicker extends Component{
                 dataChanged: false
             }
         };
+
+        this.refSelectedActivityList = React.createRef();
     }
 
     componentDidMount(){
@@ -117,7 +123,8 @@ export class ActivityPicker extends Component{
                     <div style={{backgroundColor: '#f9f9f9', padding: '1rem'}} className='col-md-4'>
                         <div>
                             <h6>Liste d'activités</h6>
-                            <div style={{maxHeight: 500, maxWidth: 600, overflowY: 'scroll'}}>
+                            
+                            <div style={{maxHeight: "50vh", maxWidth: 600, overflowY: 'scroll', scrollbardWidth: 'thin'}}>
                                 <Table striped bordered hover>                                
                                     <tbody>
                                         {tmpActivityList.map((item, index) => {
@@ -136,8 +143,8 @@ export class ActivityPicker extends Component{
                                     </tbody>
                                 </Table>
                             </div>
-                            
-                            {this.state.dropdownLists.activityList.length > 0 && 
+
+                            {tmpActivityList.length > 0 && 
                                 <div className='mt-3'>
                                     <input onChange={(e) => this.setState({showActivityNoAchievement: !this.state.showActivityNoAchievement})} id={'showActivityNoAchievement'} type="checkbox" checked={this.state.showActivityNoAchievement} />
                                     <label className="ml-2 d-inline" htmlFor={'showActivityNoAchievement'}>Afficher les activités qui n'ont pas d'achèvement</label>
@@ -147,42 +154,42 @@ export class ActivityPicker extends Component{
                     </div>
                     <div className='col-md-8'>
                         <h6>Activités sélectionnées <Badge variant="warning" className="p-2 rounded">{`${this.state.data.activities.length}`}</Badge></h6>
-                        <div style={{maxHeight: 500, overflowY: 'scroll'}}>
-                            <DataGrid>
-                                <DataGrid.Body>
-                                    {activities.map((item, index) => {
-                                            let row =
-                                                <DataGrid.Body.RowDraggable data={item} onDrag={this.onDragRow} onDrop={this.onDropRow} key={index}>
-                                                    <DataGrid.Body.Cell>
-                                                        <div className='align-items-center' style={{display: 'grid', gridTemplateColumns: "40px calc(100% - 40px - 40px) 40px", justifyContent: 'space-between'}}>
-                                                            <div>
-                                                                <FontAwesomeIcon icon={faArrowsAlt} title="Déplacer l'item"/>
-                                                            </div>
-                                                            <div>
-                                                                <div><strong>{item.cmName}</strong><span className='ml-2 text-muted'>{item.courseName}</span></div>
-                                                                <div className='d-flex align-items-center'>
-                                                                    <CustomFormControl className='mr-3' disabled={this.state.loading} style={{width: '100px'}} type="number" placeholder="Durée" value={item.nbHoursCompletion} onBlur={() => this.onSaveTplAct(item)} name="nbHoursCompletion" onChange={(event) => this.onDataChange(event, index)} />
-                                                                    <span className='text-muted'>heures</span>
-                                                                </div>
-                                                            </div>
-                                                            <div>
-                                                                <Button variant="link" title="Supprimer" onClick={() => this.onRemoveTplAct(item.id)}><FontAwesomeIcon icon={faTrashAlt}/></Button>
-                                                            </div>
-                                                        </div>
-                                                    </DataGrid.Body.Cell>
-                                                </DataGrid.Body.RowDraggable>;
+                        <div  ref={this.refSelectedActivityList} style={{maxHeight: "50vh", overflowY: 'scroll', scrollbarWidth: 'thin', scrollBehavior: 'smooth'}}>
+                            {activities.map((item, index) => {
+                                let bg = (index % 2 ? 'bg-white' : 'bg-light');
 
-                                            return row;
-                                        }
-                                    )}
-                                </DataGrid.Body>
-                            </DataGrid>
+                                let row =
+                                    <div key={index} data-index={index} onDragEnter={(event) => this.onDragEnter(event, item)} onDragEnd={this.onDragEnd} onDrop={(event) => this.onDropRow(event, item, index)} onDragOver={this.onDragOver}
+                                        className={`dropzone ${bg} p-1 mb-1 align-items-center`} style={{display: 'grid', gridTemplateColumns: "calc(100% - 150px - 40px) 150px 40px", justifyContent: 'space-between'}}>
+                                        <div style={{cursor: 'grab'}} onDragStart={(event) => this.onDragRow(event, item)} draggable="true" >
+                                            <span className='mr-2' >
+                                                <FontAwesomeIcon icon={faArrowsAlt} title="Déplacer l'item"/>
+                                            </span>
+                                            <span>
+                                                <strong>{item.cmName}</strong>
+                                                <br/>
+                                                <span className='text-muted'>{item.courseName}</span>
+                                            </span>
+                                        </div>
+                                        <div className='d-flex align-items-center'>
+                                            <CustomFormControl size='sm' disabled={this.state.loading} style={{width: '80px'}} type="number" value={item.nbHoursCompletion} onBlur={() => this.onSaveTplAct(item)} name="nbHoursCompletion" onChange={(event) => this.onDataChange(event, index)} />
+                                            <Form.Text className='ml-2' muted>heures</Form.Text>
+                                        </div>
+                                        <ButtonGroup>
+                                            <Button  size='sm'variant="link" title="Supprimer" onClick={() => this.onRemoveTplAct(item.id)}><FontAwesomeIcon icon={faTrashAlt}/></Button>
+                                        </ButtonGroup>
+                                    </div>
+
+                                return row;
+                            })}
                         </div>
                     </div>
                 </div>                
             </div>;
 
-        let main = <Modal title={this.props.title} style={{maxWidth:1200, width:'auto'}} body={body} onClose={this.onClose} />;
+        let footer = <ButtonGroup><Button variant='secondary' onClick={this.onClose}>Fermer</Button></ButtonGroup>
+
+        let main = <Modal title={this.props.title} style={{maxWidth:"95vw", minWidth: "70vw", width:'auto', maxHeight: "95vh", minHeight: '55vh'}} body={body} onClose={this.onClose} footer={footer} />;
 
         return (main);
     }
@@ -250,11 +257,49 @@ export class ActivityPicker extends Component{
         });
     }
 
-    onDragRow(item, index){
+    onDragRow(event, item){
+        event.dataTransfer.effectAllowed = "move";
         this.setState({draggingItem: item});
     }
 
-    onDropRow(item, index){
+    onDragOver(event){
+        event.preventDefault();
+        event.dataTransfer.dropEffect = "move";
+    }
+
+    onDragEnter(event, item){
+        event.preventDefault();
+
+        if(item.id === this.state.draggingItem.id){ return; }
+
+        // highlight potential drop target when the draggable element enters it
+        if (event.target.classList.contains("dropzone")) {
+            this.cleanDropzone();
+
+            event.target.classList.add("border-top");
+            event.target.classList.add("border-bottom");
+            event.target.classList.add("border-primary");
+
+            this.setState({dropzone: event.currentTarget});
+        }
+    }
+
+    onDragEnd(){
+        this.cleanDropzone();
+    }
+
+    cleanDropzone(){
+        if(this.state.dropzone){
+            this.state.dropzone.classList.remove("border-top");
+            this.state.dropzone.classList.remove("border-bottom");
+            this.state.dropzone.classList.remove("border-primary");
+        }
+        this.setState({dropzone: null});
+    }
+
+    onDropRow(event, item, index){
+        event.preventDefault();
+
         if(item.id === this.state.draggingItem.id){ return; }
 
         this.setState({flags: {dataChanged: true}}, () => {this.onSaveTplActOrder(this.state.draggingItem.id,  index + 1);});
@@ -278,6 +323,9 @@ export class ActivityPicker extends Component{
             if(!result.success){
                 $glVars.feedback.showError($glVars.i18n.tags.appName, result.msg);
                 return;
+            }
+            else{
+                $glVars.feedback.showInfo($glVars.i18n.tags.appName, $glVars.i18n.tags.msgSuccess, 2);
             }
 
             let data = that.state.data;
@@ -349,6 +397,9 @@ export class ActivityPicker extends Component{
                 $glVars.feedback.showError($glVars.i18n.tags.appName, result.msg);
                 return;
             }
+            else{
+                $glVars.feedback.showInfo($glVars.i18n.tags.appName, $glVars.i18n.tags.msgSuccess, 2);
+            }
 
             let data = that.state.data;
 
@@ -361,7 +412,9 @@ export class ActivityPicker extends Component{
                 data.id = result.data.templateId;
             }
 
-            that.setState({data: data, loading: false});
+            that.setState({data: data, loading: false}, () => {
+                that.refSelectedActivityList.current.scrollTo(0, that.refSelectedActivityList.current.scrollHeight);
+            });
         }
 
         if(this.state.flags.dataChanged){
@@ -377,6 +430,10 @@ export class ActivityPicker extends Component{
                 $glVars.feedback.showError($glVars.i18n.tags.appName, result.msg);
                 return;
             }
+            else{
+                $glVars.feedback.showInfo($glVars.i18n.tags.appName, $glVars.i18n.tags.msgSuccess, 2);
+            }
+
             that.getData({dropdownLists: false});
         }
 
@@ -474,7 +531,7 @@ export class WorkPlanTemplateView extends Component{
                             </Row>             
                             <Row className='m-4 border-bottom'>
                                 <Col className='text-muted' sm={2}>Temps à consacrer</Col>
-                                <Col sm={10} className=''>{`${nbHoursCompletionTotal} heures`}</Col>
+                                <Col sm={10} className=''>{`${parseFloat(nbHoursCompletionTotal).toFixed(2)} heures`}</Col>
                             </Row> 
                             <Row className='m-4 border-bottom'>
                                 <Col className='text-muted' sm={2}>Catégories de cours</Col>

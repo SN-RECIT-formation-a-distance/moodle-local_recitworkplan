@@ -373,7 +373,8 @@ class BCell extends ACell {
         onClick: null,
         iRow: -1,
         iCol: -1,
-        sortValue: ""
+        sortValue: "",
+        className: ''
     };
     
     render() {    
@@ -389,7 +390,7 @@ class BCell extends ACell {
                 cellContent = this.getStringCell();
         }
 
-        return (<td data-alert={this.props.alert} colSpan={this.getColSpan()} rowSpan={this.getRowSpan()} style={this.props.style}>{cellContent}</td>);
+        return (<td className={this.props.className} data-alert={this.props.alert} colSpan={this.getColSpan()} rowSpan={this.getRowSpan()} style={this.props.style}>{cellContent}</td>);
     }
 
     getBooleanCell(){
