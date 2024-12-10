@@ -175,7 +175,13 @@ abstract class APersistCtrl
 
 abstract class MoodlePersistCtrl extends APersistCtrl{
     public function getCmNameFromCmId($cmId, $courseId, $modData = false){
-        if (!$modData) $modData = get_fast_modinfo($courseId);
+        if ($courseId == 0){
+            return "not_found";
+        }
+
+        if(!$modData){
+            $modData = get_fast_modinfo($courseId);
+        }
         
         foreach ($modData->cms as $cm) {
             if ($cmId == $cm->id){

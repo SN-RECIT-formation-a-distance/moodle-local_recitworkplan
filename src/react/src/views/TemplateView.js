@@ -157,6 +157,12 @@ export class ActivityPicker extends Component{
                         <div  ref={this.refSelectedActivityList} style={{maxHeight: "50vh", overflowY: 'scroll', scrollbarWidth: 'thin', scrollBehavior: 'smooth'}}>
                             {activities.map((item, index) => {
                                 let bg = (index % 2 ? 'bg-white' : 'bg-light');
+                                let cmName = item.cmName
+                                
+                                if(item.courseId === 0){
+                                    bg = 'alert alert-danger';
+                                    cmName = 'Activité non trouvée';
+                                }
 
                                 let row =
                                     <div key={index} data-index={index} onDragEnter={(event) => this.onDragEnter(event, item)} onDragEnd={this.onDragEnd} onDrop={(event) => this.onDropRow(event, item, index)} onDragOver={this.onDragOver}
@@ -166,7 +172,7 @@ export class ActivityPicker extends Component{
                                                 <FontAwesomeIcon icon={faArrowsAlt} title="Déplacer l'item"/>
                                             </span>
                                             <span>
-                                                <strong>{item.cmName}</strong>
+                                                <strong>{cmName}</strong>
                                                 <br/>
                                                 <span className='text-muted'>{item.courseName}</span>
                                             </span>
