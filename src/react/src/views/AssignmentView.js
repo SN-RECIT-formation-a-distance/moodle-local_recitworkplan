@@ -114,13 +114,13 @@ export class ModalAssignmentPicker extends Component{
                     </Form.Group>
                 </div>
                 <div className='mt-4 row'>
-                    <div className='col-md-6'>
+                    <div className='col-lg-6'>
                         <div style={{display: 'flex', alignItems: "center", justifyContent: "space-between"}}>
                             <strong>Liste d'élèves</strong>
                             <CustomFormControl style={{width:'200px'}} onChange={(e) => this.onFilterChange(e.target.name, e.target.value)}  type="search" value={this.state.dropdownLists.name} name='name' placeholder="Rechercher..."/>
                         </div>
                         
-                        <div className='mt-2 mb-2' style={{maxHeight: 500, overflowY: 'auto'}}>
+                        <div className='mt-2 mb-2' style={{maxHeight: 500, overflowY: 'auto', scrollbarWidth: 'thin'}}>
                             <Table striped bordered hover>                                
                                 <tbody>
                                     {studentList.map((item, index) => {
@@ -140,10 +140,10 @@ export class ModalAssignmentPicker extends Component{
                             </Table>
                         </div>
                     </div>
-                    <div className='col-md-6'>
+                    <div className='col-lg-6'>
                         <div>
                             <h6>Élèves assignés <Badge variant="warning" className="p-2 rounded">{this.state.data.assignments.length}/{Options.MAX_AFFECTATIONS}</Badge></h6>
-                            <div style={{maxHeight: 500, overflowY: 'scroll'}}>
+                            <div style={{maxHeight: 500, overflowY: 'scroll', scrollbarWidth: 'thin'}}>
                                 <Table striped bordered hover>
                                     <tbody>
                                         {this.state.data.assignments.map((item, index) => {

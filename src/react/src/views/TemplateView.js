@@ -120,7 +120,7 @@ export class ActivityPicker extends Component{
                         </div>
                 </Collapse>
                 <div className='row w-100'>
-                    <div style={{backgroundColor: '#f9f9f9', padding: '1rem'}} className='col-md-4'>
+                    <div style={{backgroundColor: '#f9f9f9', padding: '1rem'}} className='col-lg-4'>
                         <div>
                             <h6>Liste d'activités</h6>
                             
@@ -152,7 +152,7 @@ export class ActivityPicker extends Component{
                             }
                         </div>
                     </div>
-                    <div className='col-md-8'>
+                    <div className='col-lg-8'>
                         <h6>Activités sélectionnées <Badge variant="warning" className="p-2 rounded">{`${this.state.data.activities.length}`}</Badge></h6>
                         <div  ref={this.refSelectedActivityList} style={{maxHeight: "50vh", overflowY: 'scroll', scrollbarWidth: 'thin', scrollBehavior: 'smooth'}}>
                             {activities.map((item, index) => {
