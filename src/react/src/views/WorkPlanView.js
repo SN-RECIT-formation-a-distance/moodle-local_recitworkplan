@@ -19,11 +19,11 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 import React, { Component } from 'react';
-import { Card, Tabs, Tab, Button, Form, DropdownButton, Dropdown, ButtonGroup, ToggleButtonGroup, ToggleButton, OverlayTrigger, Tooltip} from 'react-bootstrap';
+import { Tabs, Tab, Button, Form, DropdownButton, Dropdown, ButtonGroup, Modal, OverlayTrigger, Tooltip} from 'react-bootstrap';
 import { faPencilAlt,  faPlus, faTrashAlt, faCopy, faArrowLeft, faEllipsisV, faSyncAlt, faBookmark, faChevronUp, faChevronDown, faArchive, faChalkboardTeacher, faUserFriends, faUserAltSlash, faUserAlt, faClock, faCogs, faInfoCircle} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { FeedbackCtrl, ToggleButtons, Modal } from '../libs/components/Components';
-import {$glVars, Options, WorkPlanUtils} from '../common/common';
+import { FeedbackCtrl, ToggleButtons } from '../libs/components/Components';
+import {$glVars, WorkPlanUtils} from '../common/common';
 import { JsNx, UtilsString, UtilsDateTime } from '../libs/utils/Utils';
 import { Pagination } from '../libs/components/Pagination';
 import {ActivityPicker, WorkPlanTemplateView} from './TemplateView';
@@ -241,7 +241,13 @@ class ModalWorkPlanCopy extends Component{
             </ButtonGroup>
         </Form>;
 
-        let main = <Modal title={this.props.data.title} body={body} width="450px" onClose={this.props.onClose} />;
+        let main = 
+            <Modal show={true} onHide={this.props.onClose} size="sm" backdrop='static'>
+                <Modal.Header closeButton>
+                    <Modal.Title>{this.props.data.title}</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>{body}</Modal.Body>
+            </Modal>;
 
         return main;
     }
@@ -648,8 +654,13 @@ class WorkPlanAssignmentsView extends Component{
 
                 let body =  <StudentWorkPlanList userId={this.state.showUser.id}/>;
 
-                studentView = <Modal title={title} body={body} style={{maxWidth:900, width:'auto'}} onClose={() => this.onOpenStudentView(null)} />;
-                   
+                studentView = 
+                <Modal show={true} onHide={() => this.onOpenStudentView(null)} size="lg" backdrop='static'>
+                    <Modal.Header closeButton>
+                        <Modal.Title>{title}</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>{body}</Modal.Body>
+                </Modal>;                   
             }
                 
             

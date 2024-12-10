@@ -19,10 +19,10 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 import React, { Component } from 'react';
-import { Collapse, Row, Button, Form, Col, Table, Badge, Card, ButtonGroup, Dropdown, DropdownButton} from 'react-bootstrap';
-import { faPencilAlt,  faTrashAlt, faMinus, faPlus, faArrowsAlt, faArrowRight, faWrench, faEllipsisV, faSync, faAngleDoubleUp, faAngleDoubleDown} from '@fortawesome/free-solid-svg-icons';
+import { Collapse, Row, Button, Form, Col, Table, Badge, Card, ButtonGroup, Dropdown, DropdownButton, Modal} from 'react-bootstrap';
+import { faPencilAlt,  faTrashAlt, faMinus, faPlus, faArrowsAlt, faArrowRight, faWrench, faEllipsisV, faSync} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {ComboBoxPlus, FeedbackCtrl, DataGrid, Modal, ToggleButtons, ComboBox} from '../libs/components/Components';
+import {ComboBoxPlus, FeedbackCtrl, ToggleButtons, ComboBox} from '../libs/components/Components';
 import {$glVars, WorkPlanUtils} from '../common/common';
 import { JsNx } from '../libs/utils/Utils';
 import { CustomFormControl } from './Components';
@@ -124,7 +124,7 @@ export class ActivityPicker extends Component{
                         <div>
                             <h6>Liste d'activités</h6>
                             
-                            <div style={{maxHeight: "50vh", maxWidth: 600, overflowY: 'scroll', scrollbardWidth: 'thin'}}>
+                            <div style={{maxHeight: "50vh", overflowY: 'scroll', scrollbardWidth: 'thin'}}>
                                 <Table striped bordered hover>                                
                                     <tbody>
                                         {tmpActivityList.map((item, index) => {
@@ -195,7 +195,14 @@ export class ActivityPicker extends Component{
 
         let footer = <ButtonGroup><Button variant='secondary' onClick={this.onClose}>Fermer</Button></ButtonGroup>
 
-        let main = <Modal title={this.props.title} style={{maxWidth:"95vw", minWidth: "70vw", width:'auto', maxHeight: "95vh", minHeight: '55vh'}} body={body} onClose={this.onClose} footer={footer} />;
+        let main = 
+            <Modal show={true} onHide={this.onClose} size="xl" backdrop='static'>
+                <Modal.Header closeButton>
+                    <Modal.Title>{this.props.title}</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>{body}</Modal.Body> 
+                <Modal.Footer>{footer}</Modal.Footer> 
+            </Modal>;
 
         return (main);
     }
@@ -676,7 +683,14 @@ class ModalTemplateForm extends Component{
                 </ButtonGroup>
             </Form>;
 
-        return <Modal title="Modifier plan de travail/gabarit" style={{maxWidth: 850, width:'auto'}} body={modalBody} onClose={this.props.onClose}/>
+        let main = 
+            <Modal show={true} onHide={this.props.onClose} size="lg" backdrop='static'>
+                <Modal.Header closeButton>
+                    <Modal.Title>{"Modifier plan de travail/gabarit"}</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>{modalBody}</Modal.Body>
+            </Modal>;
+        return main; 
     }
 
     onDataChange(event){
@@ -785,7 +799,16 @@ class ModalTemplateOptionForm extends Component{
                     <Button variant='success' onClick={this.onSave}>Enregistrer</Button>
             </ButtonGroup>;
 
-        return <Modal title="Modifier les options" style={{maxWidth: 650, width:'auto'}}  body={modalBody} onClose={this.props.onClose} footer={modalFooter}/>
+        let main = 
+            <Modal show={true} onHide={this.props.onClose} size="lg" backdrop='static'>
+                <Modal.Header closeButton>
+                    <Modal.Title>{"Modifier les options"}</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>{modalBody}</Modal.Body>
+                <Modal.Footer>{modalFooter}</Modal.Footer>
+            </Modal>;
+
+        return main;
     }
 
     onDataChange(event){

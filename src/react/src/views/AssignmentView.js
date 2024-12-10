@@ -18,11 +18,11 @@
  * @copyright 2019 RÉCIT 
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-import React, { Component, createRef } from 'react';
-import { ButtonGroup,  Button, Form, Col, Row, Table, Badge, Tabs, Tab} from 'react-bootstrap';
+import React, { Component } from 'react';
+import { ButtonGroup,  Button, Form, Col, Row, Table, Badge, Tabs, Tab, Modal} from 'react-bootstrap';
 import { faTrashAlt, faArrowRight} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {ComboBoxPlus, DataGrid, FeedbackCtrl, InputNumber, Modal} from '../libs/components/Components';
+import {ComboBoxPlus, DataGrid, FeedbackCtrl, InputNumber} from '../libs/components/Components';
 import {$glVars, Options} from '../common/common';
 import { JsNx, UtilsDateTime } from '../libs/utils/Utils';
 import {CustomFormControl} from './Components'
@@ -179,7 +179,13 @@ export class ModalAssignmentPicker extends Component{
                 </div>
             </div>;
 
-        let main = <Modal title={'Attribuer un plan de travail'} body={body} style={{maxWidth:900, width:'auto'}} onClose={this.onClose} />;
+        let main = 
+            <Modal show={true} onHide={this.onClose} size="lg" backdrop='static'>
+                <Modal.Header closeButton>
+                    <Modal.Title>{'Attribuer un plan de travail'}</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>{body}</Modal.Body>
+            </Modal>;
 
         return (main);
     }
@@ -318,7 +324,7 @@ export class ModalAssignmentMassActions extends Component{
                 <div className='col-md-6 mb-3'>
                     <div>
                         <h5>Élèves assignés <Badge variant="warning" className="p-2 rounded">{`${data.assignments.length}`}</Badge></h5>
-                        <div style={{maxHeight: 500, overflowY: 'auto'}}>
+                        <div style={{maxHeight: 500, overflowY: 'auto', scrollbarWidth: 'thin'}}>
                             <div style={{display:'flex',flexFlow:'wrap'}}>
                                 {data.assignments.map((item, index) => {
                                     let row =
@@ -343,13 +349,13 @@ export class ModalAssignmentMassActions extends Component{
 
                 <div className='col-md-6'>
                     <Tabs  activeKey={this.state.activeTab} onSelect={(tab) => this.setState({activeTab: tab})}>
-                        <Tab eventKey="0" title="Date de début">
+                        <Tab eventKey="0" title="Date de début" className='p-2'>
                             <StartEndDatesFormBatchAssignment onAssign={this.onAssign} dataProvider={data}/>
                         </Tab>
-                        <Tab eventKey="1" title="Rythme par semaine" disabled={data.template.type == 's'}>
+                        <Tab eventKey="1" title="Rythme par semaine" className='p-2' disabled={data.template.type == 's'}>
                             <RythmeFormBatchAssignment onAssign={this.onAssign} dataProvider={data}/>
-                        </Tab>
-                        <Tab eventKey="2" title="Heures supplémentaires" disabled={data.template.type == 's'}>
+                        </Tab>  
+                        <Tab eventKey="2" title="Heures supplémentaires" className='p-2' disabled={data.template.type == 's'}>
                             <AdditionalHoursFormBatchAssignment onAssign={this.onAssign} dataProvider={data}/>
                         </Tab>
                     </Tabs>
@@ -357,7 +363,13 @@ export class ModalAssignmentMassActions extends Component{
                 
             </div>;
 
-        let main = <Modal title={'Actions en lot pour tous les élèves assignés'} body={body} style={{maxWidth: 1100, width:'90%'}} onClose={this.onClose} />;
+        let main = 
+            <Modal show={true} onHide={this.onClose} size="xl" backdrop='static'>
+                <Modal.Header closeButton>
+                    <Modal.Title>{'Actions en lot pour tous les élèves assignés'}</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>{body}</Modal.Body>
+            </Modal>;
 
         return (main);
     }
@@ -694,7 +706,13 @@ export class ModalAssignmentForm extends Component{
             </Form>;
 
 
-        let main = <Modal title={'Modifier élève'} body={body} width="450px" onClose={this.onClose} />;
+        let main = 
+            <Modal show={true} onHide={this.onClose} size="lg" backdrop='static'>
+                <Modal.Header closeButton>
+                    <Modal.Title>{'Modifier élève'}</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>{body}</Modal.Body>
+            </Modal>;
 
         return (main);
     }
@@ -790,7 +808,14 @@ export class ModalAssignmentAdditionalHoursForm extends Component{
         </ButtonGroup>;
 
 
-        let main = <Modal title={'Ajout d\'heures supplémentaires'} body={body} footer={modalFooter} width="500px" onClose={this.onClose} />;
+        let main = 
+            <Modal show={true} onHide={this.onClose} size="lg" backdrop='static'>
+                <Modal.Header closeButton>
+                    <Modal.Title>{'Ajout d\'heures supplémentaires'}</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>{body}</Modal.Body>
+                <Modal.Footer>{modalFooter}</Modal.Footer>
+            </Modal>;
 
         return (main);
     }
@@ -900,7 +925,13 @@ export class ModalAssignmentAdditionalHoursHistory extends Component{
             </div>;
 
 
-        let main = <Modal title={'Heures supplémentaires de '+this.state.data.user.fullname} body={body} style={{maxWidth: 1000, width: 'auto'}} onClose={this.onClose} />;
+        let main = 
+            <Modal show={true} onHide={this.onClose} size="lg" backdrop='static'>
+                <Modal.Header closeButton>
+                    <Modal.Title>{'Heures supplémentaires de '+this.state.data.user.fullname}</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>{body}</Modal.Body>
+            </Modal>;
 
         return (main);
     }

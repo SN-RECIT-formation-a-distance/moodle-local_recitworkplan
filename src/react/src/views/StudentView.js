@@ -168,9 +168,12 @@ class StudentTemplateTile extends WorkPlanCustomCard {
     render() {
         if (!this.state.data) return null;
         let data = this.state.data;
+
+        if(data.assignments.length === 0){ return null; } 
+
         let assignment = data.assignments[0];
         let studentId = assignment.user.id;
-        let progress = WorkPlanUtils.getWorkPlanProgress(data, studentId);
+        let progress = WorkPlanUtils.getWorkPlanProgress(data, studentId); 
         progress.color = StudentTemplateTile.getProgressBarRythmColor(data, assignment);
 
         let content = 
