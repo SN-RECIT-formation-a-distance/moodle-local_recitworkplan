@@ -299,15 +299,16 @@ export class CustomBadgeCompletion extends Component{
     static defaultProps = {        
         title: '',
         stats: '',
-        className: ''
+        className: '',
+        label: 'Achèvement: '
     };
 
     render(){
         if(this.props.stats.length === 0){ return null; }
 
         let main = 
-            <span className={this.props.className}>
-                <span title={this.props.title} className="text-muted">{"Achèvement: "}</span>
+            <span title={this.props.title}  className={this.props.className}>
+                <span className="text-muted">{this.props.label}</span>
                 <span className='ml-2 mr-2 text-muted'>
                     <b>{`${this.props.stats} `}</b>
                     <FontAwesomeIcon className='text-success' icon={faCheck}/>
@@ -502,7 +503,7 @@ export class AssignmentFollowUp extends Component{
             let variant = 'bg-info';
 
             if (item.nbHoursLate < 0){
-                text = `En avance de ${UtilsDateTime.formatHours2Clocktime(-item.nbHoursLate)}`
+                text = `En avance de -${UtilsDateTime.formatHours2Clocktime(item.nbHoursLate)}`
                 variant = 'bg-success';
             }
 

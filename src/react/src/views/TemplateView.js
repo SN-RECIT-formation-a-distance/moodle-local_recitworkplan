@@ -493,7 +493,7 @@ export class WorkPlanTemplateView extends Component{
         let template = this.props.data.template;
         let data = this.props.data;
 
-        let nbHoursCompletionTotal = 0;
+        let nbHoursCompletionTotal = WorkPlanUtils.getTotalNrHours(template.activities);
         let catList = "";
         let collaboratorList = "";
         let categories = [];
@@ -502,7 +502,6 @@ export class WorkPlanTemplateView extends Component{
                 categories.push(act.categoryName);
                 catList = catList + act.categoryName + ", ";
             }
-            nbHoursCompletionTotal = nbHoursCompletionTotal + parseFloat(act.nbHoursCompletion);
         }
         catList = catList.substring(0,catList.length-2);
         for(let u of data.template.collaboratorList){
@@ -544,7 +543,7 @@ export class WorkPlanTemplateView extends Component{
                             </Row>             
                             <Row className='m-4 border-bottom'>
                                 <Col className='text-muted' sm={2}>Temps à consacrer</Col>
-                                <Col sm={10} className=''>{`${parseFloat(nbHoursCompletionTotal).toFixed(2)} heures`}</Col>
+                                <Col sm={10} className=''>{`${nbHoursCompletionTotal} heures`}</Col>
                             </Row> 
                             <Row className='m-4 border-bottom'>
                                 <Col className='text-muted' sm={2}>Catégories de cours</Col>

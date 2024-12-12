@@ -351,10 +351,15 @@ export class UtilsDateTime
         return (hour * 60) + minutes;
     };
 
-    static formatHours2Clocktime(hours){
-        let obj = new Date(0,0);
-        obj.setSeconds(+hours * 60 * 60);
-        return obj.toTimeString().slice(0, 5);
+    static formatHours2Clocktime(num){
+        // Calculate the number of hours by dividing num by 60 and rounding down
+        let hours = Math.trunc(num);  
+
+        // Calculate the remaining minutes by taking the remainder when dividing num by 60
+        let minutes = Math.trunc((num - hours) * 60);
+
+        // Return the result as a string in the format "hours:minutes"
+        return hours + ":" + minutes;        
     }
 };
 

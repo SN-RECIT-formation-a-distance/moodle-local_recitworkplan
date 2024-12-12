@@ -181,10 +181,10 @@ class StudentTemplateTile extends WorkPlanCustomCard {
                 <a className='m-2' title="Attribué par" href={assignment.assignor.url} target="_blank"><span dangerouslySetInnerHTML={{__html: assignment.assignor.avatar}}></span></a>
                 <div>
                     {progress.text.length > 0 && 
-                        <CustomBadgeCompletion className='m-2' title="Le nombre d'activités complétées / le nombre d'activités" stats={progress.text}/>
+                        <CustomBadgeCompletion className='m-2' stats={progress.text}/>
                     }
                     <div className='m-2 text-muted'>{`Échéance: `}<b>{`${UtilsDateTime.formatDateTime(assignment.endDate, " ", "Non définie")}`}</b></div>
-                    <div className='m-2 text-muted'>{`Rythme: `}<b>{`${assignment.nbHoursPerWeek} (h/semaine)`}</b></div>
+                    {data.template.type === 'd' && <div className='m-2 text-muted'>{`Rythme: `}<b>{`${assignment.nbHoursPerWeek} (h/semaine)`}</b></div>}
                 </div>
                 
                 <AssignmentFollowUp data={data} assignmentId={assignment.id}/>
@@ -293,9 +293,9 @@ export class StudentTemplateDetail extends Component {
         let progressValue = {text: '', value: 0};
         let progressText  = `0/${data.stats.nbActivities}`;
 
-        if(data.stats.assignmentcompleted[`${assignment.user.id}`]){
-            progressValue = WorkPlanUtils.getAssignmentProgress(data.template.activities, assignment);
-            progressText = `${data.stats.assignmentcompleted[`${assignment.user.id}`]}/${data.stats.nbActivities}`;
+        if(data.stats.workplanprogress[`${assignment.user.id}`]){
+            progressValue = data.stats.workplanprogress[`${assignment.user.id}`];
+            progressText = `${data.stats.workplanprogress[`${assignment.user.id}`]}%`;
         }
 
         let rythmeColor = StudentTemplateTile.getProgressBarRythmColor(data, assignment);
@@ -311,6 +311,7 @@ export class StudentTemplateDetail extends Component {
                 <div style={{ justifyContent: 'space-between', display: "flex", alignItems: "center", flexWrap: 'wrap'}}>
                     <div>
                         <div className='text-muted'>{`Échéance: ${UtilsDateTime.formatDateTime(assignment.endDate, " ", "Non définie")}`}</div>
+                        <div className='text-muted'>{`Temps à consacrer: ${WorkPlanUtils.getTotalNrHours(data.template.activities)} heures`}</div>
                         {data.template.type === 'd' && <div className='text-muted'>{`Rythme: ${assignment.nbHoursPerWeek} (h/semaine)`}</div>}
                     </div>
                     <div>
@@ -322,7 +323,7 @@ export class StudentTemplateDetail extends Component {
                     </div>
                     <AssignmentFollowUp data={data} assignmentId={assignment.id}/>
                     <div>
-                        <CustomBadgeCompletion title="Le nombre d'activités complétées / le nombre d'activités" stats={progressText}/>
+                        <CustomBadgeCompletion  stats={progressText}/>
                     </div>
                 </div>
                 {data.template.options.showStudentWorkPlan === '0' &&

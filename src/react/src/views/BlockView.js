@@ -106,7 +106,7 @@ export class WorkPlanStudentCardBlock extends WorkPlanCustomCard{
     
             content =
                 <>
-                    <CustomBadgeCompletion className="m-1" title="Le nombre d'activités complétées / le nombre d'activités" stats={progress.text}/>
+                    <CustomBadgeCompletion className="m-1" stats={progress.text}/>
                     <div className='m-1 text-muted'>{`Échéance: ${UtilsDateTime.formatDateTime(assignment.endDate, " ", "Non définie")}`}</div>
                     <AssignmentFollowUp data={workPlan} assignmentId={assignment.id}/>
                 </>;

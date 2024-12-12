@@ -452,7 +452,7 @@ class PersistCtrl extends MoodlePersistCtrl
         $result = $DB->get_record_sql($query, $vars);
         $stats = new stdClass();
         $stats->activitycompleted = array();
-        $stats->assignmentcompleted = array();
+        $stats->workplanprogress = array();
 
         if (!$result){
             $stats->nbActivities = 0;
@@ -486,11 +486,14 @@ class PersistCtrl extends MoodlePersistCtrl
             $stats->activitycompleted[intval($r->cmid)] = intval($r->count);
         }
         
-        $query = "select ". $this->sql_uniqueid() ." uniqueid, userid, count(distinct cmid) count from $tmpTableName where activitycompletionstate in (1,2,3) and nbhourscompletion > 0 and templateid = ? group by userid";
+        $query = "select uniqueid, userid, nbhourscompletion / totalnbhours * 100 as progressbyhours from 
+                (select ". $this->sql_uniqueid() ." uniqueid, userid, sum(nbhourscompletion) as totalnbhours,
+                sum(if(find_in_set(activitycompletionstate, '1,2,3') > 0, nbhourscompletion, 0)) as nbhourscompletion 
+                from $tmpTableName where nbhourscompletion > 0 and templateid = ? group by userid) as tab";
 
         $rst = $DB->get_records_sql($query, $vars);
         foreach($rst as $r){
-            $stats->assignmentcompleted[intval($r->userid)] = intval($r->count);
+            $stats->workplanprogress[intval($r->userid)] = round(floatval($r->progressbyhours),1);
         }
 
         $DB->execute("drop table $tmpTableName");

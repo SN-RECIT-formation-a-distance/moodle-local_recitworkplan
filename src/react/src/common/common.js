@@ -52,30 +52,33 @@ export class WorkPlanUtils {
             progress.text = `${workPlan.stats.workPlanCompletion/workPlan.stats.nbStudents * 100}%`;
             progress.value = workPlan.stats.workPlanCompletion/workPlan.stats.nbStudents * 100;
         }else if (studentId && workPlan.stats){
-            progress.text = `0/${workPlan.stats.nbActivities}`;
-            if(workPlan.stats.assignmentcompleted[studentId]){
-                progress.value = WorkPlanUtils.getAssignmentProgress(workPlan.template.activities, workPlan.assignments[0]);
-                progress.text = `${workPlan.stats.assignmentcompleted[studentId]}/${workPlan.stats.nbActivities}`;
+            progress.text = `0%`;
+            if(workPlan.stats.workplanprogress[studentId]){
+                progress.value = workPlan.stats.workplanprogress[studentId];
+                progress.text = `${workPlan.stats.workplanprogress[studentId]}%`;
             }
         }
         return progress;
     }
 
-    static getAssignmentProgress(activities, assignment){
-        let hrCompleted = 0;
+    static getTotalNrHours(activities){
         let hrTotal = 0;
         for (let it of activities){
-            hrTotal = hrTotal + it.nbHoursCompletion;
+            hrTotal = hrTotal + parseFloat(it.nbHoursCompletion);
+        }
+        return hrTotal.toFixed(2);
+    }
+
+    static getNbHoursCompletion(activities, assignment){
+        let hrCompleted = 0;
+        for (let it of activities){
             let userActivity = JsNx.getItem(assignment.user.activities, 'cmId', it.cmId, {completionState: 0});
             if (userActivity.completionState > 0){
                 hrCompleted = hrCompleted + it.nbHoursCompletion;
             }
         }
 
-        let value = Math.round(hrCompleted / hrTotal * 100,1);
-        value = (isNaN(value) ? 0 : value);
-
-        return value;
+        return hrCompleted;
     }
 
     static getActivityStats(workPlan, activity){

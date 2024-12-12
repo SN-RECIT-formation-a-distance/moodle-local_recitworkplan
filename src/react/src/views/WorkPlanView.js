@@ -333,7 +333,7 @@ class WorkPlanCard extends Component{
 
                 <div className='d-flex justify-content-start flex-wrap col-12 col-md-9'>
                     {workPlan.stats && workPlan.stats.nbStudents > 0 && 
-                        <CustomBadgeCompletion title="Le nombre d'élèves qui ont complété le plan de travail / le nombre total d'élèves assigné au plan de travail" stats={`${workPlan.stats.workPlanCompletion}/${workPlan.stats.nbStudents}`}/>
+                        <CustomBadgeCompletion label="Plans complétés:" title="Le nombre d'élèves qui ont complété le plan de travail / le nombre total d'élèves assigné au plan de travail" stats={`${workPlan.stats.workPlanCompletion}/${workPlan.stats.nbStudents}`}/>
                     }
                     <div>
                         <WorkPlanFollowUp data={workPlan}/>
@@ -501,12 +501,12 @@ class WorkPlanAssignmentsView extends Component{
             }
             if (this.state.sortAssignment == 'progress'){
                 let progressValueA = 0;
-                if(data.stats.assignmentcompleted[`${a.user.id}`]){
-                    progressValueA = data.stats.assignmentcompleted[`${a.user.id}`]/data.stats.nbActivities * 100;
+                if(data.stats.workplanprogress[`${a.user.id}`]){
+                    progressValueA = data.stats.workplanprogress[`${a.user.id}`];
                 }
                 let progressValueB = 0;
-                if(data.stats.assignmentcompleted[`${b.user.id}`]){
-                    progressValueB = data.stats.assignmentcompleted[`${b.user.id}`]/data.stats.nbActivities * 100;
+                if(data.stats.workplanprogress[`${b.user.id}`]){
+                    progressValueB = data.stats.workplanprogress[`${b.user.id}`];
                 }
                 if (progressValueA > progressValueB){
                     return -1;
@@ -550,16 +550,13 @@ class WorkPlanAssignmentsView extends Component{
                 <div>
                     {assignments.map((item, iAssignment) => {
                             let progressValue = 0;
-                            let progressText  = `0/${data.stats.nbActivities}`;
-                            if(data.stats.assignmentcompleted[`${item.user.id}`]){
-                                progressValue = WorkPlanUtils.getAssignmentProgress(data.template.activities, item);
-                                progressText = `${data.stats.assignmentcompleted[item.user.id]}/${data.stats.nbActivities}`;
+                            let progressText  = ``;
+                            if(data.stats.workplanprogress[`${item.user.id}`]){
+                                progressValue = data.stats.workplanprogress[`${item.user.id}`];
+                                progressText = `${progressValue}%`;
                             }
                             
-                            let nbHoursCompletionTotal = 0;
-                            for (let act of this.props.data.template.activities){
-                                nbHoursCompletionTotal = nbHoursCompletionTotal + parseFloat(act.nbHoursCompletion);
-                            }
+                            let nbHoursCompletionTotal = WorkPlanUtils.getTotalNrHours(data.template.activities);
                             nbHoursCompletionTotal = nbHoursCompletionTotal + item.nbAdditionalHours;
                             let txtDuration = (item.nbHoursPerWeek > 0 ? `${Math.ceil(nbHoursCompletionTotal / item.nbHoursPerWeek)} semaines` : '');
 
@@ -577,8 +574,15 @@ class WorkPlanAssignmentsView extends Component{
                                                     <div>Groupe: <span className='font-weight-bold'>{` ${item.user.groupList}`}</span></div>
                                                     <div>Dernière connexion: {UtilsDateTime.toTimeString(item.user.lastAccess)}</div>
                                                     <div>{`Début: ${UtilsDateTime.formatDateTime(item.startDate)}`}</div>
-                                                    <div>{`Durée: ${txtDuration}`}</div>
-                                                    {data.template.type === 'd' && <div>{`Rythme: ${item.nbHoursPerWeek} h/semaine`}</div>}
+                                                    <div>{`Échéance: ${UtilsDateTime.formatDateTime(item.endDate, " ", "Non définie")} `}</div>
+                                                    <div>{`Nb heures effectuées: ${WorkPlanUtils.getNbHoursCompletion(data.template.activities, item)}h`}</div>
+                                                    
+                                                    {data.template.type === 'd' && 
+                                                        <>
+                                                            <div>{`Durée: ${txtDuration}`}</div>
+                                                            <div>{`Rythme: ${item.nbHoursPerWeek} h/semaine`}</div>
+                                                        </>
+                                                    }
                                                 </Tooltip>}>
                                                 <a><FontAwesomeIcon icon={faInfoCircle}/> </a>
                                             </OverlayTrigger>
@@ -607,7 +611,7 @@ class WorkPlanAssignmentsView extends Component{
                                             <AssignmentFollowUp data={data} assignmentId={item.id}/>
                                         </div>
                                         <div className="p-2 text-muted d-flex" style={{alignItems: 'center', justifyContent: 'flex-end'}}>
-                                            <CustomBadgeCompletion title="Le nombre d'affectations complétées / le nombre d'activités avec une durée plus grande que 0" stats={progressText}/>
+                                            <CustomBadgeCompletion  stats={progressText}/>
                                             <DropdownButton as={ButtonGroup}  disabled={WorkPlanUtils.isArchived(JsNx.at(data.assignments, 0, null))} className='mr-3' bsPrefix='rounded btn btn-sm btn-outline-primary' variant='' title={<span><FontAwesomeIcon icon={faEllipsisV}  />{" "}</span>} id={`optionsAssignments${item.id}`}>
                                                 <Dropdown.Item onClick={() => this.setState({editAssignment: item})}><FontAwesomeIcon icon={faPencilAlt} />{" Modifier"}</Dropdown.Item>
                                                 <Dropdown.Item disabled={data.template.type === 's'} onClick={() => this.setState({editAssignmentAdditionalHours: item})}><FontAwesomeIcon icon={faClock} />{" Heures supplémentaires"}</Dropdown.Item>
@@ -793,7 +797,7 @@ class WorkPlanActivitiesView extends Component{
                                             {actStats.nbFails > 0 && <CustomBadge variant="failure" nbIndicator={actStats.nbFails}/>}                                            
                                         </div>
                                         <div className='d-flex align-items-center'>
-                                            <CustomBadgeCompletion title="Le nombre d'activités complètés / le nombre d'élèves" stats={progressText}/>
+                                            <CustomBadgeCompletion stats={progressText}/>
                                             <DropdownButton disabled={WorkPlanUtils.isArchived(JsNx.at(this.props.data.assignments, 0, null))} bsPrefix='rounded btn btn-sm btn-outline-primary' variant='' title={<span><FontAwesomeIcon icon={faEllipsisV}  />{" "}</span>} id={`optionsActivity${item.id}`}>
                                                 <Dropdown.Item onClick={() => this.onShowActivities(true)}><FontAwesomeIcon icon={faPencilAlt}  />{" Modifier"}</Dropdown.Item>
                                                 <Dropdown.Item onClick={() => this.onDeleteActivity(item.id)}><FontAwesomeIcon icon={faTrashAlt}  />{" Supprimer"}</Dropdown.Item>
