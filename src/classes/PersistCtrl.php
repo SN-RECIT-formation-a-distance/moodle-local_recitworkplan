@@ -554,7 +554,7 @@ class PersistCtrl extends MoodlePersistCtrl
         $stmt = "SELECT t3.id cmid, t2.userid, t2.finalgrade, ". $this->mysqlConn->sql_concat('ROUND(t2.rawgrade,2)',"'/'",'ROUND(t2.rawgrademax,2)')." grade, t1.itemname, (case when t2.finalgrade is null then -1 else (case when t2.finalgrade >= t1.gradepass then 1 else 0 end) end) passed 
         FROM {grade_items} t1
         INNER JOIN {grade_grades} t2 ON t2.itemid = t1.id and t1.itemtype = 'mod'
-        INNER JOIN {course_modules} t3 ON t1.iteminstance = t3.instance and t1.courseid = t3.course and t3.module = (select id from mdl_modules where name = t1.itemmodule)
+        INNER JOIN {course_modules} t3 ON t1.iteminstance = t3.instance and t1.courseid = t3.course and t3.module = (select id from {modules} where name = t1.itemmodule)
         where t3.id in (select cmid from {recit_wp_tpl_act} where templateid = $templateId) and t1.gradepass > 0 and t2.rawgrade is not null order by t2.id desc
         ";
          
@@ -853,16 +853,16 @@ class PersistCtrl extends MoodlePersistCtrl
                                     sum((case when coalesce(t3.completionstate,0) = 0 then 1 else 0 end)) nb_incomplete_act,
                                     group_concat(t2.cmid) cmids, t1.nb_hours_per_week,  t1.userid,
                                     sum(t2.nb_hours_completion) as nb_hours_completion,
-                                    coalesce((select sum(t5.nb_additional_hours) from  mdl_recit_wp_additional_hours t5 where t1.id = t5.assignmentid),0) as nb_additional_hours,
+                                    coalesce((select sum(t5.nb_additional_hours) from  {recit_wp_additional_hours} t5 where t1.id = t5.assignmentid),0) as nb_additional_hours,
                                     sum(if(t3.completionstate != 0 and t3.coursemoduleid = t2.cmid, t2.nb_hours_completion, 0)) as nb_hours_completed,
                                     (case 
                                     when t4.tpltype = 'd' then floor(timestampdiff(WEEK, FROM_UNIXTIME(t1.startdate), now())) * t1.nb_hours_per_week
                                     when t4.tpltype = 's' then 0
                                     else 0 end) as nbWeeksElapsed
-                                    from mdl_recit_wp_tpl_assign t1 
-                                    inner join mdl_recit_wp_tpl_act t2 on t1.templateid = t2.templateid 
-                                    inner join mdl_recit_wp_tpl as t4 on t2.templateid = t4.id
-                                    left join mdl_course_modules_completion t3 on t2.cmid = t3.coursemoduleid and t1.userid = t3.userid           
+                                    from {recit_wp_tpl_assign} t1 
+                                    inner join {recit_wp_tpl_act} t2 on t1.templateid = t2.templateid 
+                                    inner join {recit_wp_tpl} as t4 on t2.templateid = t4.id
+                                    left join {course_modules_completion} t3 on t2.cmid = t3.coursemoduleid and t1.userid = t3.userid           
                                     where t1.completionstate not in (1,4) and $whereStmt1 and t2.nb_hours_completion > 0
                                     group by t1.userid, t1.id) as tab
                                     where $whereStmt2
@@ -893,13 +893,13 @@ class PersistCtrl extends MoodlePersistCtrl
             $query = "select coalesce(assignmentId, 0) as assignmentid, coalesce(startdate + (nbWeeks * $secsInAWeek), 0) as enddate from
                         (select t1.id assignmentId, min(t1.startdate) as startdate,
                             CEILING(
-                                    (sum(t2.nb_hours_completion) + coalesce((select sum(t3.nb_additional_hours) from  mdl_recit_wp_additional_hours t3 where t1.id = t3.assignmentid),0))
+                                    (sum(t2.nb_hours_completion) + coalesce((select sum(t3.nb_additional_hours) from  {recit_wp_additional_hours} t3 where t1.id = t3.assignmentid),0))
                                     / 
                                     min(t1.nb_hours_per_week)
                                     ) nbWeeks
-                        from mdl_recit_wp_tpl_assign t1 
-                        inner join mdl_recit_wp_tpl_act t2 on t1.templateid = t2.templateid 
-                        inner join mdl_recit_wp_tpl as t4 on t2.templateid = t4.id
+                        from {recit_wp_tpl_assign} t1 
+                        inner join {recit_wp_tpl_act} t2 on t1.templateid = t2.templateid 
+                        inner join {recit_wp_tpl} as t4 on t2.templateid = t4.id
                         where t1.completionstate not in (1,4) and t1.templateid = :tplid and t4.tpltype = 'd' and t2.nb_hours_completion > 0 and t1.nb_hours_per_week > 0
                         group by t1.id) tab";
 
