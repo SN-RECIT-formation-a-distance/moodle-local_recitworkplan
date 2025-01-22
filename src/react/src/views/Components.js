@@ -503,7 +503,7 @@ export class AssignmentFollowUp extends Component{
             let variant = 'bg-info';
 
             if (item.nbHoursLate < 0){
-                text = `En avance de -${UtilsDateTime.formatHours2Clocktime(item.nbHoursLate)}`
+                text = `En avance de ${UtilsDateTime.formatHours2Clocktime(parseFloat(item.nbHoursLate) * -1) }`
                 variant = 'bg-success';
             }
 
