@@ -512,8 +512,10 @@ class PersistCtrl extends MoodlePersistCtrl
         FROM {assign} t1
         inner join {assign_submission} tuser on t1.id = tuser.assignment
         inner join {course_modules} t3 on t1.id = t3.instance and t3.module = (select id from {modules} where name = 'assign') and t1.course = t3.course
-        left join {assign_grades} t4 on t4.assignment = tuser.assignment and t4.userid = tuser.userid
-        where t3.id in (select cmid from {recit_wp_tpl_act} where templateid = $templateId) and tuser.status = 'submitted' and (coalesce(t4.grade,0) <= 0 or tuser.timemodified > coalesce(t4.timemodified,0))
+        left join {assign_grades} t4 on t4.assignment = tuser.assignment and t4.userid = tuser.userid and t4.attemptnumber = tuser.attemptnumber
+        where t3.id in (select cmid from {recit_wp_tpl_act} where templateid = $templateId) 
+                and tuser.status = 'submitted' and tuser.status = 'submitted' and tuser.latest = 1
+                and (coalesce(t4.grade,0) <= 0 or tuser.timemodified > coalesce(t4.timemodified,0))
         group by t3.id, t1.id, tuser.userid)
         union
         (select cm_Id, min(cm_Name), time_Modified, count(*) nb_Items, userid, min(followup) from 
