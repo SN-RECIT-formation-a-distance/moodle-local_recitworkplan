@@ -509,7 +509,7 @@ export class RythmeFormBatchAssignment extends Component{
                 <Form.Group as={Row}>
                     <Form.Label column sm="5">{"Rythme (h/semaine)"}</Form.Label>
                     <Col sm="7">
-                        <InputNumber style={{display:'inline'}} onChange={this.onDataChange} value={this.state.data.rhythme} name='rhythme' placeholder="Rythme (h/semaine)"/>
+                        <InputNumber min={0} nbDecimals={1} style={{display:'inline'}} onChange={this.onDataChange} value={this.state.data.rhythme} name='rhythme' placeholder="Rythme (h/semaine)"/>
                     </Col>
                 </Form.Group>
                 <Form.Group as={Row}>
@@ -585,7 +585,7 @@ export class AdditionalHoursFormBatchAssignment extends Component{
                 <Form.Group as={Row}>
                     <Form.Label column sm="5">{"Heures supplémentaires"}</Form.Label>
                     <Col sm="7">
-                        <InputNumber style={{display:'inline'}} name="nbAdditionalHours" onChange={this.onDataChange} value={this.state.data.nbAdditionalHours} placeholder="Heures"/>
+                        <InputNumber nbDecimals={1} style={{display:'inline'}} name="nbAdditionalHours" onChange={this.onDataChange} value={this.state.data.nbAdditionalHours} placeholder="Heures"/>
                     </Col>
                 </Form.Group>
                 <Form.Group as={Row}>
@@ -694,7 +694,7 @@ export class ModalAssignmentForm extends Component{
                 </Form.Group>
                 <Form.Group>
                     <Form.Label>{"H/semaine"}</Form.Label>
-                    <InputNumber disabled={this.props.metadata.type === 's'} value={item.nbHoursPerWeek} name="nbHoursPerWeek" onChange={this.onDataChange} />
+                    <InputNumber nbDecimals={1} min={0} disabled={this.props.metadata.type === 's'} value={item.nbHoursPerWeek} name="nbHoursPerWeek" onChange={this.onDataChange} />
                     <Form.Text className="text-muted">Si le plan de travail est statique, alors le rythme de travail n'est pas pris en compte.</Form.Text>
                 </Form.Group>
 
@@ -789,7 +789,7 @@ export class ModalAssignmentAdditionalHoursForm extends Component{
                 <Form.Group as={Row}>
                     <Form.Label column sm="5">{"Heures supplémentaires"}</Form.Label>
                     <Col sm="7">
-                        <InputNumber style={{width: '80px', display: 'inline'}} className="mr-3" type="number" value={item.nbAdditionalHours} name="nbAdditionalHours" onChange={this.onDataChange} />
+                        <InputNumber nbDecimals={1} style={{width: '80px', display: 'inline'}} className="mr-3" type="number" value={item.nbAdditionalHours} name="nbAdditionalHours" onChange={this.onDataChange} />
                         <Form.Text className="text-muted">Le nombre peut être négatif.</Form.Text>
                     </Col>
                 </Form.Group>

@@ -30,6 +30,8 @@ use stdClass;
 
 class WebApi extends MoodleApi
 {
+    protected $ctrl = null;
+    
     public function __construct($DB, $COURSE, $USER){
         parent::__construct($DB, $COURSE, $USER);
         $this->ctrl = PersistCtrl::getInstance($DB, $USER);

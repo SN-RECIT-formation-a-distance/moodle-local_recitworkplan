@@ -12,6 +12,7 @@ export class InputNumber extends Component {
         placeholder: "",
         style: null,
         onChange: null,
+        onBlur: null,
         onKeyDown: null,
         autoFocus: false,
         autoSelect: false,
@@ -59,7 +60,7 @@ export class InputNumber extends Component {
         this.setState({value: event.target.value.toString(), dataChanged: true});
     }   
     
-    onCommit(callback){
+    async onCommit(callback){
         callback = callback || null;
         
        // if(!this.state.dataChanged){ return;}
@@ -70,6 +71,7 @@ export class InputNumber extends Component {
         }
         else{
             value = Number.parseFloat(value).toFixed(this.props.nbDecimals);
+            value = Number.parseFloat(value);
         }
 
         if(Number.isNaN(value)){
@@ -89,13 +91,19 @@ export class InputNumber extends Component {
         };
         
         this.setState({dataChanged: false}, () => {
+            console.log("commit")
             this.props.onChange(eventData);
             if(callback !== null){callback();};
         });
     }
 
-    onFocusOut(event){
-        this.onCommit();
+    async onFocusOut(event){
+        await this.onCommit();
+
+        if(this.props.onBlur){
+            console.log("blur")
+            this.props.onBlur(event);
+        }
     }
 
     onKeyDown(event){   

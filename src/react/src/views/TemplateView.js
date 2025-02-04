@@ -22,7 +22,7 @@ import React, { Component } from 'react';
 import { Collapse, Row, Button, Form, Col, Table, Badge, Card, ButtonGroup, Dropdown, DropdownButton, Modal} from 'react-bootstrap';
 import { faPencilAlt,  faTrashAlt, faMinus, faPlus, faArrowsAlt, faArrowRight, faWrench, faEllipsisV, faSync} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {ComboBoxPlus, FeedbackCtrl, ToggleButtons, ComboBox} from '../libs/components/Components';
+import {ComboBoxPlus, FeedbackCtrl, ToggleButtons, ComboBox, InputNumber} from '../libs/components/Components';
 import {$glVars, WorkPlanUtils} from '../common/common';
 import { JsNx } from '../libs/utils/Utils';
 import { CustomFormControl } from './Components';
@@ -178,7 +178,7 @@ export class ActivityPicker extends Component{
                                             </span>
                                         </div>
                                         <div className='d-flex align-items-center'>
-                                            <CustomFormControl size='sm' disabled={this.state.loading} style={{width: '80px'}} type="number" value={item.nbHoursCompletion} onBlur={() => this.onSaveTplAct(item)} name="nbHoursCompletion" onChange={(event) => this.onDataChange(event, index)} />
+                                            <InputNumber nbDecimals={1} min={0} size='sm' disabled={this.state.loading} style={{width: '80px'}} value={item.nbHoursCompletion} name="nbHoursCompletion" onBlur={() => this.onSaveTplAct(item)}  onChange={(event) => this.onDataChange(event, index)} />
                                             <Form.Text className='ml-2' muted>heures</Form.Text>
                                         </div>
                                         <ButtonGroup>
@@ -357,7 +357,7 @@ export class ActivityPicker extends Component{
         let flags = this.state.flags;
 
         if(index >= 0){
-            flags.dataChanged = (data.activities[index][event.target.name] !== event.target.value);
+            flags.dataChanged = (data.activities[index][event.target.name] != event.target.value);
             data.activities[index][event.target.name] = event.target.value;
         }
 

@@ -1,5 +1,5 @@
 $from = "moodle-local_recitworkplan/src/*"
-$to = "shared/recitfad/local/recitworkplan"
+$to = "shared/recitfad3/local/recitworkplan"
 $source = "./src";
 
 try {
