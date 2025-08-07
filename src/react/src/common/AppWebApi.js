@@ -48,8 +48,8 @@ export class AppWebApi extends WebApi
         }
     }
     
-    getWorkPlanList(limit, offset, state, forStudent, userId, onSuccess, feedback){
-        let data = {limit: limit, offset: offset, forStudent: forStudent, state: state, userId: userId, service: "getWorkPlanList"};
+    getWorkPlanList(limit, offset, state, forStudent, userId, orderBy, onSuccess, feedback){
+        let data = {limit: limit, offset: offset, forStudent: forStudent, state: state, userId: userId, orderBy:orderBy, service: "getWorkPlanList"};
         this.post(this.gateway, data, onSuccess, null, feedback);
     }
 

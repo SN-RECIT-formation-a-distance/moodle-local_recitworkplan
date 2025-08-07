@@ -65,6 +65,13 @@ class WebApi extends MoodleApi
             $offset = clean_param($request['offset'], PARAM_INT);
             $userId = clean_param($request['userId'], PARAM_INT);
             $userId = ($userId == 0 ? $this->signedUser->id : $userId);
+            
+            $orderBy = null;
+            if(isset($request['orderBy'])){
+                $orderBy = clean_param($request['orderBy'], PARAM_TEXT);
+                $orderBy = explode(",", $orderBy);
+            }
+            
 
             if (!$forStudent){
                 $this->canUserAccess('a');
@@ -74,7 +81,7 @@ class WebApi extends MoodleApi
                 $result = $this->ctrl->getTemplateList($userId, $limit, $offset);
             }
             else{
-                $result = $this->ctrl->getWorkPlanList($userId, $limit, $offset, $state, $forStudent);
+                $result = $this->ctrl->getWorkPlanList($userId, $limit, $offset, $state, $forStudent, $orderBy);
             }
             
             $this->prepareJson($result);

@@ -24,7 +24,7 @@ import { faPencilAlt,  faPlus, faTrashAlt, faCopy, faArrowLeft, faEllipsisV, faS
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { FeedbackCtrl, ToggleButtons } from '../libs/components/Components';
 import {$glVars, WorkPlanUtils} from '../common/common';
-import { JsNx, UtilsString, UtilsDateTime } from '../libs/utils/Utils';
+import { JsNx, UtilsString, UtilsDateTime, Cookies } from '../libs/utils/Utils';
 import { Pagination } from '../libs/components/Pagination';
 import {ActivityPicker, WorkPlanTemplateView} from './TemplateView';
 import { UserActivityList, CustomCard, CustomHeader, CustomButton, CustomBadge, CustomBadgeCompletion, CustomFormControl, FollowUpCard, AssignmentFollowUp, WorkPlanCollapsible, WorkPlanFollowUp  } from './Components';
@@ -61,6 +61,7 @@ export class WorkPlanListView extends Component{
         this.getDataResult = this.getDataResult.bind(this);
         this.onCopy = this.onCopy.bind(this);
         this.onCopyEnd = this.onCopyEnd.bind(this);
+        this.onOrderBy = this.onOrderBy.bind(this);
 
         this.state = {
             dataProvider: [], 
@@ -72,7 +73,8 @@ export class WorkPlanListView extends Component{
                 templateId: 0,
                 title: '',
                 state: 0
-            }
+            },
+            orderBy: Cookies.get('orderBy', "templateid,desc")
         };
         
         if (props.workPlanId > 0){
@@ -85,7 +87,14 @@ export class WorkPlanListView extends Component{
     }
 
     getData(){
-        $glVars.webApi.getWorkPlanList(this.state.pagination.item_per_page, this.state.pagination.current_page - 1, this.state.activeTab, false, 0, this.getDataResult);
+        $glVars.webApi.getWorkPlanList(
+            this.state.pagination.item_per_page, 
+            this.state.pagination.current_page - 1, 
+            this.state.activeTab, 
+            false, 
+            0, 
+            this.state.orderBy,
+            this.getDataResult);
     }
 
     getDataResult(result){
@@ -116,13 +125,24 @@ export class WorkPlanListView extends Component{
 
         let main = 
             <div>
-                <CustomHeader title="Plans de travail" btnAfter={<CustomButton title='Créer un plan de travail' onClick={this.onAdd} ><FontAwesomeIcon icon={faPlus}/></CustomButton>}>
+                <CustomHeader title="Plans de travail" btnAfter={<CustomButton title='Créer un plan de travail' onClick={this.onAdd} ><FontAwesomeIcon icon={faPlus}/></CustomButton>}>                    
                     <ToggleButtons name="completionState" onClick={this.onCompletionStateChange} type="radio" value={this.state.activeTab} options={[
                             {value: "ongoing", text: <span><FontAwesomeIcon icon={faSyncAlt} />{" En cours"}</span>}, 
                             {value: "archive", text:  <span><FontAwesomeIcon icon={faArchive} />{" Archivés"}</span>}, 
                             {value: "template", text: <span><FontAwesomeIcon icon={faBookmark} />{" Gabarits"}</span>},
                             {value: "manager", text: <span><FontAwesomeIcon icon={faChalkboardTeacher} />{" Gestionnaire"}</span>},
                             ]}/>
+                    <div className='d-flex justify-content-end align-items-baseline mt-3'>
+                        <label className='mr-2'>Trier par</label>
+                        <select type="select" value={this.state.orderBy} className='form-control rounded' onChange={this.onOrderBy}>
+                            <option value="templateid,asc">Date de création (croissant)</option>
+                            <option value="templateid,desc">Date de création (décroissant)</option>
+                            <option value="templatename,asc">Nom (croissant)</option>
+                            <option value="templatename,desc">Nom (décroissant)</option>
+                            <option value="lastupdate,asc">Dernière mise à jour (croissant)</option>
+                            <option value="lastupdate,desc">Dernière mise à jour (décroissant)</option>
+                        </select> 
+                    </div>
                 </CustomHeader>
 
                 <div className='tiles'>
@@ -143,6 +163,11 @@ export class WorkPlanListView extends Component{
         let form = <WorkPlanView templateId={this.state.templateId} editTab={this.state.editTab} onClose={this.onClose}/>;
 
         return (this.state.templateId >= 0 ? form : main);
+    }
+
+    onOrderBy(event){
+        Cookies.set('orderBy', event.target.value, 60*24*31);
+        this.setState({orderBy: event.target.value}, this.getData);
     }
 
     onAdd(){
@@ -550,7 +575,7 @@ class WorkPlanAssignmentsView extends Component{
                 <div>
                     {assignments.map((item, iAssignment) => {
                             let progressValue = 0;
-                            let progressText  = ``;
+                            let progressText  = `0%`;
                             if(data.stats.workplanprogress[`${item.user.id}`]){
                                 progressValue = data.stats.workplanprogress[`${item.user.id}`];
                                 progressText = `${progressValue}%`;
@@ -559,6 +584,7 @@ class WorkPlanAssignmentsView extends Component{
                             let nbHoursCompletionTotal = WorkPlanUtils.getTotalNrHours(data.template.activities);
                             nbHoursCompletionTotal = nbHoursCompletionTotal + item.nbAdditionalHours;
                             let txtDuration = (item.nbHoursPerWeek > 0 ? `${Math.ceil(nbHoursCompletionTotal / item.nbHoursPerWeek)} semaines` : '');
+                            let nbHoursCompleted = WorkPlanUtils.getNbHoursCompletion(data.template.activities, item);
 
                             let card = 
                                 <CustomCard key={iAssignment} progressText={progressText} progressValue={`${progressValue}%`}>
@@ -575,7 +601,7 @@ class WorkPlanAssignmentsView extends Component{
                                                     <div>Dernière connexion: {UtilsDateTime.toTimeString(item.user.lastAccess)}</div>
                                                     <div>{`Début: ${UtilsDateTime.formatDateTime(item.startDate)}`}</div>
                                                     <div>{`Échéance: ${UtilsDateTime.formatDateTime(item.endDate, " ", "Non définie")} `}</div>
-                                                    <div>{`Nb heures effectuées: ${WorkPlanUtils.getNbHoursCompletion(data.template.activities, item)}h`}</div>
+                                                    <div>{`Nb heures effectuées: ${nbHoursCompleted}h`}</div>
                                                     
                                                     {data.template.type === 'd' && 
                                                         <>
@@ -611,7 +637,11 @@ class WorkPlanAssignmentsView extends Component{
                                             <AssignmentFollowUp data={data} assignmentId={item.id}/>
                                         </div>
                                         <div className="p-2 text-muted d-flex" style={{alignItems: 'center', justifyContent: 'flex-end'}}>
-                                            <CustomBadgeCompletion  stats={progressText}/>
+                                            <div className='mr-5'>
+                                                <CustomBadgeCompletion  stats={progressText}/>
+                                                <div className='text-muted mt-2'>{`Heures complétées: `}<strong>{`${nbHoursCompleted}h`}</strong></div>
+                                            </div>
+                                            
                                             <DropdownButton as={ButtonGroup}  disabled={WorkPlanUtils.isArchived(JsNx.at(data.assignments, 0, null))} className='mr-3' bsPrefix='rounded btn btn-sm btn-outline-primary' variant='' title={<span><FontAwesomeIcon icon={faEllipsisV}  />{" "}</span>} id={`optionsAssignments${item.id}`}>
                                                 <Dropdown.Item onClick={() => this.setState({editAssignment: item})}><FontAwesomeIcon icon={faPencilAlt} />{" Modifier"}</Dropdown.Item>
                                                 <Dropdown.Item disabled={data.template.type === 's'} onClick={() => this.setState({editAssignmentAdditionalHours: item})}><FontAwesomeIcon icon={faClock} />{" Heures supplémentaires"}</Dropdown.Item>

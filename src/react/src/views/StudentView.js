@@ -123,7 +123,7 @@ export class StudentWorkPlanList extends Component {
     }
  
     getData(){
-        $glVars.webApi.getWorkPlanList(30, 0, this.props.state, true, this.props.userId, this.getDataResult.bind(this));
+        $glVars.webApi.getWorkPlanList(30, 0, this.props.state, true, this.props.userId, '', this.getDataResult.bind(this));
     }
  
     getDataResult(result){

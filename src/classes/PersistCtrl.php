@@ -634,7 +634,7 @@ class PersistCtrl extends MoodlePersistCtrl
         return $result; 
     }
 
-    public function getWorkPlanList($userId, $limit = 0, $offset = 0, $state = 'ongoing', $forStudent = false){
+    public function getWorkPlanList($userId, $limit = 0, $offset = 0, $state = 'ongoing', $forStudent = false, $orderBy = null){
         global $DB;
         $whereaccess = "true";
         $where = "";
@@ -699,6 +699,12 @@ class PersistCtrl extends MoodlePersistCtrl
         if ($limit > 0){
             $offsetsql = $offset * $limit;
             //$query .= " LIMIT $limit OFFSET $offsetsql";
+        }
+
+        if($orderBy != null){
+            if(in_array($orderBy[0], array('templateid', 'templatename', 'lastupdate')) && in_array($orderBy[1],  array('asc', 'desc'))){
+                $query .= " order by " . $orderBy[0] . " " . $orderBy[1];
+            }
         }
 
         $rst = $DB->get_records_sql($query);

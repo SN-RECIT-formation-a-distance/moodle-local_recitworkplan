@@ -12,7 +12,7 @@ export class Cookies
         let d = new Date();
         d.setTime(d.getTime() + (minutesExpire*60*1000));
         let expires = "expires="+d.toUTCString();
-        document.cookie = id + "=" + value + "; " + expires;
+        document.cookie = id + "=" + value + "; Path=/;" + expires;
     };
 
     static get = function (id, defaultValue) {

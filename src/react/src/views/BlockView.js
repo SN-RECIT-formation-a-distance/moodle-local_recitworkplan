@@ -21,7 +21,7 @@
 import React, { Component } from 'react';
 import { FeedbackCtrl } from '../libs/components/Components';
 import {$glVars, Options, WorkPlanUtils} from '../common/common';
-import {  UtilsDateTime  } from '../libs/utils/Utils';
+import {  Cookies, UtilsDateTime  } from '../libs/utils/Utils';
 import { WorkPlanFollowUp, CustomBadgeCompletion, CustomBadge, WorkPlanCustomCard, WorkPlanCollapsible, AssignmentFollowUp  } from './Components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSpinner } from '@fortawesome/free-solid-svg-icons';
@@ -44,7 +44,7 @@ export class StudentBlockView extends Component{
     }
 
     getData(){
-        $glVars.webApi.getWorkPlanList(this.state.pagination.item_per_page, this.state.pagination.current_page - 1, 'ongoing', true, 0, this.getDataResult, false);
+        $glVars.webApi.getWorkPlanList(this.state.pagination.item_per_page, this.state.pagination.current_page - 1, 'ongoing', true, 0, '', this.getDataResult, false);
     }
 
     getDataResult(result){
@@ -135,7 +135,12 @@ export class AdminBlockView extends Component {
         this.getData = this.getData.bind(this);
         this.getDataResult = this.getDataResult.bind(this);
 
-        this.state = {dataProvider: [], pagination: {current_page: 1, count: 0, item_per_page: 25}, loading: true};
+        this.state = {
+            dataProvider: [], 
+            pagination: {current_page: 1, count: 0, item_per_page: 25}, 
+            loading: true,
+            orderBy: Cookies.get('orderBy', "templateid,desc")
+        };
     }
 
     componentDidMount(){
@@ -143,7 +148,7 @@ export class AdminBlockView extends Component {
     }
 
     getData(){
-        $glVars.webApi.getWorkPlanList(this.state.pagination.item_per_page, this.state.pagination.current_page - 1, 'ongoing', false, 0, this.getDataResult, false);
+        $glVars.webApi.getWorkPlanList(this.state.pagination.item_per_page, this.state.pagination.current_page - 1, 'ongoing', false, 0, this.state.orderBy, this.getDataResult, false);
     }
 
     getDataResult(result){
