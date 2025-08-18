@@ -267,7 +267,7 @@ class ModalWorkPlanCopy extends Component{
         </Form>;
 
         let main = 
-            <Modal show={true} onHide={this.props.onClose} size="sm" backdrop='static'>
+            <Modal show={true} onHide={this.props.onClose} size="sm" backdrop='static' className='recit_workplan'>
                 <Modal.Header closeButton>
                     <Modal.Title>{this.props.data.title}</Modal.Title>
                 </Modal.Header>
@@ -689,7 +689,7 @@ class WorkPlanAssignmentsView extends Component{
                 let body =  <StudentWorkPlanList userId={this.state.showUser.id}/>;
 
                 studentView = 
-                <Modal show={true} onHide={() => this.onOpenStudentView(null)} size="lg" backdrop='static'>
+                <Modal show={true} onHide={() => this.onOpenStudentView(null)} size="lg" backdrop='static' className='recit_workplan'>
                     <Modal.Header closeButton>
                         <Modal.Title>{title}</Modal.Title>
                     </Modal.Header>

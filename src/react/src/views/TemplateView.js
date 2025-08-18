@@ -196,7 +196,7 @@ export class ActivityPicker extends Component{
         let footer = <ButtonGroup><Button variant='secondary' onClick={this.onClose}>Fermer</Button></ButtonGroup>
 
         let main = 
-            <Modal show={true} onHide={this.onClose} size="xl" backdrop='static'>
+            <Modal show={true} onHide={this.onClose} size="xl" backdrop='static' className='recit_workplan'>
                 <Modal.Header closeButton>
                     <Modal.Title>{this.props.title}</Modal.Title>
                 </Modal.Header>
@@ -683,7 +683,7 @@ class ModalTemplateForm extends Component{
             </Form>;
 
         let main = 
-            <Modal show={true} onHide={this.props.onClose} size="lg" backdrop='static'>
+            <Modal show={true} onHide={this.props.onClose} size="lg" backdrop='static' className='recit_workplan'>
                 <Modal.Header closeButton>
                     <Modal.Title>{"Modifier plan de travail/gabarit"}</Modal.Title>
                 </Modal.Header>
@@ -799,7 +799,7 @@ class ModalTemplateOptionForm extends Component{
             </ButtonGroup>;
 
         let main = 
-            <Modal show={true} onHide={this.props.onClose} size="lg" backdrop='static'>
+            <Modal show={true} onHide={this.props.onClose} size="lg" backdrop='static' className='recit_workplan'>
                 <Modal.Header closeButton>
                     <Modal.Title>{"Modifier les options"}</Modal.Title>
                 </Modal.Header>

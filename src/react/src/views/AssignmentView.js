@@ -180,7 +180,7 @@ export class ModalAssignmentPicker extends Component{
             </div>;
 
         let main = 
-            <Modal show={true} onHide={this.onClose} size="lg" backdrop='static'>
+            <Modal show={true} onHide={this.onClose} size="lg" backdrop='static' className='recit_workplan'>
                 <Modal.Header closeButton>
                     <Modal.Title>{'Attribuer un plan de travail'}</Modal.Title>
                 </Modal.Header>
@@ -364,7 +364,7 @@ export class ModalAssignmentMassActions extends Component{
             </div>;
 
         let main = 
-            <Modal show={true} onHide={this.onClose} size="xl" backdrop='static'>
+            <Modal show={true} onHide={this.onClose} size="xl" backdrop='static' className='recit_workplan'>
                 <Modal.Header closeButton>
                     <Modal.Title>{'Actions en lot pour tous les élèves assignés'}</Modal.Title>
                 </Modal.Header>
@@ -707,7 +707,7 @@ export class ModalAssignmentForm extends Component{
 
 
         let main = 
-            <Modal show={true} onHide={this.onClose} size="lg" backdrop='static'>
+            <Modal show={true} onHide={this.onClose} size="lg" backdrop='static' className='recit_workplan'>
                 <Modal.Header closeButton>
                     <Modal.Title>{'Modifier élève'}</Modal.Title>
                 </Modal.Header>
@@ -809,7 +809,7 @@ export class ModalAssignmentAdditionalHoursForm extends Component{
 
 
         let main = 
-            <Modal show={true} onHide={this.onClose} size="lg" backdrop='static'>
+            <Modal show={true} onHide={this.onClose} size="lg" backdrop='static' className='recit_workplan'>
                 <Modal.Header closeButton>
                     <Modal.Title>{'Ajout d\'heures supplémentaires'}</Modal.Title>
                 </Modal.Header>
@@ -926,7 +926,7 @@ export class ModalAssignmentAdditionalHoursHistory extends Component{
 
 
         let main = 
-            <Modal show={true} onHide={this.onClose} size="lg" backdrop='static'>
+            <Modal show={true} onHide={this.onClose} size="lg" backdrop='static' className='recit_workplan'>
                 <Modal.Header closeButton>
                     <Modal.Title>{'Heures supplémentaires de '+this.state.data.user.fullname}</Modal.Title>
                 </Modal.Header>

@@ -51,7 +51,7 @@ class MainView{
         if (isset($_GET['id'])){
             $workplanId = $_GET['id'];
         }
-        echo sprintf("<div id='recit_workplan' data-user-id='%ld' data-mode='%s' data-workplanid='%s'></div>", $studentId, $mode, $workplanId);
+        echo sprintf("<div id='recit_workplan' class='recit_workplan' data-user-id='%ld' data-mode='%s' data-workplanid='%s'></div>", $studentId, $mode, $workplanId);
     }
 
     public function isTeacher(){
@@ -65,7 +65,7 @@ require_login();
 
 // Globals.
 $PAGE->set_url("/local/recitworkplan/view.php"); 
-$PAGE->requires->css(new moodle_url($CFG->wwwroot . '/local/recitworkplan/react/build/index.css'), true);
+$PAGE->requires->css(new moodle_url($CFG->wwwroot . '/local/recitworkplan/react/build/index.css?201'), true);
 $PAGE->requires->js(new moodle_url($CFG->wwwroot . '/local/recitworkplan/react/build/index.js?201'), true);
 
 // Set page context.

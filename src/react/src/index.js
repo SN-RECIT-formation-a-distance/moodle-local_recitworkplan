@@ -11,7 +11,7 @@ import Utils from "./libs/utils/Utils";
 import './common/i18n';
 import {AdminView} from "./views/WorkPlanView";
 import {$glVars, Options} from "./common/common";
-import "./css/style.scss";
+import "./css/style.scss"; 
 import { StudentView } from './views/StudentView';
 import { AdminBlockView, StudentBlockView } from './views/BlockView';
 
