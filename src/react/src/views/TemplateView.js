@@ -24,10 +24,11 @@ import { faPencilAlt,  faTrashAlt, faMinus, faPlus, faArrowsAlt, faArrowRight, f
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {ComboBoxPlus, FeedbackCtrl, ToggleButtons, ComboBox, InputNumber} from '../libs/components/Components';
 import {$glVars, WorkPlanUtils} from '../common/common';
-import { JsNx } from '../libs/utils/Utils';
+import { JsNx, UtilsDateTime } from '../libs/utils/Utils';
 import { CustomFormControl } from './Components';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css'; 
+import { InputTime } from '../libs/components/DateTime';
 
 export class ActivityPicker extends Component{
     static defaultProps = {        
@@ -178,8 +179,7 @@ export class ActivityPicker extends Component{
                                             </span>
                                         </div>
                                         <div className='d-flex align-items-center'>
-                                            <InputNumber nbDecimals={1} min={0} size='sm' disabled={this.state.loading} style={{width: '80px'}} value={item.nbHoursCompletion} name="nbHoursCompletion" onBlur={() => this.onSaveTplAct(item)}  onChange={(event) => this.onDataChange(event, index)} />
-                                            <Form.Text className='ml-2' muted>heures</Form.Text>
+                                            <InputTime disabled={this.state.loading} value={item.nbHoursCompletion} name="nbHoursCompletion" onBlur={() => this.onSaveTplAct(item)}  onChange={(event) => this.onDataChange(event, index)} />
                                         </div>
                                         <ButtonGroup>
                                             <Button  size='sm'variant="link" title="Supprimer" onClick={() => this.onRemoveTplAct(item.id)}><FontAwesomeIcon icon={faTrashAlt}/></Button>
@@ -543,7 +543,7 @@ export class WorkPlanTemplateView extends Component{
                             </Row>             
                             <Row className='m-4 border-bottom'>
                                 <Col className='text-muted' sm={2}>Temps à consacrer</Col>
-                                <Col sm={10} className=''>{`${nbHoursCompletionTotal} heures`}</Col>
+                                <Col sm={10} className=''>{UtilsDateTime.formatHours2Clocktime(nbHoursCompletionTotal)}</Col>
                             </Row> 
                             <Row className='m-4 border-bottom'>
                                 <Col className='text-muted' sm={2}>Catégories de cours</Col>

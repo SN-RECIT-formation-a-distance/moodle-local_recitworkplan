@@ -361,17 +361,14 @@ export class UtilsDateTime
         // Return the result as a string in the format "hours:minutes"
         let result = '';
 
-        if(hours > 0){
-            result = `${hours}h`;
+        result = `${hours}h`;
 
-            if(minutes > 0){
-                result += `:${minutes}m`;   
-            }
-        }
-        else{
-            result = `${minutes}m`; 
-        }
+        if(minutes > 0){
+            result += `${minutes}m`;   
+        }else{
+            result += `00m`;   
 
+        }
         return result;
     }
 };

@@ -639,7 +639,7 @@ class WorkPlanAssignmentsView extends Component{
                                         <div className="p-2 text-muted d-flex" style={{alignItems: 'center', justifyContent: 'flex-end'}}>
                                             <div className='mr-5'>
                                                 <CustomBadgeCompletion  stats={progressText}/>
-                                                <div className='text-muted mt-2'>{`Heures complétées: `}<strong>{`${nbHoursCompleted}h`}</strong></div>
+                                                <div className='text-muted mt-2'>{`Temps consacré: `}<strong>{UtilsDateTime.formatHours2Clocktime(nbHoursCompleted)}</strong></div>
                                             </div>
                                             
                                             <DropdownButton as={ButtonGroup}  disabled={WorkPlanUtils.isArchived(JsNx.at(data.assignments, 0, null))} className='mr-3' bsPrefix='rounded btn btn-sm btn-outline-primary' variant='' title={<span><FontAwesomeIcon icon={faEllipsisV}  />{" "}</span>} id={`optionsAssignments${item.id}`}>
@@ -820,7 +820,7 @@ class WorkPlanActivitiesView extends Component{
                                     <div className='d-flex d-block-mobile align-items-center' style={{justifyContent: 'space-between'}}>
                                         <div>
                                             <a className='font-weight-bold' href={item.cmUrl} target="_blank">{this.props.data.template.options.showCategory == 1 ? item.categoryName+'/' : ''}{`${item.courseName}/${item.cmName}`}</a>
-                                            <span className='font-weight-bold'>{` (${item.nbHoursCompletion} heures)`}</span>
+                                            <span className='font-weight-bold'>{' ('+UtilsDateTime.formatHours2Clocktime(item.nbHoursCompletion)+')'}</span>
                                         </div>
                                         <div className='d-flex align-items-center flex-wrap'>                                           
                                             {actStats.nbAwaitingGrade > 0 && <CustomBadge variant="correction" nbIndicator={actStats.nbAwaitingGrade}/>}
