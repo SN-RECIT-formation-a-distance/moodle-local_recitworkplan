@@ -48,7 +48,7 @@ export class UserActivityList extends Component{
                     <div className='d-flex align-items-center' style={{justifyContent: 'space-between'}}>
                         <div>
                             <a className='font-weight-bold' href={this.props.isTeacher ? userActivity.cmUrl : item.cmUrl} target="_blank">{`${item.categoryName}/${item.courseName}/${item.cmName}`}</a>
-                            <span className='font-weight-bold'>{` (${item.nbHoursCompletion} heures)`}</span>
+                            <span className='font-weight-bold'>{` (${UtilsDateTime.formatHours2Clocktime(item.nbHoursCompletion)})`}</span>
                         </div>
                         <div className='d-flex align-items-center flex-wrap'>
                             {userActivity.grade != null && <CustomBadge variant='bg-info' text={userActivity.grade}/>}

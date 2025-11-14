@@ -311,7 +311,7 @@ export class StudentTemplateDetail extends Component {
                 <div style={{ justifyContent: 'space-between', display: "flex", alignItems: "center", flexWrap: 'wrap'}}>
                     <div>
                         <div className='text-muted'>{`Échéance: ${UtilsDateTime.formatDateTime(assignment.endDate, " ", "Non définie")}`}</div>
-                        <div className='text-muted'>{`Temps à consacrer: ${WorkPlanUtils.getTotalNrHours(data.template.activities)} heures`}</div>
+                        <div className='text-muted'>{`Temps à consacrer: ${UtilsDateTime.formatHours2Clocktime(WorkPlanUtils.getTotalNrHours(data.template.activities))}`}</div>
                         {data.template.type === 'd' && <div className='text-muted'>{`Rythme: ${assignment.nbHoursPerWeek} (h/semaine)`}</div>}
                     </div>
                     <div>
