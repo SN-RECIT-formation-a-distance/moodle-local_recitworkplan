@@ -662,7 +662,8 @@ class PersistCtrl extends MoodlePersistCtrl
             $where .= " and (t2.creatorid = $userId or ".$this->sql_find_in_set($userId, 't2.collaboratorids').")";
             $capabilities[] = RECITWORKPLAN_ASSIGN_CAPABILITY;
             $capabilities[] = RECITWORKPLAN_MANAGE_CAPABILITY;
-            $whereaccess .= " and (t5.course is null or t5.course in (".$this->getContextAccessIds($userId, $capabilities, 50)."))";
+            $capabilitySmt = "left join {course} t7 on t7.id = t5.course";
+            $whereaccess .= " and (t5.course is null or t5.course in (".$this->getContextAccessIds($userId, $capabilities, 50).") or t7.category in (".$this->getContextAccessIds($userId, $capabilities, 40)."))";
         }else if (in_array($state, array('manager'))){
             $capabilities[] = RECITWORKPLAN_MANAGE_CAPABILITY;
             $capabilitySmt = "left join {course} t7 on t7.id = t5.course";
